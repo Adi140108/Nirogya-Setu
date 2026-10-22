@@ -11,11 +11,10 @@ import 'core/services/health_repository.dart';
 import 'core/services/offline_video_manager.dart';
 import 'core/sync/offline_sync_manager.dart';
 
-import 'features/auth/screens/login_screen.dart';
 import 'features/asha_portal/screens/asha_dashboard_screen.dart';
 import 'features/doctor_portal/screens/doctor_dashboard_screen.dart';
 import 'features/patient_portal/screens/patient_dashboard_screen.dart';
-import 'features/shared/screens/splash_screen.dart';
+import 'features/shared/screens/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,7 +78,6 @@ class AarogyaSetuApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
@@ -101,7 +99,7 @@ class AarogyaSetuApp extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
       ),
-      home: const SplashScreen(),
+      home: const RootGateScreen(),
     );
   }
 }
@@ -115,6 +113,7 @@ class RootGateScreen extends StatelessWidget {
 
     if (authService.isLoading) {
       return const Scaffold(
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +121,7 @@ class RootGateScreen extends StatelessWidget {
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 16),
               Text(
-                'AarogyaSetu AI loading...',
+                'Aarogya Setu loading...',
                 style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
               ),
             ],
@@ -132,7 +131,7 @@ class RootGateScreen extends StatelessWidget {
     }
 
     if (!authService.isAuthenticated || authService.currentUser == null) {
-      return const LoginScreen();
+      return const WelcomeScreen();
     }
 
     // Role-based authorization & screen routing

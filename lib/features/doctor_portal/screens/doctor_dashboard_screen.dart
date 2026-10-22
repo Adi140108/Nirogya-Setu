@@ -11,6 +11,7 @@ import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'doctor_review_screen.dart';
+import '../../../main.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -98,7 +99,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Sign Out',
-            onPressed: () => authService.signOut(),
+            onPressed: () async {
+              await authService.signOut();
+              if (context.mounted) {
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const RootGateScreen()),
+                  (route) => false,
+                );
+              }
+            },
           ),
         ],
       ),
@@ -306,26 +315,28 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.roleDoctor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                Flexible(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.roleDoctor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    icon: const Icon(Icons.rate_review_rounded, size: 16),
+                    label: Text(
+                      ref.status == ReferralStatus.consulted ? 'Review / Update Notes' : 'Clinical Consultation',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DoctorReviewScreen(referralId: ref.id),
+                        ),
+                      );
+                    },
                   ),
-                  icon: const Icon(Icons.rate_review_rounded, size: 16),
-                  label: Text(
-                    ref.status == ReferralStatus.consulted ? 'Review / Update Notes' : 'Clinical Consultation',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DoctorReviewScreen(referralId: ref.id),
-                      ),
-                    );
-                  },
                 ),
               ],
             ),

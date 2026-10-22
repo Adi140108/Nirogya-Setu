@@ -9,6 +9,7 @@ import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
+import '../../../main.dart';
 
 class PatientDashboardScreen extends StatelessWidget {
   const PatientDashboardScreen({super.key});
@@ -63,7 +64,15 @@ class PatientDashboardScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Sign Out',
-            onPressed: () => authService.signOut(),
+            onPressed: () async {
+              await authService.signOut();
+              if (context.mounted) {
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const RootGateScreen()),
+                  (route) => false,
+                );
+              }
+            },
           ),
         ],
       ),

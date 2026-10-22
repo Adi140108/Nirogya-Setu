@@ -36,11 +36,14 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAarogyaSetuDemoKey_AndroidDummy2026',
-    appId: '1:1029384756:android:1234567890abcdef',
-    messagingSenderId: '1029384756',
-    projectId: 'aarogya-setu-ai',
-    storageBucket: 'aarogya-setu-ai.appspot.com',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_ANDROID_API_KEY',
+      defaultValue: 'AIzaSyDemoPlaceholderAarogyaSetu_Scrubbed',
+    ),
+    appId: '1:558469968732:android:21658157e0a971dfdd8799',
+    messagingSenderId: '558469968732',
+    projectId: 'aarogya-setu-sdg',
+    storageBucket: 'aarogya-setu-sdg.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

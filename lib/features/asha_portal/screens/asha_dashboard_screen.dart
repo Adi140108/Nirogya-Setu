@@ -11,6 +11,7 @@ import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'register_villager_screen.dart';
 import 'screening_form_screen.dart';
 import 'patient_detail_screen.dart';
+import '../../../main.dart';
 
 class AshaDashboardScreen extends StatefulWidget {
   const AshaDashboardScreen({super.key});
@@ -87,7 +88,15 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Sign Out',
-            onPressed: () => authService.signOut(),
+            onPressed: () async {
+              await authService.signOut();
+              if (context.mounted) {
+                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const RootGateScreen()),
+                  (route) => false,
+                );
+              }
+            },
           ),
         ],
       ),

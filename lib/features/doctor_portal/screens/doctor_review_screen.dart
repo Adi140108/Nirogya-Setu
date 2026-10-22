@@ -278,6 +278,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<ReferralStatus>(
+                    isExpanded: true,
                     value: _selectedStatus,
                     decoration: const InputDecoration(
                       labelText: 'Referral Status / स्थिति',

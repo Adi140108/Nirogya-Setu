@@ -104,6 +104,40 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> bypassLoginAsRole(UserRole role, {String? displayName, String? email}) async {
+    _isLoading = true;
+    _authError = null;
+    notifyListeners();
+
+    final cleanName = displayName?.trim().isNotEmpty == true
+        ? displayName!.trim()
+        : (role == UserRole.asha
+            ? 'Shanti Devi'
+            : role == UserRole.doctor
+                ? 'Dr. Rajesh Sharma'
+                : 'Ramesh Kumar');
+
+    final cleanEmail = email?.trim().isNotEmpty == true
+        ? email!.trim()
+        : '${role.name}.user@aarogyasetu.gov.in';
+
+    final user = AppUser(
+      uid: 'user-${DateTime.now().millisecondsSinceEpoch}',
+      email: cleanEmail,
+      displayName: cleanName,
+      role: role,
+      phoneNumber: '+91 98765 00000',
+      villageId: 'village-rampura-01',
+      facilityId: 'phc-khed-01',
+      createdAt: DateTime.now(),
+    );
+
+    _currentUser = user;
+    await _storageService.saveUserSession(user.toMap());
+    _isLoading = false;
+    notifyListeners();
+  }
+
   // --- Email & Password Sign In / Up ---
 
   Future<bool> signInWithEmailPassword({

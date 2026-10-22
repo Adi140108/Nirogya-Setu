@@ -5,6 +5,12 @@
 skills/
 plugins/
 
+# Secrets
+*-firebase-adminsdk-*.json
+*google-services (*).json
+**/google-services.json
+google-services.json
+
 # IntelliJ related
 *.iml
 *.ipr
