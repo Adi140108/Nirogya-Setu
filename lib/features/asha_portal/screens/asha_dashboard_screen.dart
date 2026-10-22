@@ -155,46 +155,54 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     required int activeReferralCount,
     required int pendingFollowUps,
   }) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildMetricCard(
-            'Assigned Villagers',
-            '$villagerCount',
-            Icons.people_alt_outlined,
-            AppColors.primary,
-            AppColors.primarySurface,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                'Assigned Villagers',
+                '$villagerCount',
+                Icons.people_alt_outlined,
+                AppColors.primary,
+                AppColors.primarySurface,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildMetricCard(
+                'Screenings Done',
+                '$screeningCount',
+                Icons.checklist_rounded,
+                const Color(0xFF0288D1),
+                const Color(0xFFE1F5FE),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildMetricCard(
-            'Screenings Done',
-            '$screeningCount',
-            Icons.checklist_rounded,
-            const Color(0xFF0288D1),
-            const Color(0xFFE1F5FE),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildMetricCard(
-            'Active Referrals',
-            '$activeReferralCount',
-            Icons.outgoing_mail,
-            AppColors.secondary,
-            AppColors.secondarySurface,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildMetricCard(
-            'Follow-ups Due',
-            '$pendingFollowUps',
-            Icons.schedule_rounded,
-            AppColors.riskYellow,
-            AppColors.riskYellowSurface,
-          ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                'Active Referrals',
+                '$activeReferralCount',
+                Icons.outgoing_mail,
+                AppColors.secondary,
+                AppColors.secondarySurface,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildMetricCard(
+                'Follow-ups Due',
+                '$pendingFollowUps',
+                Icons.schedule_rounded,
+                AppColors.riskYellow,
+                AppColors.riskYellowSurface,
+              ),
+            ),
+          ],
         ),
       ],
     );

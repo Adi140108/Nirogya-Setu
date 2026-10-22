@@ -2,44 +2,15 @@ import '../constants/screening_rules.dart';
 import 'sync_status.dart';
 
 enum ReferralStatus {
-  pending,
-  underReview,
-  consulted,
-  escalatedToFacility,
-  closed,
-}
+  pending('Pending Review', 'pending'),
+  underReview('Under Clinical Review', 'under_review'),
+  consulted('Consulted / Prescribed', 'consulted'),
+  escalatedToFacility('Escalated to Hospital', 'escalated_to_facility'),
+  closed('Closed / Resolved', 'closed');
 
-extension ReferralStatusExtension on ReferralStatus {
-  String get value {
-    switch (this) {
-      case ReferralStatus.pending:
-        return 'pending';
-      case ReferralStatus.underReview:
-        return 'under_review';
-      case ReferralStatus.consulted:
-        return 'consulted';
-      case ReferralStatus.escalatedToFacility:
-        return 'escalated_to_facility';
-      case ReferralStatus.closed:
-        return 'closed';
-    }
-  }
-
-  String get displayName {
-    switch (this) {
-      case ReferralStatus.pending:
-        return 'Pending Review';
-      case ReferralStatus.underReview:
-        return 'Under Clinical Review';
-      case ReferralStatus.consulted:
-        return 'Consulted / Prescribed';
-      case ReferralStatus.escalatedToFacility:
-        return 'Escalated to Hospital';
-      case ReferralStatus.closed:
-        return 'Closed / Resolved';
-    }
-  }
-
+  final String displayName;
+  final String value;
+  const ReferralStatus(this.displayName, this.value);
   static ReferralStatus fromString(String? val) {
     switch (val) {
       case 'under_review':
@@ -234,7 +205,7 @@ class ReferralModel {
       assignedDoctorName: map['assignedDoctorName'],
       doctorClinicalNotes: map['doctorClinicalNotes'],
       doctorRecommendations: map['doctorRecommendations'],
-      status: ReferralStatusExtension.fromString(map['status']),
+      status: ReferralStatus.fromString(map['status']),
       facilityId: map['facilityId'],
       scheduledFollowUpDate: map['scheduledFollowUpDate'] != null
           ? DateTime.tryParse(map['scheduledFollowUpDate'])

@@ -120,23 +120,31 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Triage Metrics Row
-                  Row(
+                  // Triage Metrics 2x2 Grid
+                  Column(
                     children: [
-                      Expanded(
-                        child: _buildCountCard('Red Urgent', '$redCount', AppColors.riskRed, AppColors.riskRedSurface),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCountCard('Red Urgent', '$redCount', AppColors.riskRed, AppColors.riskRedSurface),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildCountCard('Yellow Mod.', '$yellowCount', AppColors.riskYellow, AppColors.riskYellowSurface),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildCountCard('Yellow Mod.', '$yellowCount', AppColors.riskYellow, AppColors.riskYellowSurface),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildCountCard('Pending', '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildCountCard('Consulted', '$consultedCount', AppColors.riskGreen, AppColors.riskGreenSurface),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildCountCard('Pending', '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildCountCard('Consulted', '$consultedCount', AppColors.riskGreen, AppColors.riskGreenSurface),
+                          ),
+                        ],
                       ),
                     ],
                   ),

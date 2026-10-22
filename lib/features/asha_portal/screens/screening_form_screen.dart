@@ -350,6 +350,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
           ),
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             value: _selectedPatient?.id,
             decoration: const InputDecoration(
               labelText: 'Select Registered Villager',
@@ -358,7 +359,10 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
             items: repo.patients.map((p) {
               return DropdownMenuItem(
                 value: p.id,
-                child: Text('${p.fullName} (${p.age}y, ${p.gender}) — ${p.villageName}'),
+                child: Text(
+                  '${p.fullName} (${p.age}y, ${p.gender}) — ${p.villageName}',
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             }).toList(),
             onChanged: (val) {

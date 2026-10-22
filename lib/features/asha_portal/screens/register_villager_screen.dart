@@ -164,15 +164,16 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
+                          isExpanded: true,
                           value: _gender,
                           decoration: const InputDecoration(
                             labelText: 'Gender / लिंग *',
                             prefixIcon: Icon(Icons.wc_outlined),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'Female', child: Text('Female / महिला')),
-                            DropdownMenuItem(value: 'Male', child: Text('Male / पुरुष')),
-                            DropdownMenuItem(value: 'Other', child: Text('Other / अन्य')),
+                            DropdownMenuItem(value: 'Female', child: Text('Female / महिला', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Male', child: Text('Male / पुरुष', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Other', child: Text('Other / अन्य', overflow: TextOverflow.ellipsis)),
                           ],
                           onChanged: (v) {
                             if (v != null) {
@@ -216,6 +217,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                 icon: Icons.location_on_outlined,
                 children: [
                   DropdownButtonFormField<String>(
+                    isExpanded: true,
                     value: _villageId,
                     decoration: const InputDecoration(
                       labelText: 'Assigned Village / गाँव *',
@@ -224,7 +226,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                     items: _allVillages.map((v) {
                       return DropdownMenuItem(
                         value: v['id'],
-                        child: Text(v['name']!),
+                        child: Text(v['name']!, overflow: TextOverflow.ellipsis),
                       );
                     }).toList(),
                     onChanged: (v) {
