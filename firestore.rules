@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for role-based authorization
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isRole(role) {
+      return isAuthenticated() && getUserData().role == role;
+    }
+
+    function isAsha() {
+      return isRole('asha');
+    }
+
+    function isDoctor() {
+      return isRole('doctor');
+    }
+
+    function isPatient() {
+      return isRole('patient');
+    }
+
+    // 1. Users collection: Role and account status
+    // Users can read/write their own record, but role manipulation is restricted
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isDoctor() || isAsha());
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && request.auth.uid == userId 
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']));
+    }
+
+    // 2. Patients collection
+    match /patients/{patientId} {
+      // Patients readable by ASHA workers, authorized doctors, or the patient themselves
+      allow read: if isAuthenticated() && (
+        isAsha() || 
+        isDoctor() || 
+        (isPatient() && resource.data.contactNumber == request.auth.token.phone_number)
+      );
+      // Only ASHA workers and doctors can register or update patient health profiles
+      allow create, update: if isAuthenticated() && (isAsha() || isDoctor());
+      allow delete: if false; // Deletion prohibited for medical audit integrity
+    }
+
+    // 3. Screenings collection
+    match /screenings/{screeningId} {
+      allow read: if isAuthenticated() && (isAsha() || isDoctor() || isPatient());
+      allow create: if isAuthenticated() && isAsha();
+      allow update: if isAuthenticated() && (isAsha() || isDoctor());
+      allow delete: if false;
+    }
+
+    // 4. Referrals collection
+    match /referrals/{referralId} {
+      allow read: if isAuthenticated() && (isAsha() || isDoctor() || isPatient());
+      allow create: if isAuthenticated() && isAsha();
+      // Doctors can update clinical notes and status; ASHA can update follow-up
+      allow update: if isAuthenticated() && (isDoctor() || isAsha());
+      allow delete: if false;
+    }
+
+    // 5. Health Content collection (Public Health Awareness Hub)
+    // Accessible publicly (even without authentication) as per prompt requirement
+    match /healthContent/{contentId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && isRole('admin');
+    }
+
+    // 6. Service Areas / Villages (for future Care-Gap Radar)
+    match /serviceAreas/{areaId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isRole('admin');
+    }
+  }
+}
