@@ -1,14 +1,9 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.buildlog/
-.history
-.svn/
-migrate_working_dir/
+# Agent & Skills Exclusions
+.agent/
+.agents/
+.gemini/
+skills/
+plugins/
 
 # IntelliJ related
 *.iml
