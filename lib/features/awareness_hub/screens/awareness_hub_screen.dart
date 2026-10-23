@@ -42,7 +42,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('स्वास्थ्य जागरूकता केंद्र', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Aarogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
           ],
         ),
@@ -55,8 +55,8 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'स्वास्थ्य केंद्र सहायता / Health Hub Help',
-                hindiText: 'यहाँ डेंगू, पोषण, गर्मी से बचाव के वीडियो उपलब्ध हैं। आप बिना इंटरनेट देखने के लिए वीडियो डाउनलोड कर सकते हैं।',
+                title: 'Health Hub Guidance',
+                hindiText: 'Watch health guidance videos. You can download them to watch 100% offline anytime.',
                 englishText: 'Watch health guidance videos. You can download them to watch 100% offline anytime.',
               );
             },

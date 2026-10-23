@@ -6,7 +6,8 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/voice_service.dart';
 
 class RegisterVillagerScreen extends StatefulWidget {
-  const RegisterVillagerScreen({super.key});
+  final String? initialHouseholdId;
+  const RegisterVillagerScreen({super.key, this.initialHouseholdId});
 
   @override
   State<RegisterVillagerScreen> createState() => _RegisterVillagerScreenState();
@@ -19,7 +20,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   final _ageController = TextEditingController();
   final _phoneController = TextEditingController();
   final _guardianController = TextEditingController();
-  final _householdController = TextEditingController();
+  late final TextEditingController _householdController;
   final _notesController = TextEditingController();
 
   String _gender = 'Female';
@@ -47,6 +48,12 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _householdController = TextEditingController(text: widget.initialHouseholdId ?? '');
+  }
+
+  @override
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
@@ -60,20 +67,51 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isSubmitting = true);
     final repo = context.read<HealthRepository>();
     final ashaUser = context.read<AuthService>().currentUser;
+    final fullName = _nameController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    // Check duplicate citizen registration
+    final duplicate = repo.findDuplicateCitizen(fullName: fullName, contactNumber: phone);
+    if (duplicate != null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.riskRed),
+              SizedBox(width: 8),
+              Text('Duplicate Registration Blocked', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text(
+            'A citizen named "${duplicate.fullName}" is already registered with contact "${duplicate.contactNumber}" in ${duplicate.villageName}. Multiple registrations for the same citizen are not allowed.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
 
     try {
       final newPatient = await repo.registerPatient(
         ashaId: ashaUser?.uid ?? 'asha-shanti-01',
-        fullName: _nameController.text.trim(),
+        fullName: fullName,
         age: int.parse(_ageController.text.trim()),
         gender: _gender,
         villageId: _villageId,
         villageName: _villageName,
-        householdId: _householdController.text.trim().isNotEmpty ? _householdController.text.trim() : null,
-        contactNumber: _phoneController.text.trim(),
+        householdId: _householdController.text.trim().isNotEmpty ? _householdController.text.trim() : 'HH-General',
+        contactNumber: phone,
         guardianName: _guardianController.text.trim().isNotEmpty ? _guardianController.text.trim() : null,
         isPregnant: _isPregnant,
         knownAllergies: _selectedAllergies,
@@ -85,7 +123,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: AppColors.riskGreen,
-          content: Text('✓ ${newPatient.fullName} registered successfully (Saved locally).'),
+          content: Text('✓ ${newPatient.fullName} registered successfully.'),
         ),
       );
       Navigator.pop(context);
@@ -104,19 +142,19 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('नागरिक पंजीकरण / Register Citizen'),
+        title: const Text('Register Citizen'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Voice guide for registration',
+            tooltip: 'Audio guidance for registration',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'पंजीकरण सहायता / Registration Help',
-                hindiText: 'नागरिक का नाम, आयु, लिंग, गांव और स्वास्थ्य इतिहास दर्ज करें।',
-                englishText: 'Enter citizen name, age, gender, village and known medical conditions.',
+                title: 'Citizen Registration',
+                hindiText: 'Enter citizen full name, age, gender, household ID, and pre-existing medical conditions.',
+                englishText: 'Enter citizen full name, age, gender, household ID, and pre-existing medical conditions.',
               );
             },
           ),
@@ -131,13 +169,13 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
             children: [
               // Basic Demographics Card
               _buildSectionCard(
-                title: 'व्यक्तिगत जानकारी / Basic Information',
+                title: 'Basic Information',
                 icon: Icons.person_add_alt_1_rounded,
                 children: [
                   TextFormField(
                     controller: _nameController,
                     decoration: const InputDecoration(
-                      labelText: 'Full Name / पूरा नाम *',
+                      labelText: 'Full Name *',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter full name' : null,
@@ -150,7 +188,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                           controller: _ageController,
                           keyboardType: TextInputType.number,
                           decoration: const InputDecoration(
-                            labelText: 'Age / उम्र *',
+                            labelText: 'Age *',
                             prefixIcon: Icon(Icons.cake_outlined),
                           ),
                           validator: (v) {
@@ -167,13 +205,13 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                           isExpanded: true,
                           value: _gender,
                           decoration: const InputDecoration(
-                            labelText: 'Gender / लिंग *',
+                            labelText: 'Gender *',
                             prefixIcon: Icon(Icons.wc_outlined),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'Female', child: Text('Female / महिला', overflow: TextOverflow.ellipsis)),
-                            DropdownMenuItem(value: 'Male', child: Text('Male / पुरुष', overflow: TextOverflow.ellipsis)),
-                            DropdownMenuItem(value: 'Other', child: Text('Other / अन्य', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Female', child: Text('Female', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Male', child: Text('Male', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Other', child: Text('Other', overflow: TextOverflow.ellipsis)),
                           ],
                           onChanged: (v) {
                             if (v != null) {
@@ -192,7 +230,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(
-                      labelText: 'Contact Phone / मोबाइल नंबर *',
+                      labelText: 'Contact Phone *',
                       prefixIcon: Icon(Icons.phone_outlined),
                       hintText: '+91 98765 00000',
                     ),
@@ -202,9 +240,9 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                   TextFormField(
                     controller: _guardianController,
                     decoration: const InputDecoration(
-                      labelText: 'Guardian / Relative / अभिभावक',
+                      labelText: 'Guardian / Family Head',
                       prefixIcon: Icon(Icons.family_restroom_outlined),
-                      hintText: 'e.g. Ramesh (Husband / Father)',
+                      hintText: 'e.g. Ramesh Kumar (Husband / Father)',
                     ),
                   ),
                 ],
@@ -213,14 +251,14 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
 
               // Location & Household Card
               _buildSectionCard(
-                title: 'गाँव और पता / Village & Household',
+                title: 'Village & Household',
                 icon: Icons.location_on_outlined,
                 children: [
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     value: _villageId,
                     decoration: const InputDecoration(
-                      labelText: 'Assigned Village / गाँव *',
+                      labelText: 'Assigned Village *',
                       prefixIcon: Icon(Icons.home_work_outlined),
                     ),
                     items: _allVillages.map((v) {
@@ -242,9 +280,9 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                   TextFormField(
                     controller: _householdController,
                     decoration: const InputDecoration(
-                      labelText: 'Household ID / घर संख्या',
+                      labelText: 'Household ID',
                       prefixIcon: Icon(Icons.tag_rounded),
-                      hintText: 'HH-042',
+                      hintText: 'e.g. HH-042',
                     ),
                   ),
                 ],
@@ -253,14 +291,14 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
 
               // Health History & Conditions
               _buildSectionCard(
-                title: 'स्वास्थ्य इतिहास / Medical Profile',
+                title: 'Medical Profile',
                 icon: Icons.medical_information_outlined,
                 children: [
                   if (_gender == 'Female') ...[
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Is Pregnant? / क्या गर्भवती हैं?'),
-                      subtitle: const Text('Antenatal care and tracking flag'),
+                      title: const Text('Is Pregnant?'),
+                      subtitle: const Text('Enroll in Antenatal Care (ANC) tracking'),
                       value: _isPregnant,
                       activeColor: AppColors.primary,
                       onChanged: (val) => setState(() => _isPregnant = val),
@@ -268,7 +306,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                     const Divider(),
                   ],
                   const Text(
-                    'Pre-existing Chronic Conditions / पुरानी बीमारियां:',
+                    'Pre-existing Chronic Conditions:',
                     style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
@@ -304,7 +342,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                     controller: _notesController,
                     maxLines: 2,
                     decoration: const InputDecoration(
-                      labelText: 'ASHA Field Notes / अतिरिक्त टिप्पणियां',
+                      labelText: 'ASHA Field Notes',
                       hintText: 'Notes regarding diet, disability, or living conditions...',
                     ),
                   ),
@@ -329,7 +367,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       )
                     : const Icon(Icons.check_circle_rounded),
                 label: Text(
-                  _isSubmitting ? 'पंजीकरण हो रहा है...' : 'Save & Register Citizen',
+                  _isSubmitting ? 'Registering...' : 'Save & Register Citizen',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -361,15 +399,11 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const Divider(height: 20),
           ...children,
         ],
       ),

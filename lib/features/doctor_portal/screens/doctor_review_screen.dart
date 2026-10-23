@@ -105,8 +105,8 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'रेफरल समीक्षा / Doctor Review',
-                hindiText: '${referral.patientName}, प्राथमिकता: ${referral.priority.name.toUpperCase()}। आशा कार्यकर्ता: ${referral.originatingAshaName}',
+                title: 'Doctor Referral Review',
+                hindiText: '${referral.patientName}, priority ${referral.priority.name.toUpperCase()}. Originating ASHA: ${referral.originatingAshaName}.',
                 englishText: '${referral.patientName}, priority ${referral.priority.name.toUpperCase()}. Originating ASHA: ${referral.originatingAshaName}.',
               );
             },
@@ -281,25 +281,25 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
                     isExpanded: true,
                     value: _selectedStatus,
                     decoration: const InputDecoration(
-                      labelText: 'Referral Status / स्थिति',
+                      labelText: 'Referral Status',
                       prefixIcon: Icon(Icons.flag_outlined),
                     ),
                     items: const [
                       DropdownMenuItem(
                         value: ReferralStatus.underReview,
-                        child: Text('Under Clinical Review / समीक्षा जारी'),
+                        child: Text('Under Clinical Review'),
                       ),
                       DropdownMenuItem(
                         value: ReferralStatus.consulted,
-                        child: Text('Consulted / Prescribed / परामर्श पूर्ण'),
+                        child: Text('Consulted / Prescribed'),
                       ),
                       DropdownMenuItem(
                         value: ReferralStatus.escalatedToFacility,
-                        child: Text('Escalate to District Hospital / उच्च अस्पताल रेफर'),
+                        child: Text('Escalate to District Hospital'),
                       ),
                       DropdownMenuItem(
                         value: ReferralStatus.closed,
-                        child: Text('Closed / Resolved / समाप्त'),
+                        child: Text('Closed / Resolved'),
                       ),
                     ],
                     onChanged: (val) {

@@ -11,7 +11,7 @@ import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'doctor_review_screen.dart';
-import '../../../main.dart';
+import '../../shared/widgets/sign_out_dialog.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -21,6 +21,7 @@ class DoctorDashboardScreen extends StatefulWidget {
 }
 
 class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
+  int _currentIndex = 0;
   String _selectedFilter = 'All';
   String _searchQuery = '';
 
@@ -36,6 +37,114 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     final pendingCount = referrals.where((r) => r.status == ReferralStatus.pending || r.status == ReferralStatus.underReview).length;
     final consultedCount = referrals.where((r) => r.status == ReferralStatus.consulted).length;
 
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [
+          _buildTriageQueueTab(context, authService, doctor, referrals, redCount, yellowCount, pendingCount, consultedCount),
+          _buildConsultedTab(context, authService, doctor, referrals),
+          _buildAnalyticsTab(context, authService, doctor, repo),
+          const AwarenessHubScreen(isPublicAccess: false),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: (index) => setState(() => _currentIndex = index),
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.roleDoctor,
+          unselectedItemColor: const Color(0xFF64748B),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          type: BottomNavigationBarType.fixed,
+          elevation: 8,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emergency_outlined),
+              activeIcon: Icon(Icons.emergency_rounded),
+              label: 'Triage Queue',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.task_alt_outlined),
+              activeIcon: Icon(Icons.task_alt_rounded),
+              label: 'Consulted',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.analytics_outlined),
+              activeIcon: Icon(Icons.analytics_rounded),
+              label: 'Analytics',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ondemand_video_outlined),
+              activeIcon: Icon(Icons.ondemand_video_rounded),
+              label: 'Health Hub',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildDoctorAppBar(BuildContext context, AuthService authService, dynamic doctor, String subtitle) {
+    return AppBar(
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Aarogya Setu',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            '${doctor?.displayName ?? "Medical Officer"} • $subtitle',
+            style: const TextStyle(fontSize: 11, color: Color(0xFFBBDEFB)),
+          ),
+        ],
+      ),
+      backgroundColor: AppColors.roleDoctor,
+      foregroundColor: Colors.white,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.volume_up_outlined),
+          tooltip: 'Voice Guidance',
+          onPressed: () {
+            VoiceService().speakPrompt(
+              context,
+              title: 'Doctor Portal Guidance',
+              hindiText: 'Referral triage queue. Review red priority cases with urgency.',
+              englishText: 'Referral triage queue. Review red priority cases with urgency.',
+            );
+          },
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout_rounded),
+          tooltip: 'Sign Out',
+          onPressed: () {
+            showSignOutConfirmationDialog(
+              context: context,
+              authService: authService,
+              roleName: 'Medical Officer Portal',
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Tab 0: Triage Queue
+  Widget _buildTriageQueueTab(
+    BuildContext context,
+    AuthService authService,
+    dynamic doctor,
+    List<ReferralModel> referrals,
+    int redCount,
+    int yellowCount,
+    int pendingCount,
+    int consultedCount,
+  ) {
     final filteredList = referrals.where((r) {
       final matchesSearch = r.patientName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           r.villageName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -57,60 +166,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              doctor?.displayName ?? 'Medical Officer Portal',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const Text(
-              'PHC Khed Sector • Referral & Tele-Consultation Queue',
-              style: TextStyle(fontSize: 11, color: Color(0xFFBBDEFB)),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.roleDoctor,
-        foregroundColor: Colors.white,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.ondemand_video_rounded),
-            tooltip: 'Awareness Hub',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AwarenessHubScreen(isPublicAccess: false)),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Voice Guidance',
-            onPressed: () {
-              VoiceService().speakPrompt(
-                context,
-                title: 'डॉक्टर पोर्टल सहायता / Doctor Portal Help',
-                hindiText: 'प्राथमिक स्वास्थ्य केंद्र के लिए रेफरल कतार। लाल प्राथमिकता वाले गंभीर मरीजों को तुरंत देखें।',
-                englishText: 'Referral triage queue. Review red priority cases with urgency.',
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Sign Out',
-            onPressed: () async {
-              await authService.signOut();
-              if (context.mounted) {
-                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const RootGateScreen()),
-                  (route) => false,
-                );
-              }
-            },
-          ),
-        ],
-      ),
+      appBar: _buildDoctorAppBar(context, authService, doctor, 'PHC Triage Queue'),
       body: Column(
         children: [
           const NetworkBanner(),
@@ -138,7 +194,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildCountCard('Pending', '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
+                            child: _buildCountCard('Pending Review', '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -150,7 +206,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  // Search & Filter Tabs
+                  // Search Bar
                   TextField(
                     decoration: InputDecoration(
                       hintText: 'Search referrals by citizen, village, or ASHA...',
@@ -167,6 +223,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   ),
                   const SizedBox(height: 12),
 
+                  // Filter Chips
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -207,6 +264,219 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// Tab 1: Consulted List
+  Widget _buildConsultedTab(
+    BuildContext context,
+    AuthService authService,
+    dynamic doctor,
+    List<ReferralModel> referrals,
+  ) {
+    final consultedList = referrals.where((r) => r.status == ReferralStatus.consulted).toList();
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: _buildDoctorAppBar(context, authService, doctor, 'Completed Consultations'),
+      body: Column(
+        children: [
+          const NetworkBanner(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE8F5E9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFA5D6A7)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.verified_rounded, color: Color(0xFF2E7D32)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '${consultedList.length} Citizens successfully evaluated and prescribed clinical care.',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  if (consultedList.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'No consultations marked as completed yet.',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ),
+                    )
+                  else
+                    ...consultedList.map((ref) => _buildReferralCard(ref)),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tab 2: Analytics & Population Health
+  Widget _buildAnalyticsTab(
+    BuildContext context,
+    AuthService authService,
+    dynamic doctor,
+    HealthRepository repo,
+  ) {
+    final patients = repo.patients;
+    final screenings = repo.screenings;
+    final referrals = repo.referrals;
+
+    final redCases = referrals.where((r) => r.priority == HealthPriority.red).length;
+    final yellowCases = referrals.where((r) => r.priority == HealthPriority.yellow).length;
+    final pregnantCount = patients.where((p) => p.isPregnant).length;
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: _buildDoctorAppBar(context, authService, doctor, 'Epidemiology & Analytics'),
+      body: Column(
+        children: [
+          const NetworkBanner(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // KPI Overview
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Sector Epidemiological Overview',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(child: _buildMetricTile('Registered Citizens', '${patients.length}', Icons.people_rounded, AppColors.primary)),
+                            const SizedBox(width: 10),
+                            Expanded(child: _buildMetricTile('Screenings Logged', '${screenings.length}', Icons.checklist_rounded, const Color(0xFF0284C7))),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(child: _buildMetricTile('Critical Red Alerts', '$redCases', Icons.emergency_rounded, AppColors.riskRed)),
+                            const SizedBox(width: 10),
+                            Expanded(child: _buildMetricTile('Moderate Yellow Cases', '$yellowCases', Icons.warning_amber_rounded, AppColors.riskYellow)),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(child: _buildMetricTile('Antenatal Care (ANC)', '$pregnantCount', Icons.pregnant_woman_rounded, const Color(0xFF0D9488))),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Village Demographics Breakdown
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Village Distribution Matrix',
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 12),
+                        ...{'Rampura', 'Khed', 'Shivpur'}.map((vName) {
+                          final count = patients.where((p) => p.villageName == vName).length;
+                          final fraction = patients.isNotEmpty ? count / patients.length : 0.0;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(vName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                    Text('$count citizens', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                LinearProgressIndicator(
+                                  value: fraction,
+                                  backgroundColor: const Color(0xFFF1F5F9),
+                                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.roleDoctor),
+                                  minHeight: 6,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
         ],
       ),
     );

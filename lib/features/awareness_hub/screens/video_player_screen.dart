@@ -100,7 +100,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               VoiceService().speakPrompt(
                 context,
                 title: content.title,
-                hindiText: 'यह वीडियो ${content.topic} पर आधारित है। इसे कभी भी बिना इंटरनेट देखा जा सकता है।',
+                hindiText: 'Playing educational video on ${content.topic}. Fully available offline.',
                 englishText: 'Playing educational video on ${content.topic}. Fully available offline.',
               );
             },

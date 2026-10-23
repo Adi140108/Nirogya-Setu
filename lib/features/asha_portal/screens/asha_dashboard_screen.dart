@@ -11,7 +11,9 @@ import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'register_villager_screen.dart';
 import 'screening_form_screen.dart';
 import 'patient_detail_screen.dart';
-import '../../../main.dart';
+import 'asha_households_screen.dart';
+import 'asha_chatbot_screen.dart';
+import '../../shared/widgets/sign_out_dialog.dart';
 
 class AshaDashboardScreen extends StatefulWidget {
   const AshaDashboardScreen({super.key});
@@ -21,11 +23,64 @@ class AshaDashboardScreen extends StatefulWidget {
 }
 
 class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
+  int _currentNavIndex = 0;
   String _searchQuery = '';
   String _selectedVillageFilter = 'All';
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentNavIndex,
+        children: [
+          _buildOverviewTab(context),
+          const AshaHouseholdsScreen(isEmbedded: false),
+          const AshaChatbotScreen(isEmbedded: false),
+          const AwarenessHubScreen(isPublicAccess: false),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentNavIndex,
+          onTap: (index) => setState(() => _currentNavIndex = index),
+          backgroundColor: Colors.white,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: const Color(0xFF64748B),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          type: BottomNavigationBarType.fixed,
+          elevation: 8,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.dashboard_outlined),
+              activeIcon: Icon(Icons.dashboard_rounded),
+              label: 'Overview',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.family_restroom_outlined),
+              activeIcon: Icon(Icons.family_restroom_rounded),
+              label: 'Households',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.smart_toy_outlined),
+              activeIcon: Icon(Icons.smart_toy_rounded),
+              label: 'Assistant',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.ondemand_video_outlined),
+              activeIcon: Icon(Icons.ondemand_video_rounded),
+              label: 'Health Hub',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverviewTab(BuildContext context) {
     final authService = context.watch<AuthService>();
     final repo = context.watch<HealthRepository>();
     final ashaUser = authService.currentUser;
@@ -50,12 +105,12 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              ashaUser?.displayName ?? 'ASHA Field Worker',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Text(
+              'Aarogya Setu',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              'Rampura Sector • Badge: ${ashaUser?.badgeNumber ?? "ASHA-88"}',
+              '${ashaUser?.displayName ?? "ASHA Field Worker"} • Badge: ${ashaUser?.badgeNumber ?? "ASHA-88"}',
               style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
             ),
           ],
@@ -64,23 +119,13 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.ondemand_video_rounded),
-            tooltip: 'Awareness Hub',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AwarenessHubScreen(isPublicAccess: false)),
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.volume_up_outlined),
             tooltip: 'Voice Guidance',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'आशा पोर्टल सहायता / ASHA Portal Help',
-                hindiText: 'यहाँ आप नागरिकों का पंजीकरण, स्वास्थ्य जांच और रेफरल स्थिति देख सकती हैं।',
+                title: 'ASHA Field Worker Portal Help',
+                hindiText: 'Register citizens, conduct preventive screenings, and view doctor referrals.',
                 englishText: 'Register citizens, conduct preventive screenings, and view doctor referrals.',
               );
             },
@@ -88,14 +133,12 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Sign Out',
-            onPressed: () async {
-              await authService.signOut();
-              if (context.mounted) {
-                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const RootGateScreen()),
-                  (route) => false,
-                );
-              }
+            onPressed: () {
+              showSignOutConfirmationDialog(
+                context: context,
+                authService: authService,
+                roleName: 'ASHA Field Worker Portal',
+              );
             },
           ),
         ],
@@ -293,7 +336,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         Row(
           children: [
             const Text(
-              'Assigned Citizens / पंजीकृत नागरिक',
+              'Assigned Citizens',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const Spacer(),

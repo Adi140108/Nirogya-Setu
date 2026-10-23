@@ -237,7 +237,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('सामान्य स्वास्थ्य जांच / General Screening'),
+        title: const Text('General Health Screening'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -247,8 +247,8 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'जांच सहायता / Screening Help',
-                hindiText: 'रक्तचाप, नाड़ी, बुखार, ऑक्सीजन और शुगर के आंकड़े दर्ज करें। सिस्टम तुरंत हरी, पीली या लाल श्रेणी तय करेगा।',
+                title: 'Screening Help',
+                hindiText: 'Enter vitals and symptoms. The system will categorize into Green, Yellow or Red priority.',
                 englishText: 'Enter vitals and symptoms. The system will categorize into Green, Yellow or Red priority.',
               );
             },
@@ -313,7 +313,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
                     : const Icon(Icons.save_rounded),
                 label: Text(
                   _isSaving
-                      ? 'सुरक्षित किया जा रहा है...'
+                      ? 'Saving Screening...'
                       : (_escalateToReferral && assessment.priority != HealthPriority.green
                           ? 'Save Screening & Create Referral'
                           : 'Save Screening Record'),
@@ -343,7 +343,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               Icon(Icons.person_pin_rounded, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
-                'नागरिक का चयन / Select Citizen *',
+                'Select Citizen *',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -496,7 +496,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               Icon(Icons.monitor_heart_outlined, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
-                'शारीरिक माप / Vital Signs',
+                'Vital Signs',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -612,7 +612,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               Icon(Icons.checklist_rtl_rounded, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
-                'लक्षण और शिकायतें / Symptoms & Complaints',
+                'Symptoms & Complaints',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -677,7 +677,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               Icon(Icons.notes_rounded, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
-                'अवलोकन और आदतें / Observations & Lifestyle',
+                'Observations & Lifestyle',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -718,7 +718,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text(
-              'Escalate to Doctor Referral / डॉक्टर रेफरल बनाएं',
+              'Escalate to Doctor Referral',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.secondary),
             ),
             subtitle: const Text(

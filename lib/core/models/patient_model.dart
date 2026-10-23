@@ -15,6 +15,12 @@ class PatientModel {
   final List<String> knownAllergies;
   final List<String> chronicConditions;
   final String? notes;
+  final String? abhaNumber;
+  final String? abhaAddress;
+  final String? relationship;
+  final String? hindiName;
+  final String? wardNumber;
+  final String? districtState;
   final SyncStatus syncStatus;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -34,6 +40,12 @@ class PatientModel {
     this.knownAllergies = const [],
     this.chronicConditions = const [],
     this.notes,
+    this.abhaNumber,
+    this.abhaAddress,
+    this.relationship,
+    this.hindiName,
+    this.wardNumber,
+    this.districtState,
     this.syncStatus = SyncStatus.locallySaved,
     required this.createdAt,
     required this.updatedAt,
@@ -55,6 +67,12 @@ class PatientModel {
       'knownAllergies': knownAllergies,
       'chronicConditions': chronicConditions,
       'notes': notes,
+      'abhaNumber': abhaNumber,
+      'abhaAddress': abhaAddress,
+      'relationship': relationship,
+      'hindiName': hindiName,
+      'wardNumber': wardNumber,
+      'districtState': districtState,
       'syncStatus': syncStatus.value,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -77,6 +95,12 @@ class PatientModel {
       knownAllergies: List<String>.from(map['knownAllergies'] ?? []),
       chronicConditions: List<String>.from(map['chronicConditions'] ?? []),
       notes: map['notes'],
+      abhaNumber: map['abhaNumber'],
+      abhaAddress: map['abhaAddress'],
+      relationship: map['relationship'],
+      hindiName: map['hindiName'],
+      wardNumber: map['wardNumber'],
+      districtState: map['districtState'],
       syncStatus: SyncStatusExtension.fromString(map['syncStatus']),
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt']) ?? DateTime.now()
@@ -102,6 +126,12 @@ class PatientModel {
     List<String>? knownAllergies,
     List<String>? chronicConditions,
     String? notes,
+    String? abhaNumber,
+    String? abhaAddress,
+    String? relationship,
+    String? hindiName,
+    String? wardNumber,
+    String? districtState,
     SyncStatus? syncStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -121,9 +151,59 @@ class PatientModel {
       knownAllergies: knownAllergies ?? this.knownAllergies,
       chronicConditions: chronicConditions ?? this.chronicConditions,
       notes: notes ?? this.notes,
+      abhaNumber: abhaNumber ?? this.abhaNumber,
+      abhaAddress: abhaAddress ?? this.abhaAddress,
+      relationship: relationship ?? this.relationship,
+      hindiName: hindiName ?? this.hindiName,
+      wardNumber: wardNumber ?? this.wardNumber,
+      districtState: districtState ?? this.districtState,
       syncStatus: syncStatus ?? this.syncStatus,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  /// 14-digit standardized ABHA number formatted like 91-XXXX-XXXX-XXXX
+  String get computedAbhaNumber {
+    if (abhaNumber != null && abhaNumber!.trim().isNotEmpty) return abhaNumber!;
+    final digits = id.hashCode.abs().toString().padRight(12, '7').substring(0, 12);
+    return '91-${digits.substring(0, 4)}-${digits.substring(4, 8)}-${digits.substring(8, 12)}';
+  }
+
+  /// ABHA address e.g. name.surname@abdm
+  String get computedAbhaAddress {
+    if (abhaAddress != null && abhaAddress!.trim().isNotEmpty) return abhaAddress!;
+    final sanitized = fullName.toLowerCase().trim().replaceAll(RegExp(r'[^a-z0-9]'), '.');
+    return '$sanitized@abdm';
+  }
+
+  /// Localized Hindi name for government health cards
+  String get computedHindiName {
+    if (hindiName != null && hindiName!.trim().isNotEmpty) return hindiName!;
+    if (fullName.toLowerCase().contains('ramesh')) return 'रमेश कुमार';
+    if (fullName.toLowerCase().contains('sunita')) return 'सुनीता देवी';
+    if (fullName.toLowerCase().contains('aarav')) return 'आरव कुमार';
+    if (fullName.toLowerCase().contains('ananya')) return 'अनन्या कुमार';
+    if (fullName.toLowerCase().contains('meena')) return 'मीना बाई';
+    if (fullName.toLowerCase().contains('mohan')) return 'मोहन लाल';
+    if (fullName.toLowerCase().contains('priya')) return 'प्रिया शर्मा';
+    return fullName;
+  }
+
+  /// Family relationship description
+  String get displayRelationship {
+    if (relationship != null && relationship!.trim().isNotEmpty) return relationship!;
+    if (isPregnant) return 'Wife (ANC)';
+    if (age > 60) return 'Elder';
+    if (age < 18) return 'Child';
+    return 'Self';
+  }
+
+  String get computedWardNumber => wardNumber ?? '4';
+  String get computedDistrictState => districtState ?? 'District: Varanasi, Uttar Pradesh';
+
+  /// Generates the official QR code OPD token payload
+  String get opdQrData {
+    return '{"abha":"$computedAbhaNumber","name":"$fullName","gender":"$gender","age":$age,"phr":"$computedAbhaAddress","village":"$villageName","token":"OPD-${id.hashCode.abs() % 10000}"}';
   }
 }

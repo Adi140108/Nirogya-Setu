@@ -21,7 +21,7 @@ class PatientDetailScreen extends StatelessWidget {
 
     if (patient == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Citizen Details / नागरिक विवरण')),
+        appBar: AppBar(title: const Text('Citizen Details')),
         body: const Center(child: Text('Citizen record not found.')),
       );
     }
@@ -42,8 +42,8 @@ class PatientDetailScreen extends StatelessWidget {
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'नागरिक विवरण / Citizen Record',
-                hindiText: '${patient.fullName}, आयु ${patient.age} वर्ष, गाँव ${patient.villageName}। पूर्व जांचें: ${screenings.length}',
+                title: 'Citizen Record',
+                hindiText: '${patient.fullName}, ${patient.age} yrs, village ${patient.villageName}. Total screenings: ${screenings.length}.',
                 englishText: '${patient.fullName}, ${patient.age} yrs. Total screenings: ${screenings.length}.',
               );
             },
@@ -77,7 +77,7 @@ class PatientDetailScreen extends StatelessWidget {
               },
               icon: const Icon(Icons.add_chart_rounded),
               label: const Text(
-                'Conduct New Health Screening / नई जांच करें',
+                'Conduct New Health Screening',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
@@ -145,11 +145,11 @@ class PatientDetailScreen extends StatelessWidget {
             ],
           ),
           const Divider(height: 24),
-          _buildInfoRow('Mobile / फ़ोन', patient.contactNumber),
+          _buildInfoRow('Mobile Phone', patient.contactNumber),
           if (patient.guardianName != null && patient.guardianName!.isNotEmpty)
-            _buildInfoRow('Guardian / अभिभावक', patient.guardianName!),
+            _buildInfoRow('Guardian / Head', patient.guardianName!),
           if (patient.householdId != null && patient.householdId!.isNotEmpty)
-            _buildInfoRow('Household ID / घर संख्या', patient.householdId!),
+            _buildInfoRow('Household ID', patient.householdId!),
           if (patient.isPregnant)
             _buildInfoRow('Maternal Status', 'Antenatal Mother (Pregnant)', isAlert: true),
           _buildInfoRow(

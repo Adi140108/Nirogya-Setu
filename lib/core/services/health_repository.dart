@@ -77,9 +77,65 @@ class HealthRepository extends ChangeNotifier {
         knownAllergies: ['Penicillin'],
         chronicConditions: ['Hypertension'],
         notes: 'Farmer. Complains of occasional headaches and fatigue in midday heat.',
+        relationship: 'Self',
+        abhaNumber: '91-4421-9983-0021',
+        abhaAddress: 'ramesh.kumar@abdm',
+        hindiName: 'रमेश कुमार',
+        wardNumber: '4',
+        districtState: 'District: Varanasi, Uttar Pradesh',
         syncStatus: SyncStatus.synced,
         createdAt: now.subtract(const Duration(days: 12)),
         updatedAt: now.subtract(const Duration(days: 2)),
+      ),
+      PatientModel(
+        id: 'patient-ananya-05',
+        ashaId: 'asha-shanti-01',
+        fullName: 'Ananya Kumar',
+        age: 28,
+        gender: 'Female',
+        villageId: 'village-rampura-01',
+        villageName: 'Rampura',
+        householdId: 'HH-042',
+        contactNumber: '+91 98765 43210',
+        guardianName: 'Ramesh Kumar (Husband)',
+        isPregnant: true,
+        knownAllergies: [],
+        chronicConditions: ['Maternal Care'],
+        notes: 'Second trimester ANC follow-up. Iron-folic acid prescribed.',
+        relationship: 'Wife (ANC)',
+        abhaNumber: '91-6632-1194-5542',
+        abhaAddress: 'ananya.kumar@abdm',
+        hindiName: 'अनन्या कुमार',
+        wardNumber: '4',
+        districtState: 'District: Varanasi, Uttar Pradesh',
+        syncStatus: SyncStatus.synced,
+        createdAt: now.subtract(const Duration(days: 18)),
+        updatedAt: now.subtract(const Duration(days: 3)),
+      ),
+      PatientModel(
+        id: 'patient-aarav-06',
+        ashaId: 'asha-shanti-01',
+        fullName: 'Aarav Kumar',
+        age: 9,
+        gender: 'Male',
+        villageId: 'village-rampura-01',
+        villageName: 'Rampura',
+        householdId: 'HH-042',
+        contactNumber: '+91 98765 43210',
+        guardianName: 'Ramesh Kumar (Father)',
+        isPregnant: false,
+        knownAllergies: [],
+        chronicConditions: [],
+        notes: 'Child health screening. Immunization record up to date.',
+        relationship: 'Son',
+        abhaNumber: '91-8843-7721-6630',
+        abhaAddress: 'aarav.kumar@abdm',
+        hindiName: 'आरव कुमार',
+        wardNumber: '4',
+        districtState: 'District: Varanasi, Uttar Pradesh',
+        syncStatus: SyncStatus.synced,
+        createdAt: now.subtract(const Duration(days: 25)),
+        updatedAt: now.subtract(const Duration(days: 10)),
       ),
       PatientModel(
         id: 'patient-meena-02',
@@ -298,6 +354,46 @@ class HealthRepository extends ChangeNotifier {
     ];
   }
 
+  /// Checks whether a citizen is already registered in the system (prevents duplicate registration by multiple ASHA workers)
+  PatientModel? findDuplicateCitizen({
+    required String fullName,
+    required String contactNumber,
+    String? excludeId,
+  }) {
+    final cleanName = fullName.trim().toLowerCase();
+    final cleanContact = contactNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+    for (final p in _patients) {
+      if (excludeId != null && p.id == excludeId) continue;
+      final existingName = p.fullName.trim().toLowerCase();
+      final existingContact = p.contactNumber.replaceAll(RegExp(r'[^0-9]'), '');
+
+      final phoneMatch = cleanContact.isNotEmpty &&
+          cleanContact.length >= 10 &&
+          existingContact.isNotEmpty &&
+          (existingContact == cleanContact ||
+              (cleanContact.length >= 10 && existingContact.length >= 10 &&
+                  existingContact.endsWith(cleanContact.substring(cleanContact.length - 10))));
+
+      final nameMatch = existingName == cleanName;
+
+      if (phoneMatch && nameMatch) {
+        return p;
+      }
+    }
+    return null;
+  }
+
+  /// Returns a map of householdId -> List<PatientModel> of members
+  Map<String, List<PatientModel>> getHouseholds() {
+    final Map<String, List<PatientModel>> map = {};
+    for (final p in _patients) {
+      final hId = (p.householdId != null && p.householdId!.trim().isNotEmpty) ? p.householdId! : 'HH-Unassigned';
+      map.putIfAbsent(hId, () => []).add(p);
+    }
+    return map;
+  }
+
   // --- Patient Actions ---
   Future<PatientModel> registerPatient({
     required String ashaId,
@@ -314,6 +410,14 @@ class HealthRepository extends ChangeNotifier {
     List<String> chronicConditions = const [],
     String? notes,
   }) async {
+    // Duplicate citizen barrier
+    final duplicate = findDuplicateCitizen(fullName: fullName, contactNumber: contactNumber);
+    if (duplicate != null) {
+      throw Exception(
+        'Duplicate Citizen Detected: ${duplicate.fullName} is already registered with contact ${duplicate.contactNumber} in ${duplicate.villageName}. Duplicate entries are prevented to preserve database integrity.',
+      );
+    }
+
     final newPatient = PatientModel(
       id: 'patient-${_uuid.v4().substring(0, 8)}',
       ashaId: ashaId,
@@ -338,6 +442,62 @@ class HealthRepository extends ChangeNotifier {
     await _persistAll();
     notifyListeners();
     return newPatient;
+  }
+
+  /// Retrieves all family/household members associated with a given citizen
+  List<PatientModel> getFamilyMembersForPatient(String patientId) {
+    final target = getPatientById(patientId);
+    if (target == null) return [];
+    if (target.householdId != null && target.householdId!.trim().isNotEmpty) {
+      final members = _patients.where((p) => p.householdId == target.householdId).toList();
+      if (members.isNotEmpty) return members;
+    }
+    return [target];
+  }
+
+  /// Adds a new family member to the shared household
+  Future<PatientModel> addFamilyMember({
+    required String householdId,
+    required String fullName,
+    required int age,
+    required String gender,
+    required String relationship,
+    required String villageId,
+    required String villageName,
+    required String contactNumber,
+    bool isPregnant = false,
+    List<String> chronicConditions = const [],
+  }) async {
+    // Duplicate citizen barrier
+    final duplicate = findDuplicateCitizen(fullName: fullName, contactNumber: contactNumber);
+    if (duplicate != null) {
+      throw Exception(
+        'Duplicate Citizen Detected: ${duplicate.fullName} is already registered with contact ${duplicate.contactNumber} in ${duplicate.villageName}. Duplicate entries are prevented.',
+      );
+    }
+
+    final newMember = PatientModel(
+      id: 'patient-${_uuid.v4().substring(0, 8)}',
+      ashaId: 'asha-shanti-01',
+      fullName: fullName,
+      age: age,
+      gender: gender,
+      villageId: villageId,
+      villageName: villageName,
+      householdId: householdId,
+      contactNumber: contactNumber,
+      relationship: relationship,
+      isPregnant: isPregnant,
+      chronicConditions: chronicConditions,
+      syncStatus: SyncStatus.locallySaved,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    _patients.insert(0, newMember);
+    await _persistAll();
+    notifyListeners();
+    return newMember;
   }
 
   // --- Screening Actions ---

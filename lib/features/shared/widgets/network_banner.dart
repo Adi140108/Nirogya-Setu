@@ -52,10 +52,10 @@ class NetworkBanner extends StatelessWidget {
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: isOnline ? 'सिंक स्थिति / Sync Status' : 'ऑफ़लाइन मोड / Offline Mode',
+                title: isOnline ? 'Sync Status' : 'Offline Mode',
                 hindiText: isOnline
-                    ? 'सभी रिकॉर्ड क्लाउड सर्वर से जुड़ रहे हैं।'
-                    : 'इंटरनेट बंद होने पर भी आपका डेटा सुरक्षित है।',
+                    ? 'Records are syncing to Cloud Firestore.'
+                    : 'App is functional offline. Records safely saved locally.',
                 englishText: isOnline
                     ? 'Records are syncing to Cloud Firestore.'
                     : 'App is functional offline. Records safely saved locally.',

@@ -58,7 +58,7 @@ class AarogyaSetuApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AarogyaSetu AI',
+      title: 'Aarogya Setu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
