@@ -35,8 +35,8 @@ class NetworkBanner extends StatelessWidget {
             child: Text(
               isOnline
                   ? (isSyncing
-                      ? 'Synchronizing $pendingCount records with cloud...'
-                      : '$pendingCount records ready for cloud sync')
+                      ? 'Auto-syncing $pendingCount records to cloud...'
+                      : 'Connected • All records auto-synced')
                   : 'Offline Mode: Data saved securely on device',
               style: TextStyle(
                 fontSize: 12,
@@ -45,17 +45,6 @@ class NetworkBanner extends StatelessWidget {
               ),
             ),
           ),
-          if (isOnline && pendingCount > 0 && !isSyncing) ...[
-            TextButton.icon(
-              style: TextButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-              ),
-              onPressed: () => syncManager.triggerManualSync(),
-              icon: const Icon(Icons.cloud_upload_outlined, size: 16),
-              label: const Text('Sync Now', style: TextStyle(fontSize: 12)),
-            ),
-          ],
           IconButton(
             tooltip: 'Audio guidance hint',
             icon: const Icon(Icons.volume_up_outlined, size: 18),

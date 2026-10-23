@@ -31,15 +31,18 @@ class OfflineSyncManager extends ChangeNotifier {
 
     _subscription = _connectivity.onConnectivityChanged.listen((results) {
       final online = !results.contains(ConnectivityResult.none);
-      if (_isOnline != online) {
-        _isOnline = online;
-        notifyListeners();
-        if (_isOnline && _repository.pendingSyncCount > 0) {
-          // Automatic synchronization when internet becomes available
-          _repository.syncAllPending();
-        }
+      _isOnline = online;
+      notifyListeners();
+      if (_isOnline && _repository.pendingSyncCount > 0) {
+        // Automatic synchronization when internet is available
+        _repository.syncAllPending();
       }
     });
+
+    // Auto-sync immediately on start if online
+    if (_isOnline && _repository.pendingSyncCount > 0) {
+      _repository.syncAllPending();
+    }
   }
 
   Future<void> triggerManualSync() async {

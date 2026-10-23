@@ -71,8 +71,8 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
-  void _handleSkipForVillager() {
-    // As explicitly specified: "skip which then shows only videos for villagers"
+  void _handleSkipForCitizen() {
+    // As explicitly specified: "skip which then shows only videos for citizens"
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -84,7 +84,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
-    final isVillager = widget.selectedRole == UserRole.patient;
+    final isCitizen = widget.selectedRole == UserRole.patient;
 
     return Scaffold(
       body: Container(
@@ -329,11 +329,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
 
-                      // VILLAGER ONLY: Skip to videos button
-                      if (isVillager) ...[
+                      // CITIZEN ONLY: Skip to videos button
+                      if (isCitizen) ...[
                         const SizedBox(height: 20),
                         OutlinedButton(
-                          onPressed: _handleSkipForVillager,
+                          onPressed: _handleSkipForCitizen,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: const Color(0xFF0F766E),
                             side: const BorderSide(color: Color(0xFF0F766E), width: 1.5),

@@ -23,7 +23,7 @@ extension UserRoleExtension on UserRole {
       case UserRole.doctor:
         return 'Doctor';
       case UserRole.patient:
-        return 'Villager / Patient';
+        return 'Citizen';
     }
   }
 

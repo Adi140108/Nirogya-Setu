@@ -122,7 +122,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
   Future<void> _submitScreening() async {
     if (_selectedPatient == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a villager for screening')),
+        const SnackBar(content: Text('Please select a citizen for screening')),
       );
       return;
     }
@@ -343,7 +343,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               Icon(Icons.person_pin_rounded, color: AppColors.primary, size: 20),
               SizedBox(width: 8),
               Text(
-                'मरीज का चयन / Select Villager *',
+                'नागरिक का चयन / Select Citizen *',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ],
@@ -353,7 +353,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
             isExpanded: true,
             value: _selectedPatient?.id,
             decoration: const InputDecoration(
-              labelText: 'Select Registered Villager',
+              labelText: 'Select Registered Citizen',
               prefixIcon: Icon(Icons.search_rounded),
             ),
             items: repo.patients.map((p) {
@@ -619,7 +619,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
           ),
           const SizedBox(height: 10),
           const Text(
-            'Select all symptoms reported by villager:',
+            'Select all symptoms reported by citizen:',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(height: 8),
@@ -696,7 +696,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
             maxLines: 2,
             decoration: const InputDecoration(
               labelText: 'General ASHA Field Notes',
-              hintText: 'Any additional notes or patient requests...',
+              hintText: 'Any additional notes or citizen requests...',
             ),
           ),
         ],

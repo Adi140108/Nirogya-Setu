@@ -21,8 +21,8 @@ class PatientDetailScreen extends StatelessWidget {
 
     if (patient == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Patient Details')),
-        body: const Center(child: Text('Patient record not found.')),
+        appBar: AppBar(title: const Text('Citizen Details / नागरिक विवरण')),
+        body: const Center(child: Text('Citizen record not found.')),
       );
     }
 
@@ -38,11 +38,11 @@ class PatientDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Audio summary of patient',
+            tooltip: 'Audio summary of citizen',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
-                title: 'मरीज विवरण / Patient Record',
+                title: 'नागरिक विवरण / Citizen Record',
                 hindiText: '${patient.fullName}, आयु ${patient.age} वर्ष, गाँव ${patient.villageName}। पूर्व जांचें: ${screenings.length}',
                 englishText: '${patient.fullName}, ${patient.age} yrs. Total screenings: ${screenings.length}.',
               );
@@ -218,7 +218,7 @@ class PatientDetailScreen extends StatelessWidget {
             ),
             child: const Center(
               child: Text(
-                'No active doctor referrals for this patient.',
+                'No active doctor referrals for this citizen.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ),
@@ -332,7 +332,7 @@ class PatientDetailScreen extends StatelessWidget {
             ),
             child: const Center(
               child: Text(
-                'No screening recorded yet for this villager.',
+                'No screening recorded yet for this citizen.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ),

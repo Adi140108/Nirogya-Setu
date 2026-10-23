@@ -104,7 +104,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('ग्रामीण पंजीकरण / Register Villager'),
+        title: const Text('नागरिक पंजीकरण / Register Citizen'),
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
@@ -115,8 +115,8 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
               VoiceService().speakPrompt(
                 context,
                 title: 'पंजीकरण सहायता / Registration Help',
-                hindiText: 'ग्रामीण का नाम, आयु, लिंग, गांव और स्वास्थ्य इतिहास दर्ज करें।',
-                englishText: 'Enter villager name, age, gender, village and known medical conditions.',
+                hindiText: 'नागरिक का नाम, आयु, लिंग, गांव और स्वास्थ्य इतिहास दर्ज करें।',
+                englishText: 'Enter citizen name, age, gender, village and known medical conditions.',
               );
             },
           ),
@@ -329,7 +329,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       )
                     : const Icon(Icons.check_circle_rounded),
                 label: Text(
-                  _isSubmitting ? 'पंजीकरण हो रहा है...' : 'Save & Register Villager',
+                  _isSubmitting ? 'पंजीकरण हो रहा है...' : 'Save & Register Citizen',
                   style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
               ),

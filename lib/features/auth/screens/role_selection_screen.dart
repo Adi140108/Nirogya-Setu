@@ -140,12 +140,12 @@ class RoleSelectionScreen extends StatelessWidget {
 
                       const SizedBox(height: 18),
 
-                      // Bottom Card: 1 Wide Card (Villager)
+                      // Bottom Card: 1 Wide Card (Citizen)
                       _buildWideRoleCard(
                         context: context,
                         role: UserRole.patient,
-                        title: 'Continue as Villager',
-                        subtitle: 'Access family health records & community awareness videos',
+                        title: 'Continue as Citizen',
+                        subtitle: 'Access personal health records & community awareness videos',
                         icon: Icons.groups_rounded,
                         badgeColor: const Color(0xFFBBF7D0),
                         iconColor: const Color(0xFF16A34A),

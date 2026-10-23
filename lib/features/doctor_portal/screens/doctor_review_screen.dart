@@ -95,7 +95,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Review: ${referral.patientName}'),
+        title: Text('Citizen Review: ${referral.patientName}'),
         backgroundColor: AppColors.roleDoctor,
         foregroundColor: Colors.white,
         actions: [

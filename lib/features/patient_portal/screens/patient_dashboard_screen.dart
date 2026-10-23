@@ -50,7 +50,7 @@ class PatientDashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Audio guidance for villager',
+            tooltip: 'Audio guidance for citizen',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,

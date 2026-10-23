@@ -153,7 +153,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   // Search & Filter Tabs
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Search referrals by patient, village, or ASHA...',
+                      hintText: 'Search referrals by citizen, village, or ASHA...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       filled: true,
                       fillColor: Colors.white,

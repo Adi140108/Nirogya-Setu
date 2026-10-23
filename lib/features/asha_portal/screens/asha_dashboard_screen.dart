@@ -80,8 +80,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               VoiceService().speakPrompt(
                 context,
                 title: 'आशा पोर्टल सहायता / ASHA Portal Help',
-                hindiText: 'यहाँ आप ग्रामीणों का पंजीकरण, स्वास्थ्य जांच और रेफरल स्थिति देख सकती हैं।',
-                englishText: 'Register villagers, conduct preventive screenings, and view doctor referrals.',
+                hindiText: 'यहाँ आप नागरिकों का पंजीकरण, स्वास्थ्य जांच और रेफरल स्थिति देख सकती हैं।',
+                englishText: 'Register citizens, conduct preventive screenings, and view doctor referrals.',
               );
             },
           ),
@@ -111,7 +111,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                 children: [
                   // KPI Overview Stats
                   _buildSummaryMetrics(
-                    villagerCount: allPatients.length,
+                    citizenCount: allPatients.length,
                     screeningCount: allScreenings.length,
                     activeReferralCount: allReferrals.length,
                     pendingFollowUps: pendingFollowUpsCount,
@@ -122,12 +122,12 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                   _buildQuickActionButtons(context),
                   const SizedBox(height: 20),
 
-                  // Assigned Villagers Header with Search & Filter
-                  _buildVillagersHeader(allPatients),
+                  // Assigned Citizens Header with Search & Filter
+                  _buildCitizensHeader(allPatients),
                   const SizedBox(height: 10),
 
-                  // Villagers List
-                  _buildVillagersList(filteredPatients),
+                  // Citizens List
+                  _buildCitizensList(filteredPatients),
                 ],
               ),
             ),
@@ -150,7 +150,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
   }
 
   Widget _buildSummaryMetrics({
-    required int villagerCount,
+    required int citizenCount,
     required int screeningCount,
     required int activeReferralCount,
     required int pendingFollowUps,
@@ -161,8 +161,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           children: [
             Expanded(
               child: _buildMetricCard(
-                'Assigned Villagers',
-                '$villagerCount',
+                'Assigned Citizens',
+                '$citizenCount',
                 Icons.people_alt_outlined,
                 AppColors.primary,
                 AppColors.primarySurface,
@@ -253,7 +253,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-            label: const Text('Register Villager', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            label: const Text('Register Citizen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             onPressed: () {
               Navigator.push(
                 context,
@@ -285,7 +285,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     );
   }
 
-  Widget _buildVillagersHeader(List<dynamic> allPatients) {
+  Widget _buildCitizensHeader(List<dynamic> allPatients) {
     final villages = {'All', ...allPatients.map((p) => p.villageName as String)}.toList();
 
     return Column(
@@ -293,7 +293,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         Row(
           children: [
             const Text(
-              'Assigned Villagers / पंजीकृत ग्रामीण',
+              'Assigned Citizens / पंजीकृत नागरिक',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const Spacer(),
@@ -328,7 +328,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     );
   }
 
-  Widget _buildVillagersList(List<dynamic> patients) {
+  Widget _buildCitizensList(List<dynamic> patients) {
     if (patients.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(24),
@@ -339,7 +339,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         ),
         child: const Center(
           child: Text(
-            'No villagers found matching query.',
+            'No citizens found matching query.',
             style: TextStyle(color: AppColors.textSecondary),
           ),
         ),
