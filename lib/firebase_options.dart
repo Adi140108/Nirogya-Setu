@@ -27,13 +27,17 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAarogyaSetuDemoKey_WebDummy2026',
-    appId: '1:1029384756:web:89abcdef0123456789',
-    messagingSenderId: '1029384756',
-    projectId: 'aarogya-setu-ai',
-    authDomain: 'aarogya-setu-ai.firebaseapp.com',
-    storageBucket: 'aarogya-setu-ai.appspot.com',
+    apiKey: String.fromEnvironment(
+      'FIREBASE_WEB_API_KEY',
+      defaultValue: 'AIzaSyDemoPlaceholderAarogyaSetu_Scrubbed',
+    ),
+    appId: '1:558469968732:web:aarogyasetuweb2026',
+    messagingSenderId: '558469968732',
+    projectId: 'aarogya-setu-sdg',
+    authDomain: 'aarogya-setu-sdg.firebaseapp.com',
+    storageBucket: 'aarogya-setu-sdg.firebasestorage.app',
   );
+
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: String.fromEnvironment(
