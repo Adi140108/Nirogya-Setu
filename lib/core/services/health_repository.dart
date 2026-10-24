@@ -83,6 +83,7 @@ class HealthRepository extends ChangeNotifier {
         hindiName: 'रमेश कुमार',
         wardNumber: '4',
         districtState: 'District: Varanasi, Uttar Pradesh',
+        password: '123456',
         syncStatus: SyncStatus.synced,
         createdAt: now.subtract(const Duration(days: 12)),
         updatedAt: now.subtract(const Duration(days: 2)),
@@ -108,6 +109,7 @@ class HealthRepository extends ChangeNotifier {
         hindiName: 'अनन्या कुमार',
         wardNumber: '4',
         districtState: 'District: Varanasi, Uttar Pradesh',
+        password: '123456',
         syncStatus: SyncStatus.synced,
         createdAt: now.subtract(const Duration(days: 18)),
         updatedAt: now.subtract(const Duration(days: 3)),
@@ -409,6 +411,7 @@ class HealthRepository extends ChangeNotifier {
     List<String> knownAllergies = const [],
     List<String> chronicConditions = const [],
     String? notes,
+    String? password,
   }) async {
     // Duplicate citizen barrier
     final duplicate = findDuplicateCitizen(fullName: fullName, contactNumber: contactNumber);
@@ -433,6 +436,7 @@ class HealthRepository extends ChangeNotifier {
       knownAllergies: knownAllergies,
       chronicConditions: chronicConditions,
       notes: notes,
+      password: password,
       syncStatus: SyncStatus.locallySaved, // Saved locally first!
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -467,6 +471,7 @@ class HealthRepository extends ChangeNotifier {
     required String contactNumber,
     bool isPregnant = false,
     List<String> chronicConditions = const [],
+    String? password,
   }) async {
     // Duplicate citizen barrier
     final duplicate = findDuplicateCitizen(fullName: fullName, contactNumber: contactNumber);
@@ -489,6 +494,7 @@ class HealthRepository extends ChangeNotifier {
       relationship: relationship,
       isPregnant: isPregnant,
       chronicConditions: chronicConditions,
+      password: password,
       syncStatus: SyncStatus.locallySaved,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

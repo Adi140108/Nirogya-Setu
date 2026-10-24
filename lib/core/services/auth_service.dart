@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
+import '../models/patient_model.dart';
 import 'storage_service.dart';
 
 class AuthService extends ChangeNotifier {
@@ -104,7 +105,12 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> bypassLoginAsRole(UserRole role, {String? displayName, String? email}) async {
+  Future<void> bypassLoginAsRole(
+    UserRole role, {
+    String? displayName,
+    String? email,
+    String? phoneNumber,
+  }) async {
     _isLoading = true;
     _authError = null;
     notifyListeners();
@@ -117,6 +123,14 @@ class AuthService extends ChangeNotifier {
                 ? 'Dr. Rajesh Sharma'
                 : 'Ramesh Kumar');
 
+    final cleanPhone = phoneNumber?.trim().isNotEmpty == true
+        ? phoneNumber!.trim()
+        : (role == UserRole.asha
+            ? '+91 98765 00001'
+            : role == UserRole.doctor
+                ? '+91 98765 00002'
+                : '+91 98765 43210');
+
     final cleanEmail = email?.trim().isNotEmpty == true
         ? email!.trim()
         : '${role.name}.user@aarogyasetu.gov.in';
@@ -126,7 +140,7 @@ class AuthService extends ChangeNotifier {
       email: cleanEmail,
       displayName: cleanName,
       role: role,
-      phoneNumber: '+91 98765 00000',
+      phoneNumber: cleanPhone,
       villageId: 'village-rampura-01',
       facilityId: 'phc-khed-01',
       createdAt: DateTime.now(),
@@ -136,6 +150,94 @@ class AuthService extends ChangeNotifier {
     await _storageService.saveUserSession(user.toMap());
     _isLoading = false;
     notifyListeners();
+  }
+
+  // --- Phone Number & Password Login ---
+
+  Future<bool> signInWithPhonePassword({
+    required String phoneNumber,
+    required String password,
+    required UserRole selectedRole,
+    List<PatientModel>? registeredPatients,
+  }) async {
+    _isLoading = true;
+    _authError = null;
+    notifyListeners();
+
+    try {
+      final cleanPhone = phoneNumber.trim();
+      final cleanPass = password.trim();
+
+      if (cleanPhone.isEmpty) {
+        throw Exception('Please enter your phone number.');
+      }
+      if (cleanPass.isEmpty) {
+        throw Exception('Please enter your password.');
+      }
+
+      String displayName = 'User';
+      String? villageId = 'village-rampura-01';
+      String? facilityId = 'phc-khed-01';
+      String? uid;
+
+      if (selectedRole == UserRole.patient) {
+        final digits = cleanPhone.replaceAll(RegExp(r'[^0-9]'), '');
+        PatientModel? matched;
+        if (registeredPatients != null && registeredPatients.isNotEmpty) {
+          for (final p in registeredPatients) {
+            final pDigits = p.contactNumber.replaceAll(RegExp(r'[^0-9]'), '');
+            if (pDigits == digits ||
+                (pDigits.length >= 10 && digits.endsWith(pDigits.substring(pDigits.length - 10)))) {
+              matched = p;
+              break;
+            }
+          }
+        }
+
+        if (matched != null) {
+          if (matched.password != null &&
+              matched.password!.isNotEmpty &&
+              matched.password != cleanPass) {
+            throw Exception('Invalid password for this mobile number.');
+          }
+          displayName = matched.fullName;
+          villageId = matched.villageId;
+          uid = matched.id;
+        } else {
+          displayName = 'Citizen ($cleanPhone)';
+        }
+      } else if (selectedRole == UserRole.asha) {
+        displayName = 'Shanti Devi';
+        facilityId = 'phc-khed-01';
+        uid = 'asha-shanti-01';
+      } else if (selectedRole == UserRole.doctor) {
+        displayName = 'Dr. Rajesh Sharma, MD';
+        facilityId = 'phc-khed-01';
+        uid = 'doc-rajesh-01';
+      }
+
+      final user = AppUser(
+        uid: uid ?? 'user-${cleanPhone.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '')}',
+        email: '$cleanPhone@aarogyasetu.gov.in',
+        displayName: displayName,
+        role: selectedRole,
+        phoneNumber: cleanPhone,
+        villageId: villageId,
+        facilityId: facilityId,
+        createdAt: DateTime.now(),
+      );
+
+      _currentUser = user;
+      await _storageService.saveUserSession(user.toMap());
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _authError = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // --- Email & Password Sign In / Up ---

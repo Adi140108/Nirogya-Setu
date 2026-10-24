@@ -7,7 +7,7 @@ class RoleSelectionScreen extends StatelessWidget {
 
   const RoleSelectionScreen({
     super.key,
-    required this.isLogin,
+    this.isLogin = true,
   });
 
   void _onRoleSelected(BuildContext context, UserRole role) {
@@ -17,7 +17,6 @@ class RoleSelectionScreen extends StatelessWidget {
         transitionDuration: const Duration(milliseconds: 300),
         pageBuilder: (_, __, ___) => AuthScreen(
           selectedRole: role,
-          isLogin: isLogin,
         ),
         transitionsBuilder: (_, animation, __, child) {
           return SlideTransition(
@@ -196,7 +195,7 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Choose how you want to use the app',
+                'Choose your role to log in',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

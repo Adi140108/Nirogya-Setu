@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/health_repository.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import '../../../main.dart';
 
@@ -12,7 +13,7 @@ class AuthScreen extends StatefulWidget {
   const AuthScreen({
     super.key,
     required this.selectedRole,
-    this.isLogin = false,
+    this.isLogin = true,
   });
 
   @override
@@ -20,22 +21,13 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
-  late bool _isLoginMode;
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
-    _isLoginMode = widget.isLogin;
-  }
-
-  @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -47,24 +39,44 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  Future<void> _handlePrimarySubmit(AuthService authService) async {
-    // Direct bypass/authentication as requested for fast testing & seamless role entry
-    await authService.bypassLoginAsRole(
-      widget.selectedRole,
-      displayName: _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : null,
-      email: _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : null,
+  Future<void> _handlePrimarySubmit(AuthService authService, HealthRepository healthRepo) async {
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (phone.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFFDC2626),
+          content: Text('Please enter both phone number and password, or use Quick Bypass below.'),
+        ),
+      );
+      return;
+    }
+
+    final success = await authService.signInWithPhonePassword(
+      phoneNumber: phone,
+      password: password,
+      selectedRole: widget.selectedRole,
+      registeredPatients: healthRepo.patients,
     );
-    if (mounted) {
+
+    if (success && mounted) {
       _routeToDashboard();
+    } else if (mounted && authService.authError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFDC2626),
+          content: Text(authService.authError!),
+        ),
+      );
     }
   }
 
-  Future<void> _handleGoogleSignIn(AuthService authService) async {
-    // Direct bypass with Google account simulation
+  Future<void> _handleBypass(AuthService authService) async {
+    // Direct bypass for fast testing and evaluation
     await authService.bypassLoginAsRole(
       widget.selectedRole,
-      displayName: 'Google User',
-      email: 'user@gmail.com',
+      phoneNumber: _phoneController.text.trim().isNotEmpty ? _phoneController.text.trim() : null,
     );
     if (mounted) {
       _routeToDashboard();
@@ -72,7 +84,6 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   void _handleSkipForCitizen() {
-    // As explicitly specified: "skip which then shows only videos for citizens"
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -84,6 +95,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
+    final healthRepo = context.watch<HealthRepository>();
     final isCitizen = widget.selectedRole == UserRole.patient;
 
     return Scaffold(
@@ -125,7 +137,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header Logo & Title (matching Image 2)
+                      // Header Logo & Title
                       Center(
                         child: Column(
                           children: [
@@ -162,9 +174,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            Text(
-                              _isLoginMode ? 'WELCOME BACK' : 'CREATE ACCOUNT',
-                              style: const TextStyle(
+                            const Text(
+                              'PORTAL LOGIN',
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF475569),
@@ -193,24 +205,59 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 22),
 
-                      // Input Fields (with light tint as in Image 2)
-                      if (!_isLoginMode) ...[
-                        _buildInputField(
-                          label: 'Full Name',
-                          hint: 'John Doe',
-                          controller: _nameController,
-                          keyboardType: TextInputType.name,
+                      // Role Information Notice Box
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.65),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: widget.selectedRole == UserRole.patient
+                                ? const Color(0xFF0F766E).withOpacity(0.25)
+                                : const Color(0xFF0284C7).withOpacity(0.25),
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              widget.selectedRole == UserRole.patient
+                                  ? Icons.key_rounded
+                                  : Icons.admin_panel_settings_outlined,
+                              size: 20,
+                              color: widget.selectedRole == UserRole.patient
+                                  ? const Color(0xFF0F766E)
+                                  : const Color(0xFF0284C7),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                widget.selectedRole == UserRole.patient
+                                    ? 'Log in using your registered mobile number and password assigned by your ASHA worker during registration.'
+                                    : 'Account credentials are created and managed by the District Health Administrator. Passwords will be provisioned by Admin in the admin portal.',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF334155),
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
+                      const SizedBox(height: 20),
+
+                      // Input Fields
                       _buildInputField(
-                        label: 'Email / Phone',
-                        hint: 'name@example.com',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
+                        label: 'Mobile Number',
+                        hint: 'e.g. +91 98765 43210',
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        prefixIcon: Icons.phone_android_rounded,
                       ),
                       const SizedBox(height: 16),
 
@@ -220,17 +267,18 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _passwordController,
                         isPassword: true,
                         obscureText: _obscurePassword,
+                        prefixIcon: Icons.lock_outline_rounded,
                         onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
                       const SizedBox(height: 24),
 
-                      // Primary Button (Sign Up or Log In)
+                      // Primary Button (Log In)
                       ElevatedButton(
                         onPressed: authService.isLoading
                             ? null
-                            : () => _handlePrimarySubmit(authService),
+                            : () => _handlePrimarySubmit(authService, healthRepo),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E88E5), // Vibrant blue
+                          backgroundColor: const Color(0xFF1E88E5),
                           foregroundColor: Colors.white,
                           elevation: 4,
                           shadowColor: const Color(0xFF1E88E5).withOpacity(0.4),
@@ -245,9 +293,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : Text(
-                                _isLoginMode ? 'Log In' : 'Sign Up',
-                                style: const TextStyle(
+                            : const Text(
+                                'Log In',
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.3,
@@ -255,83 +303,33 @@ class _AuthScreenState extends State<AuthScreen> {
                               ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 14),
 
-                      // Divider "OR"
-                      Row(
-                        children: [
-                          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Text(
-                              'OR',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF64748B).withOpacity(0.8),
-                              ),
-                            ),
+                      // Quick Bypass Button for Testing
+                      OutlinedButton.icon(
+                        onPressed: authService.isLoading ? null : () => _handleBypass(authService),
+                        icon: const Icon(Icons.bolt_rounded, size: 20, color: Color(0xFFEA580C)),
+                        label: Text(
+                          '⚡ Quick Bypass Login (${widget.selectedRole.displayName})',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0F172A),
                           ),
-                          Expanded(child: Divider(color: Colors.black.withOpacity(0.15))),
-                        ],
-                      ),
-
-                      const SizedBox(height: 20),
-
-                      // Sign in with Google Button (Clean white card matching Image 2)
-                      ElevatedButton(
-                        onPressed: authService.isLoading
-                            ? null
-                            : () => _handleGoogleSignIn(authService),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: const Color(0xFF0F172A),
-                          elevation: 2,
-                          shadowColor: Colors.black.withOpacity(0.08),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.white.withOpacity(0.85),
+                          side: const BorderSide(color: Color(0xFFEA580C), width: 1.2),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(color: Colors.white.withOpacity(0.9)),
                           ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Clean Google 'G' icon
-                            Container(
-                              width: 26,
-                              height: 26,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: const Text(
-                                'G',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: Color(0xFF4285F4),
-                                  fontFamily: 'Roboto',
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              _isLoginMode ? 'Sign In with Google' : 'Sign Up with Google',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF1E293B),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
 
                       // CITIZEN ONLY: Skip to videos button
                       if (isCitizen) ...[
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         OutlinedButton(
                           onPressed: _handleSkipForCitizen,
                           style: OutlinedButton.styleFrom(
@@ -341,7 +339,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            backgroundColor: Colors.white.withOpacity(0.4),
+                            backgroundColor: Colors.white.withOpacity(0.5),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -362,34 +360,6 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
 
                       const SizedBox(height: 28),
-
-                      // Toggle between Log In and Sign Up
-                      Center(
-                        child: GestureDetector(
-                          onTap: () => setState(() => _isLoginMode = !_isLoginMode),
-                          child: RichText(
-                            text: TextSpan(
-                              style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-                              children: [
-                                TextSpan(
-                                  text: _isLoginMode
-                                      ? "Don't have an account? "
-                                      : 'Already have an account? ',
-                                ),
-                                TextSpan(
-                                  text: _isLoginMode ? 'Sign Up' : 'Log In',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 28),
                     ],
                   ),
                 ),
@@ -406,6 +376,7 @@ class _AuthScreenState extends State<AuthScreen> {
     required String hint,
     required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
+    IconData? prefixIcon,
     bool isPassword = false,
     bool obscureText = false,
     VoidCallback? onTogglePassword,
@@ -424,7 +395,7 @@ class _AuthScreenState extends State<AuthScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFBCE3F5).withOpacity(0.55), // Light blue tint matching Image 2
+            color: const Color(0xFFBCE3F5).withOpacity(0.55),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: Colors.white.withOpacity(0.8),
@@ -441,6 +412,9 @@ class _AuthScreenState extends State<AuthScreen> {
               color: Color(0xFF0F172A),
             ),
             decoration: InputDecoration(
+              prefixIcon: prefixIcon != null
+                  ? Icon(prefixIcon, color: const Color(0xFF475569), size: 20)
+                  : null,
               hintText: hint,
               hintStyle: TextStyle(
                 color: const Color(0xFF64748B).withOpacity(0.7),
@@ -450,7 +424,7 @@ class _AuthScreenState extends State<AuthScreen> {
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               suffixIcon: isPassword
                   ? IconButton(
                       icon: Icon(

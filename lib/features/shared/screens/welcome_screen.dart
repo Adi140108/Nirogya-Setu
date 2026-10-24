@@ -52,12 +52,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     super.dispose();
   }
 
-  void _navigateToRoleSelection({required bool isLogin}) {
+  void _navigateToRoleSelection() {
     Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (_, __, ___) => RoleSelectionScreen(isLogin: isLogin),
+        pageBuilder: (_, __, ___) => const RoleSelectionScreen(),
         transitionsBuilder: (_, animation, __, child) {
           return SlideTransition(
             position: Tween<Offset>(
@@ -188,9 +188,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  // Get Started Button
+                                  // Log In Button
                                   ElevatedButton(
-                                    onPressed: () => _navigateToRoleSelection(isLogin: false),
+                                    onPressed: _navigateToRoleSelection,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF1E88E5), // Vibrant primary blue
                                       foregroundColor: Colors.white,
@@ -201,36 +201,20 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
-                                    child: const Text(
-                                      'Get Started',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Already have an account? Log In
-                                  Center(
-                                    child: GestureDetector(
-                                      onTap: () => _navigateToRoleSelection(isLogin: true),
-                                      child: RichText(
-                                        text: const TextSpan(
-                                          style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-                                          children: [
-                                            TextSpan(text: 'Already have an account? '),
-                                            TextSpan(
-                                              text: 'Log In',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                color: Color(0xFF0F172A),
-                                              ),
-                                            ),
-                                          ],
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Log In to Continue',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.3,
+                                          ),
                                         ),
-                                      ),
+                                        SizedBox(width: 8),
+                                        Icon(Icons.arrow_forward_rounded, size: 20),
+                                      ],
                                     ),
                                   ),
                                   const SizedBox(height: 24),

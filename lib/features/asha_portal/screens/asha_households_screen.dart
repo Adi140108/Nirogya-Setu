@@ -259,6 +259,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
     final nameCtrl = TextEditingController();
     final ageCtrl = TextEditingController();
     final phoneCtrl = TextEditingController(text: head.contactNumber);
+    final passwordCtrl = TextEditingController();
     String gender = 'Female';
     String relationship = 'Wife';
     bool isPregnant = false;
@@ -374,6 +375,16 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                         hintText: '+91 98765 00000',
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: passwordCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Citizen Password (Optional)',
+                        border: OutlineInputBorder(),
+                        hintText: 'e.g. 123456 (For Citizen Portal login)',
+                        prefixIcon: Icon(Icons.lock_outline_rounded),
+                      ),
+                    ),
                     if (gender == 'Female') ...[
                       const SizedBox(height: 8),
                       CheckboxListTile(
@@ -438,6 +449,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                             villageName: head.villageName,
                             contactNumber: phone,
                             isPregnant: isPregnant,
+                            password: passwordCtrl.text.trim().isNotEmpty ? passwordCtrl.text.trim() : null,
                           );
 
                           if (context.mounted) {

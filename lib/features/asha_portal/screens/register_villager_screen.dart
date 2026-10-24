@@ -22,6 +22,8 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   final _guardianController = TextEditingController();
   late final TextEditingController _householdController;
   final _notesController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
 
   String _gender = 'Female';
   String _villageId = 'village-rampura-01';
@@ -61,6 +63,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     _guardianController.dispose();
     _householdController.dispose();
     _notesController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -117,6 +120,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
         knownAllergies: _selectedAllergies,
         chronicConditions: _selectedConditions,
         notes: _notesController.text.trim(),
+        password: _passwordController.text.trim().isNotEmpty ? _passwordController.text.trim() : null,
       );
 
       if (!mounted) return;
@@ -243,6 +247,25 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       labelText: 'Guardian / Family Head',
                       prefixIcon: Icon(Icons.family_restroom_outlined),
                       hintText: 'e.g. Ramesh Kumar (Husband / Father)',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    decoration: InputDecoration(
+                      labelText: 'Custom Password for Citizen Login',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      hintText: 'e.g. 123456 or Pass@123',
+                      helperText: 'Citizen uses their contact phone and this password to log into the Citizen Portal',
+                      helperMaxLines: 2,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: const Color(0xFF64748B),
+                        ),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
                     ),
                   ),
                 ],

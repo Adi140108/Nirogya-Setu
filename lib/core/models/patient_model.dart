@@ -21,6 +21,7 @@ class PatientModel {
   final String? hindiName;
   final String? wardNumber;
   final String? districtState;
+  final String? password;
   final SyncStatus syncStatus;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -46,6 +47,7 @@ class PatientModel {
     this.hindiName,
     this.wardNumber,
     this.districtState,
+    this.password,
     this.syncStatus = SyncStatus.locallySaved,
     required this.createdAt,
     required this.updatedAt,
@@ -73,6 +75,7 @@ class PatientModel {
       'hindiName': hindiName,
       'wardNumber': wardNumber,
       'districtState': districtState,
+      'password': password,
       'syncStatus': syncStatus.value,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
@@ -101,6 +104,7 @@ class PatientModel {
       hindiName: map['hindiName'],
       wardNumber: map['wardNumber'],
       districtState: map['districtState'],
+      password: map['password'] as String?,
       syncStatus: SyncStatusExtension.fromString(map['syncStatus']),
       createdAt: map['createdAt'] != null
           ? DateTime.tryParse(map['createdAt']) ?? DateTime.now()
@@ -132,6 +136,7 @@ class PatientModel {
     String? hindiName,
     String? wardNumber,
     String? districtState,
+    String? password,
     SyncStatus? syncStatus,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -157,6 +162,7 @@ class PatientModel {
       hindiName: hindiName ?? this.hindiName,
       wardNumber: wardNumber ?? this.wardNumber,
       districtState: districtState ?? this.districtState,
+      password: password ?? this.password,
       syncStatus: syncStatus ?? this.syncStatus,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
