@@ -52,8 +52,13 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
-  static const String _defaultGroqApiKey = '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';
-  String? _groqApiKey = _defaultGroqApiKey;
+  // Fallback API key is read from compile-time environment or securely loaded from device storage.
+  static const String _defaultGroqApiKey = String.fromEnvironment(
+    'GROQ_API_KEY',
+    defaultValue: '',
+  );
+  String? _groqApiKey;
+  bool _obscureApiKey = true;
   String _selectedModel = 'qwen/qwen3.8-27b';
 
   // Voice: speech-to-text for asking, TTS for spoken replies.
@@ -280,7 +285,13 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       final saved = prefs.getString('groq_api_key');
-      _groqApiKey = (saved != null && saved.trim().isNotEmpty) ? saved.trim() : _defaultGroqApiKey;
+      if (saved != null && saved.trim().isNotEmpty) {
+        _groqApiKey = saved.trim();
+      } else if (_defaultGroqApiKey.trim().isNotEmpty) {
+        _groqApiKey = _defaultGroqApiKey.trim();
+      } else {
+        _groqApiKey = null;
+      }
       final savedModel = prefs.getString('assistant_model');
       if (savedModel != null && _modelChoices.containsKey(savedModel)) {
         _selectedModel = savedModel;
@@ -519,14 +530,30 @@ IMPORTANT: Never withhold breastmilk or food.""";
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'Groq API Key',
-                  hintText: 'gsk_...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.key_rounded),
-                ),
+              StatefulBuilder(
+                builder: (context, setFieldState) {
+                  return TextField(
+                    controller: controller,
+                    obscureText: _obscureApiKey,
+                    decoration: InputDecoration(
+                      labelText: 'Groq API Key',
+                      hintText: 'Enter API key...',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.key_rounded),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureApiKey ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          setFieldState(() {
+                            _obscureApiKey = !_obscureApiKey;
+                          });
+                        },
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(

@@ -29,7 +29,7 @@ void main() {
       expect(find.textContaining('4. Specific specialist & pre-referral requirements'), findsOneWidget);
     });
 
-    testWidgets('activates Qwen model by default with default Groq API key', (WidgetTester tester) async {
+    testWidgets('defaults to offline engine when no API key configured', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: AshaChatbotScreen(),
@@ -37,8 +37,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Check badge displays "Qwen"
-      expect(find.text('Qwen'), findsOneWidget);
+      // Check badge displays "Offline Engine" by default
+      expect(find.text('Offline Engine'), findsOneWidget);
     });
 
     testWidgets('offline clinical knowledge engine responds correctly to fever query', (WidgetTester tester) async {
