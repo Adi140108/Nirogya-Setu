@@ -5,19 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/app_locale.dart';
-
-class SpeechToText {
-  Future<bool> initialize() async => false;
-  Future<void> listen({
-    dynamic onResult,
-    String? localeId,
-    Duration? listenFor,
-    Duration? pauseFor,
-  }) async {}
-  Future<void> stop() async {}
-}
 
 class FlutterTts {
   Future<void> setLanguage(String lang) async {}
@@ -187,7 +177,10 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
       await _tts.setSpeechRate(1.25);
     } catch (_) {}
     try {
-      _speechAvailable = await _speech.initialize();
+      // Prepare speech only if the mic is already allowed; otherwise ask on mic tap.
+      if (await _speech.hasPermission) {
+        _speechAvailable = await _speech.initialize();
+      }
     } catch (_) {
       _speechAvailable = false; // mic unsupported or denied
     }
@@ -247,11 +240,20 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
     });
   }
 
-  void _startListening() {
+  Future<void> _startListening() async {
+    if (!_speechAvailable) {
+      // First use: this shows the microphone permission prompt.
+      try {
+        _speechAvailable = await _speech.initialize();
+      } catch (_) {
+        _speechAvailable = false;
+      }
+      if (!mounted) return;
+    }
     if (!_speechAvailable) {
       final label = Provider.of<AppLocale?>(context, listen: false)?.t('tapToSpeak') ?? 'Tap to speak';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$label — mic unavailable')),
+        SnackBar(content: Text('$label — allow microphone access in Settings to use voice')),
       );
       return;
     }

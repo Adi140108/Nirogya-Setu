@@ -115,13 +115,36 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
     _initSpeechRecognizer();
   }
 
+  /// Prepares speech recognition only if the mic is already allowed, so the
+  /// permission prompt appears when the citizen taps the mic, not on open.
   Future<void> _initSpeechRecognizer() async {
     try {
-      _speechAvailable = await _speech.initialize();
-      if (mounted) setState(() {});
+      if (await _speech.hasPermission) {
+        _speechAvailable = await _speech.initialize();
+        if (mounted) setState(() {});
+      }
     } catch (_) {
       _speechAvailable = false;
     }
+  }
+
+  /// Asks for microphone permission (first use) and starts the speech engine.
+  Future<bool> _ensureMicReady() async {
+    if (_speechAvailable) return true;
+    try {
+      _speechAvailable = await _speech.initialize();
+    } catch (_) {
+      _speechAvailable = false;
+    }
+    if (!_speechAvailable && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Microphone permission is needed for voice input. Allow it in Settings > Apps > Permissions.'),
+        ),
+      );
+    }
+    if (mounted) setState(() {});
+    return _speechAvailable;
   }
 
   @override
@@ -159,6 +182,8 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
   }
 
   void _startRecording() async {
+    if (!await _ensureMicReady()) return;
+    if (!mounted) return;
     setState(() {
       _isRecording = true;
       _recordingDuration = 0;
