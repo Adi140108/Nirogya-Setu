@@ -15,20 +15,33 @@ class LanguageSelector extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: dark ? Colors.white.withOpacity(0.8) : const Color(0xFF065F46),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF6EE7B7)),
+        border: Border.all(
+          color: const Color(0xFFCBD5E1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: locale.code,
           dropdownColor: Colors.white,
-          icon: Icon(Icons.language_rounded,
-              size: 16, color: dark ? const Color(0xFF0F172A) : Colors.white),
-          style: TextStyle(
+          icon: const Icon(
+            Icons.language_rounded,
+            size: 16,
+            color: Color(0xFF0F172A),
+          ),
+          style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: dark ? const Color(0xFF0F172A) : Colors.white,
+            color: Color(0xFF0F172A),
           ),
           items: AppLocale.codes
               .map((c) => DropdownMenuItem(

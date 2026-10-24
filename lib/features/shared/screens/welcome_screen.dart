@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/services/app_locale.dart';
 import '../../auth/screens/role_selection_screen.dart';
-import '../widgets/language_selector.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -107,12 +106,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         children: [
                           const Spacer(flex: 2),
 
-                          // Language selector (top-right)
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: LanguageSelector(dark: true),
-                          ),
-                          const SizedBox(height: 8),
+
 
                           // Animated App Emblem & Title
                           ScaleTransition(
