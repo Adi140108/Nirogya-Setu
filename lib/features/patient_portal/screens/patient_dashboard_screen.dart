@@ -78,9 +78,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         foregroundColor: Colors.white,
         elevation: 4,
         icon: const Icon(Icons.add_rounded, size: 24),
-        label: const Text(
-          'Raise Issue to ASHA',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        label: Text(
+          context.watch<AppLocale>().t('raiseIssueToAsha'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         onPressed: () {
           Navigator.push(
@@ -237,22 +237,22 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Offline Ready • ABHA Card Cached on Device',
-                    style: TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), fontWeight: FontWeight.w500),
+                    context.watch<AppLocale>().t('offlineReadyHeader'),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Row(
+                Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.cloud_done_rounded, color: Color(0xFF38BDF8), size: 14),
-                    SizedBox(width: 4),
+                    const Icon(Icons.cloud_done_rounded, color: Color(0xFF38BDF8), size: 14),
+                    const SizedBox(width: 4),
                     Text(
-                      'Secure Offline',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
+                      context.watch<AppLocale>().t('secureOffline'),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -393,10 +393,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                 child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 22),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Need Health Help or Medicine Refill?',
-                  style: TextStyle(
+                  context.watch<AppLocale>().t('raiseIssueTitle'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -406,9 +406,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Raise an issue directly to your village ASHA worker (Shanti Devi). You can dictate with mic or type.',
-            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+          Text(
+            context.watch<AppLocale>().t('raiseIssueSubtitle'),
+            style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
           ),
           const SizedBox(height: 14),
           Row(
@@ -431,9 +431,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     );
                   },
                   icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-                  label: const Text(
-                    'Raise Issue with (+)',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  label: Text(
+                    context.watch<AppLocale>().t('raiseIssueWithPlus'),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                 ),
               ),
@@ -454,7 +454,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   );
                 },
                 icon: const Icon(Icons.mic_rounded, size: 18),
-                label: const Text('Mic', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: Text(context.watch<AppLocale>().t('mic'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
             ],
           ),
@@ -555,10 +555,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Household Health Profiles',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                  context.watch<AppLocale>().t('householdHealthProfiles'),
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -571,16 +571,16 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '${familyMembers.length} Enrolled Members',
+                  '${familyMembers.length} ${context.watch<AppLocale>().t('enrolledMembers')}',
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Switch profiles below to view individual records. New members are enrolled by your village ASHA worker.',
-            style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+          Text(
+            context.watch<AppLocale>().t('switchProfilesHint'),
+            style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 10),
           SingleChildScrollView(
@@ -948,13 +948,13 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         Expanded(
           child: _buildActionTile(
             icon: Icons.file_download_outlined,
-            title: 'Download Card',
-            subtitle: 'Offline Pass',
+            title: context.watch<AppLocale>().t('downloadCard'),
+            subtitle: context.watch<AppLocale>().t('offlinePass'),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   backgroundColor: const Color(0xFF064E3B),
-                  content: Text('✓ ABHA Card for ${citizen.fullName} cached for offline presentation.'),
+                  content: Text(context.read<AppLocale>().t('cardCachedNotice')),
                 ),
               );
             },
@@ -966,13 +966,13 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         Expanded(
           child: _buildActionTile(
             icon: Icons.share_outlined,
-            title: 'Share with ASHA',
-            subtitle: 'Sync Records',
+            title: context.watch<AppLocale>().t('shareWithAsha'),
+            subtitle: context.watch<AppLocale>().t('syncRecords'),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
+                SnackBar(
                   backgroundColor: AppColors.primary,
-                  content: Text('✓ Health Profile & OPD Token shared with your village ASHA worker.'),
+                  content: Text(context.read<AppLocale>().t('sharedNotice')),
                 ),
               );
             },
@@ -984,8 +984,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         Expanded(
           child: _buildActionTile(
             icon: Icons.qr_code_scanner_rounded,
-            title: 'View OPD Token',
-            subtitle: 'Hospital Desk',
+            title: context.watch<AppLocale>().t('viewOpdToken'),
+            subtitle: context.watch<AppLocale>().t('hospitalDesk'),
             onTap: () => _showQrExpandedDialog(context, citizen),
           ),
         ),
@@ -1122,9 +1122,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Doctor Consultations & Prescriptions',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        Text(
+          context.watch<AppLocale>().t('doctorConsultationsSection'),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 10),
         if (referrals.isEmpty)
@@ -1135,10 +1135,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'No active doctor consultations for this member.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                context.watch<AppLocale>().t('noDoctorConsultations'),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ),
           )
@@ -1211,9 +1211,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Preventive Health Screenings',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+        Text(
+          context.watch<AppLocale>().t('preventiveScreenings'),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
         ),
         const SizedBox(height: 10),
         if (screenings.isEmpty)
@@ -1224,10 +1224,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'No screenings recorded yet for this member.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                context.watch<AppLocale>().t('noScreenings'),
+                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
             ),
           )
