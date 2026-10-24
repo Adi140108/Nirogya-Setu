@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'firebase_options.dart';
 import 'core/constants/app_colors.dart';
-import 'core/constants/app_theme.dart';
 import 'core/models/user_model.dart';
 import 'core/services/storage_service.dart';
 import 'core/services/auth_service.dart';
@@ -61,7 +60,45 @@ class AarogyaSetuApp extends StatelessWidget {
     return MaterialApp(
       title: 'Aarogya Setu',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: AppColors.secondary,
+          surface: Colors.white,
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: AppColors.background,
+        appBarTheme: const AppBarTheme(
+          elevation: 0,
+          centerTitle: false,
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        ),
+      ),
       home: const RootGateScreen(),
     );
   }
@@ -76,7 +113,7 @@ class RootGateScreen extends StatelessWidget {
 
     if (authService.isLoading) {
       return const Scaffold(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -84,8 +121,8 @@ class RootGateScreen extends StatelessWidget {
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 16),
               Text(
-                'Loading…',
-                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                'Aarogya Setu loading...',
+                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
               ),
             ],
           ),
