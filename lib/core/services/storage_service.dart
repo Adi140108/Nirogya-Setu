@@ -110,6 +110,45 @@ class StorageService {
     }
   }
 
+  // --- Admin Portal Records (generic JSON lists keyed by collection) ---
+  static const String keyAdminAshaWorkers = 'aarogya_admin_asha_workers_v1';
+  static const String keyAdminDoctors = 'aarogya_admin_doctors_v1';
+  static const String keyAdminHospitals = 'aarogya_admin_hospitals_v1';
+  static const String keyHealthVideos = 'aarogya_admin_health_videos_v1';
+  static const String keyAdminPasswordHash = 'aarogya_admin_password_hash_v1';
+  static const String keyHealthVideoDownloads = 'aarogya_health_video_downloads_v1';
+
+  Future<void> saveJsonList(String key, List<Map<String, dynamic>> items) async {
+    await init();
+    await _prefs.setString(key, jsonEncode(items));
+  }
+
+  Future<List<Map<String, dynamic>>> loadJsonList(String key) async {
+    await init();
+    final data = _prefs.getString(key);
+    if (data == null || data.isEmpty) return [];
+    try {
+      final list = jsonDecode(data) as List<dynamic>;
+      return list.map((e) => Map<String, dynamic>.from(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveValue(String key, String? value) async {
+    await init();
+    if (value == null) {
+      await _prefs.remove(key);
+    } else {
+      await _prefs.setString(key, value);
+    }
+  }
+
+  Future<String?> loadValue(String key) async {
+    await init();
+    return _prefs.getString(key);
+  }
+
   Future<void> clearAll() async {
     await init();
     await _prefs.clear();

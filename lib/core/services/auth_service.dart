@@ -206,14 +206,33 @@ class AuthService extends ChangeNotifier {
         } else {
           displayName = 'Citizen ($cleanPhone)';
         }
-      } else if (selectedRole == UserRole.asha) {
-        displayName = 'Shanti Devi';
-        facilityId = 'phc-khed-01';
-        uid = 'asha-shanti-01';
-      } else if (selectedRole == UserRole.doctor) {
-        displayName = 'Dr. Rajesh Sharma, MD';
-        facilityId = 'phc-khed-01';
-        uid = 'doc-rajesh-01';
+      } else if (selectedRole == UserRole.asha || selectedRole == UserRole.doctor) {
+        // Accounts provisioned in the Admin Portal: mobile number + admin-generated password.
+        final staff = await _findAdminProvisionedStaff(selectedRole, cleanPhone);
+        if (staff != null) {
+          if (staff['isActive'] == false) {
+            throw Exception('This account has been deactivated by the administrator.');
+          }
+          if ((staff['password'] ?? '') != cleanPass) {
+            throw Exception('Invalid password for this mobile number.');
+          }
+          uid = staff['id'];
+          displayName = staff['fullName'] ?? displayName;
+          if (selectedRole == UserRole.asha) {
+            villageId = staff['villageId'] ?? villageId;
+            facilityId = staff['hospitalId'];
+          } else {
+            facilityId = staff['hospitalId'] ?? facilityId;
+          }
+        } else if (selectedRole == UserRole.asha) {
+          displayName = 'Shanti Devi';
+          facilityId = 'phc-khed-01';
+          uid = 'asha-shanti-01';
+        } else {
+          displayName = 'Dr. Rajesh Sharma, MD';
+          facilityId = 'phc-khed-01';
+          uid = 'doc-rajesh-01';
+        }
       }
 
       final user = AppUser(
@@ -238,6 +257,21 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  /// Looks up an ASHA worker or doctor created in the Admin Portal by mobile number.
+  Future<Map<String, dynamic>?> _findAdminProvisionedStaff(UserRole role, String phone) async {
+    final key = role == UserRole.asha ? StorageService.keyAdminAshaWorkers : StorageService.keyAdminDoctors;
+    final records = await _storageService.loadJsonList(key);
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length < 10) return null;
+    final last10 = digits.substring(digits.length - 10);
+    for (final r in records) {
+      if (r['isDeleted'] == true) continue;
+      final rDigits = (r['mobileNumber'] ?? '').toString().replaceAll(RegExp(r'[^0-9]'), '');
+      if (rDigits.length >= 10 && rDigits.substring(rDigits.length - 10) == last10) return r;
+    }
+    return null;
   }
 
   // --- Email & Password Sign In / Up ---

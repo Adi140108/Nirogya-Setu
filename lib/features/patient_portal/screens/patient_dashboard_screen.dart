@@ -9,7 +9,7 @@ import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
-import '../../awareness_hub/screens/awareness_hub_screen.dart';
+import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
@@ -73,7 +73,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           _buildHealthCardTab(context, authService, primaryPatient, familyMembers, activeMember),
           _buildRecordsTab(context, authService, activeMember, familyMembers, screenings, dateFormat),
           _buildPrescriptionsTab(context, authService, activeMember, familyMembers, referrals),
-          const AwarenessHubScreen(isPublicAccess: true),
+          const CitizenHealthHubScreen(),
         ],
       ),
       bottomNavigationBar: Container(

@@ -351,7 +351,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
           const SizedBox(height: 10),
           DropdownButtonFormField<String>(
             isExpanded: true,
-            value: _selectedPatient?.id,
+            initialValue: _selectedPatient?.id,
             decoration: const InputDecoration(
               labelText: 'Select Registered Citizen',
               prefixIcon: Icon(Icons.search_rounded),
@@ -458,7 +458,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -710,7 +710,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
       decoration: BoxDecoration(
         color: AppColors.secondarySurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.secondary.withOpacity(0.4)),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -726,7 +726,7 @@ class _ScreeningFormScreenState extends State<ScreeningFormScreen> {
               style: TextStyle(fontSize: 11),
             ),
             value: _escalateToReferral,
-            activeColor: AppColors.secondary,
+            activeThumbColor: AppColors.secondary,
             onChanged: (val) => setState(() => _escalateToReferral = val),
           ),
           if (_escalateToReferral) ...[

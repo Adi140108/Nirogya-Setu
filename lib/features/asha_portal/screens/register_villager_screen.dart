@@ -207,7 +207,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           isExpanded: true,
-                          value: _gender,
+                          initialValue: _gender,
                           decoration: const InputDecoration(
                             labelText: 'Gender *',
                             prefixIcon: Icon(Icons.wc_outlined),
@@ -279,7 +279,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                 children: [
                   DropdownButtonFormField<String>(
                     isExpanded: true,
-                    value: _villageId,
+                    initialValue: _villageId,
                     decoration: const InputDecoration(
                       labelText: 'Assigned Village *',
                       prefixIcon: Icon(Icons.home_work_outlined),
@@ -323,7 +323,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       title: const Text('Is Pregnant?'),
                       subtitle: const Text('Enroll in Antenatal Care (ANC) tracking'),
                       value: _isPregnant,
-                      activeColor: AppColors.primary,
+                      activeThumbColor: AppColors.primary,
                       onChanged: (val) => setState(() => _isPregnant = val),
                     ),
                     const Divider(),

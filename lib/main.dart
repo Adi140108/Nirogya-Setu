@@ -9,6 +9,8 @@ import 'core/services/storage_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/health_repository.dart';
 import 'core/services/offline_video_manager.dart';
+import 'core/services/admin_repository.dart';
+import 'core/services/health_video_download_manager.dart';
 import 'core/sync/offline_sync_manager.dart';
 
 import 'features/asha_portal/screens/asha_dashboard_screen.dart';
@@ -37,6 +39,8 @@ void main() async {
   final authService = AuthService(storageService);
   final videoManager = OfflineVideoManager(storageService);
   final syncManager = OfflineSyncManager(healthRepo);
+  final adminRepo = AdminRepository(storageService);
+  final healthVideoDownloads = HealthVideoDownloadManager(storageService);
 
   runApp(
     MultiProvider(
@@ -46,6 +50,8 @@ void main() async {
         ChangeNotifierProvider<HealthRepository>.value(value: healthRepo),
         ChangeNotifierProvider<OfflineVideoManager>.value(value: videoManager),
         ChangeNotifierProvider<OfflineSyncManager>.value(value: syncManager),
+        ChangeNotifierProvider<AdminRepository>.value(value: adminRepo),
+        ChangeNotifierProvider<HealthVideoDownloadManager>.value(value: healthVideoDownloads),
       ],
       child: const AarogyaSetuApp(),
     ),

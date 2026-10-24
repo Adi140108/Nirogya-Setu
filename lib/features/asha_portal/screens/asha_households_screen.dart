@@ -119,7 +119,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                           border: Border.all(color: const Color(0xFFE2E8F0)),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
+                              color: Colors.black.withValues(alpha: 0.03),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -316,7 +316,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: gender,
+                            initialValue: gender,
                             decoration: const InputDecoration(
                               labelText: 'Gender',
                               border: OutlineInputBorder(),
@@ -343,7 +343,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            value: relationship,
+                            initialValue: relationship,
                             decoration: const InputDecoration(
                               labelText: 'Relationship to Head',
                               border: OutlineInputBorder(),

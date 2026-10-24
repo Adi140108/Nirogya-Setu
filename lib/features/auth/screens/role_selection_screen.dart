@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/models/user_model.dart';
 import 'auth_screen.dart';
+import '../../admin_portal/screens/admin_login_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   final bool isLogin;
@@ -28,65 +29,6 @@ class RoleSelectionScreen extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-
-  void _showComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          backgroundColor: Colors.white,
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-          contentPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: Color(0xFF0284C7),
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Admin Portal',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-            ],
-          ),
-          content: const Text(
-            'Coming Soon!',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF475569),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF0284C7),
-                textStyle: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -137,7 +79,10 @@ class RoleSelectionScreen extends StatelessWidget {
                       ),
                     ),
                     InkWell(
-                      onTap: () => _showComingSoonDialog(context),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                      ),
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -284,15 +229,15 @@ class RoleSelectionScreen extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 195),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.55),
+            color: Colors.white.withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withOpacity(0.85),
+              color: Colors.white.withValues(alpha: 0.85),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0284C7).withOpacity(0.06),
+                color: const Color(0xFF0284C7).withValues(alpha: 0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -307,7 +252,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     width: 58,
                     height: 58,
                     decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.7),
+                      color: badgeColor.withValues(alpha: 0.7),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -343,7 +288,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.5),
+                  color: badgeColor.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -378,15 +323,15 @@ class RoleSelectionScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.55),
+            color: Colors.white.withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withOpacity(0.85),
+              color: Colors.white.withValues(alpha: 0.85),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0284C7).withOpacity(0.06),
+                color: const Color(0xFF0284C7).withValues(alpha: 0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -398,7 +343,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.7),
+                  color: badgeColor.withValues(alpha: 0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -437,7 +382,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.5),
+                  color: badgeColor.withValues(alpha: 0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
