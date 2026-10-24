@@ -29,7 +29,7 @@ void main() {
       expect(find.textContaining('4. Specific specialist & pre-referral requirements'), findsOneWidget);
     });
 
-    testWidgets('defaults to offline engine when no API key configured', (WidgetTester tester) async {
+    testWidgets('activates Qwen model by default with Operational status', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: AshaChatbotScreen(),
@@ -37,8 +37,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Check badge displays "Offline Engine" by default
-      expect(find.text('Offline Engine'), findsOneWidget);
+      // Check badge displays "Operational"
+      expect(find.text('Operational'), findsOneWidget);
     });
 
     testWidgets('offline clinical knowledge engine responds correctly to fever query', (WidgetTester tester) async {
@@ -108,7 +108,7 @@ void main() {
       expect(find.text('Assistant Settings'), findsNothing);
     });
 
-    testWidgets('saving Groq API key updates badge to AI model name', (WidgetTester tester) async {
+    testWidgets('saving Groq API key updates badge and maintains Operational status', (WidgetTester tester) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: AshaChatbotScreen(),
@@ -128,9 +128,8 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      // Badge should switch from "Offline Engine" to "Qwen"
-      expect(find.text('Offline Engine'), findsNothing);
-      expect(find.text('Qwen'), findsOneWidget);
+      // Badge should show Operational
+      expect(find.text('Operational'), findsOneWidget);
     });
 
     testWidgets('action chip automatically submits query and displays results', (WidgetTester tester) async {
@@ -139,6 +138,10 @@ void main() {
           home: AshaChatbotScreen(),
         ),
       );
+      await tester.pumpAndSettle();
+
+      // Open Quick Prompts drawer
+      await tester.tap(find.byTooltip('Quick Prompts'));
       await tester.pumpAndSettle();
 
       // Tap the first visible chip: 'Danger signs in pregnancy (ANC)'
