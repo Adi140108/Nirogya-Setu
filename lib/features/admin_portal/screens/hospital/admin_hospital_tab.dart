@@ -211,7 +211,7 @@ class HospitalCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 3),
         padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(color: surface.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: surface.withOpacity(0.6), borderRadius: BorderRadius.circular(12)),
         child: Column(
           children: [
             Icon(icon, size: 16, color: color),

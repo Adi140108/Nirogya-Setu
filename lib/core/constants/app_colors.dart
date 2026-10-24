@@ -6,6 +6,8 @@ class AppColors {
   static const Color primaryDark = Color(0xFF004D40);
   static const Color primaryLight = Color(0xFF48A999);
   static const Color primarySurface = Color(0xFFE0F2F1); // Light mint wash
+  static const Color primaryGreen = Color(0xFF064E3B);   // Citizen & ASHA deep emerald green
+  static const Color emergencyRed = Color(0xFFDC2626);   // Urgent emergency red
 
   static const Color secondary = Color(0xFFE65100);     // Warm Ochre / Marigold
   static const Color secondaryLight = Color(0xFFFFB74D);

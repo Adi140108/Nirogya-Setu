@@ -17,6 +17,7 @@ import 'features/asha_portal/screens/asha_dashboard_screen.dart';
 import 'features/doctor_portal/screens/doctor_dashboard_screen.dart';
 import 'features/patient_portal/screens/patient_dashboard_screen.dart';
 import 'features/shared/screens/welcome_screen.dart';
+import 'features/shared/widgets/notification_banner_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,6 +106,9 @@ class AarogyaSetuApp extends StatelessWidget {
           contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
       ),
+      builder: (context, child) {
+        return NotificationBannerOverlay(child: child ?? const SizedBox.shrink());
+      },
       home: const RootGateScreen(),
     );
   }

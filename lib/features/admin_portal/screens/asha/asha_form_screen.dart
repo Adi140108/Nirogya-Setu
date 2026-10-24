@@ -205,7 +205,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                     Expanded(
                       child: AdminField(
                         child: DropdownButtonFormField<String>(
-                          initialValue: _gender,
+                          value: _gender,
                           isExpanded: true,
                           decoration: adminInput('Gender *'),
                           items: const ['Female', 'Male', 'Other']
@@ -233,7 +233,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                 ),
                 AdminField(
                   child: DropdownButtonFormField<String>(
-                    initialValue: _education,
+                    value: _education,
                     isExpanded: true,
                     decoration: adminInput('Education', icon: Icons.school_outlined),
                     items: AdminRepository.ashaEducationLevels
@@ -292,7 +292,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                 ),
                 AdminField(
                   child: DropdownButtonFormField<String?>(
-                    initialValue: selectedHospital,
+                    value: selectedHospital,
                     isExpanded: true,
                     decoration: adminInput('Linked hospital / PHC', icon: Icons.local_hospital_outlined),
                     items: [

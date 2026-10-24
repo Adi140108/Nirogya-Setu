@@ -266,7 +266,7 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
                   child: AdminField(
                     child: DropdownButtonFormField<String>(
                       key: ValueKey('lang-${identityHashCode(block)}-${languages.length}'),
-                      initialValue: block.language,
+                      value: block.language,
                       isExpanded: true,
                       decoration: adminInput('Language *'),
                       items: languages.map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
@@ -309,7 +309,7 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
                             label: 'YouTube ID • $youtubeId',
                             icon: Icons.check_circle_rounded,
                             color: Colors.white,
-                            surface: Colors.black.withValues(alpha: 0.6),
+                            surface: Colors.black.withOpacity(0.6),
                           ),
                         ),
                       ],

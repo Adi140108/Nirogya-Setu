@@ -98,7 +98,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () => setState(() => _quickMenuOpen = false),
-                  child: Container(color: const Color(0xFF0F172A).withValues(alpha: 0.35)),
+                  child: Container(color: const Color(0xFF0F172A).withOpacity(0.35)),
                 ),
               ),
               Positioned(
@@ -221,7 +221,7 @@ class _QuickActionMenu extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 24, offset: const Offset(0, 8)),
+            BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 24, offset: const Offset(0, 8)),
           ],
         ),
         child: Column(
@@ -366,7 +366,7 @@ class _AdminBottomBar extends StatelessWidget {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.4),
+                              color: AppColors.primary.withOpacity(0.4),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),

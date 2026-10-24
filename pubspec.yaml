@@ -48,7 +48,7 @@ dependencies:
   cloud_firestore: ^6.3.0
   qr_flutter: ^4.1.0
   crypto: ^3.0.7
-  youtube_player_iframe: ^6.0.2
+  youtube_player_iframe: ^5.2.1
   youtube_explode_dart: ^3.1.0
 
 dev_dependencies:
@@ -61,6 +61,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+
+dependency_overrides:
+  path: 1.9.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

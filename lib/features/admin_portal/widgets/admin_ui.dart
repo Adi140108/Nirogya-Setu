@@ -260,7 +260,7 @@ class AdminSyncChip extends StatelessWidget {
       label: status == SyncStatus.synced ? 'Synced' : 'Pending sync',
       icon: status.icon,
       color: status.color,
-      surface: status.color.withValues(alpha: 0.1),
+      surface: status.color.withOpacity(0.1),
     );
   }
 }
@@ -386,7 +386,7 @@ class AdminPrimaryButton extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
         ),
         icon: isBusy
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -458,7 +458,7 @@ Future<void> showCredentialsDialog(
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 4),
       title: Row(
         children: [
-          AdminIconBadge(icon: Icons.verified_user_rounded, color: color, surface: color.withValues(alpha: 0.12)),
+          AdminIconBadge(icon: Icons.verified_user_rounded, color: color, surface: color.withOpacity(0.12)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(title,

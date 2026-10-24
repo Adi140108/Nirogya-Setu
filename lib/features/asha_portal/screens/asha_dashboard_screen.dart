@@ -4,7 +4,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/models/referral_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
-import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/sync_status_badge.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
@@ -13,6 +12,7 @@ import 'screening_form_screen.dart';
 import 'patient_detail_screen.dart';
 import 'asha_households_screen.dart';
 import 'asha_chatbot_screen.dart';
+import 'asha_issues_inbox_screen.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
 
 class AshaDashboardScreen extends StatefulWidget {
@@ -121,14 +121,44 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Voice Guidance',
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.inbox_rounded, size: 26),
+                if (repo.pendingIssuesCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Text(
+                        '${repo.pendingIssuesCount}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            tooltip: 'Citizen Issues Inbox',
             onPressed: () {
-              VoiceService().speakPrompt(
+              Navigator.push(
                 context,
-                title: 'ASHA Field Worker Portal Help',
-                hindiText: 'Register citizens, conduct preventive screenings, and view doctor referrals.',
-                englishText: 'Register citizens, conduct preventive screenings, and view doctor referrals.',
+                MaterialPageRoute(
+                  builder: (ctx) => const AshaIssuesInboxScreen(),
+                ),
               );
             },
           ),

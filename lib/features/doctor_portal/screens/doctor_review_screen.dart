@@ -227,7 +227,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
               decoration: BoxDecoration(
                 color: AppColors.primarySurface,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +279,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<ReferralStatus>(
                     isExpanded: true,
-                    initialValue: _selectedStatus,
+                    value: _selectedStatus,
                     decoration: const InputDecoration(
                       labelText: 'Referral Status',
                       prefixIcon: Icon(Icons.flag_outlined),

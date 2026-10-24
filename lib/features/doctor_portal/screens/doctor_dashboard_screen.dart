@@ -467,9 +467,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withOpacity(0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -512,7 +512,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ChoiceChip(
       label: Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
       selected: isSelected,
-      selectedColor: AppColors.roleDoctor.withValues(alpha: 0.15),
+      selectedColor: AppColors.roleDoctor.withOpacity(0.15),
       labelStyle: TextStyle(color: isSelected ? AppColors.roleDoctor : AppColors.textPrimary),
       onSelected: (_) => setState(() => _selectedFilter = key),
     );
@@ -525,12 +525,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: ref.priority == HealthPriority.red ? AppColors.riskRed.withValues(alpha: 0.5) : AppColors.border,
+          color: ref.priority == HealthPriority.red ? AppColors.riskRed.withOpacity(0.5) : AppColors.border,
           width: ref.priority == HealthPriority.red ? 1.5 : 1.0,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),

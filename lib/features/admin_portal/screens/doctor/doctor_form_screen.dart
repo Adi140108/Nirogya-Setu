@@ -188,7 +188,7 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
                           Expanded(
                             child: AdminField(
                               child: DropdownButtonFormField<String>(
-                                initialValue: _gender,
+                                value: _gender,
                                 isExpanded: true,
                                 decoration: adminInput('Gender *'),
                                 items: const ['Male', 'Female', 'Other']
@@ -237,7 +237,7 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
                     children: [
                       AdminField(
                         child: DropdownButtonFormField<String>(
-                          initialValue: _specialization,
+                          value: _specialization,
                           isExpanded: true,
                           decoration: adminInput('Specialization *', icon: Icons.medical_information_outlined),
                           items: AdminRepository.doctorSpecializations
@@ -294,7 +294,7 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
                     children: [
                       AdminField(
                         child: DropdownButtonFormField<String>(
-                          initialValue: selectedHospital,
+                          value: selectedHospital,
                           isExpanded: true,
                           decoration: adminInput('Linked hospital *', icon: Icons.local_hospital_outlined),
                           items: hospitals

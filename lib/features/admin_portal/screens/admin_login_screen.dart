@@ -91,9 +91,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           width: 76,
                           height: 76,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
+                            color: Colors.white.withOpacity(0.8),
                             shape: BoxShape.circle,
-                            border: Border.all(color: AdminColors.accent.withValues(alpha: 0.35), width: 1.5),
+                            border: Border.all(color: AdminColors.accent.withOpacity(0.35), width: 1.5),
                           ),
                           child: const Icon(Icons.admin_panel_settings_rounded, size: 38, color: AdminColors.accent),
                         ),
@@ -114,9 +114,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.7),
+                          color: Colors.white.withOpacity(0.7),
                           borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.9), width: 1.5),
+                          border: Border.all(color: Colors.white.withOpacity(0.9), width: 1.5),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,

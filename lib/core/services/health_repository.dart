@@ -5,9 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/patient_model.dart';
 import '../models/screening_model.dart';
 import '../models/referral_model.dart';
+import '../models/issue_model.dart';
 import '../models/sync_status.dart';
 import '../constants/screening_rules.dart';
 import 'storage_service.dart';
+import 'notification_service.dart';
 
 class HealthRepository extends ChangeNotifier {
   final StorageService _storageService;
@@ -16,6 +18,7 @@ class HealthRepository extends ChangeNotifier {
   List<PatientModel> _patients = [];
   List<ScreeningModel> _screenings = [];
   List<ReferralModel> _referrals = [];
+  List<IssueModel> _issues = [];
 
   bool _isSyncing = false;
   String? _lastSyncError;
@@ -28,6 +31,8 @@ class HealthRepository extends ChangeNotifier {
   List<PatientModel> get patients => _patients;
   List<ScreeningModel> get screenings => _screenings;
   List<ReferralModel> get referrals => _referrals;
+  List<IssueModel> get issues => List.unmodifiable(_issues);
+  int get pendingIssuesCount => _issues.where((i) => !i.isResolved).length;
   bool get isSyncing => _isSyncing;
   String? get lastSyncError => _lastSyncError;
   DateTime? get lastSyncTimestamp => _lastSyncTimestamp;
@@ -37,13 +42,15 @@ class HealthRepository extends ChangeNotifier {
     final p = _patients.where((e) => e.syncStatus != SyncStatus.synced).length;
     final s = _screenings.where((e) => e.syncStatus != SyncStatus.synced).length;
     final r = _referrals.where((e) => e.syncStatus != SyncStatus.synced).length;
-    return p + s + r;
+    final i = _issues.where((e) => e.syncStatus != SyncStatus.synced).length;
+    return p + s + r + i;
   }
 
   Future<void> _init() async {
     final storedPatients = await _storageService.loadPatients();
     final storedScreenings = await _storageService.loadScreenings();
     final storedReferrals = await _storageService.loadReferrals();
+    final storedIssues = await _storageService.loadIssues();
 
     if (storedPatients.isEmpty && storedScreenings.isEmpty && storedReferrals.isEmpty) {
       // Seed demonstration data for testing all 3 roles
@@ -53,8 +60,55 @@ class HealthRepository extends ChangeNotifier {
       _patients = storedPatients.map((e) => PatientModel.fromMap(e)).toList();
       _screenings = storedScreenings.map((e) => ScreeningModel.fromMap(e)).toList();
       _referrals = storedReferrals.map((e) => ReferralModel.fromMap(e)).toList();
+      if (storedIssues.isNotEmpty) {
+        _issues = storedIssues.map((e) => IssueModel.fromMap(e)).toList();
+      } else {
+        _seedDemoIssues();
+        await _storageService.saveIssues(_issues.map((e) => e.toMap()).toList());
+      }
     }
     notifyListeners();
+  }
+
+  void _seedDemoIssues() {
+    final now = DateTime.now();
+    _issues = [
+      IssueModel(
+        id: 'iss-001',
+        citizenId: 'p-001',
+        citizenName: 'Ramesh Kumar',
+        contactNumber: '+91 98765 43210',
+        villageId: 'vil-01',
+        villageName: 'Rampura',
+        householdId: 'HH-042',
+        category: 'Medicine Refill',
+        description: 'BP medicine stock exhausted. Need Amlodipine 5mg refill before Monday.',
+        urgency: 'Normal',
+        hasVoiceNote: false,
+        voiceDurationSeconds: 0,
+        isResolved: false,
+        createdAt: now.subtract(const Duration(hours: 3)),
+        syncStatus: SyncStatus.synced,
+      ),
+      IssueModel(
+        id: 'iss-002',
+        citizenId: 'p-002',
+        citizenName: 'Sunita Devi',
+        contactNumber: '+91 98765 43211',
+        villageId: 'vil-01',
+        villageName: 'Rampura',
+        householdId: 'HH-088',
+        category: 'Maternal Care',
+        description: 'Feeling dizzy since morning and experiencing mild nausea. Voice note recorded.',
+        urgency: 'Urgent',
+        hasVoiceNote: true,
+        voiceDurationSeconds: 14,
+        voiceTranscription: 'Didi, subah se chakkar aa rahe hain aur kamar mein dard hai. Please jaldi aana.',
+        isResolved: false,
+        createdAt: now.subtract(const Duration(minutes: 45)),
+        syncStatus: SyncStatus.synced,
+      ),
+    ];
   }
 
   void _seedDemoData() {
@@ -354,6 +408,7 @@ class HealthRepository extends ChangeNotifier {
         updatedAt: now.subtract(const Duration(days: 2)),
       ),
     ];
+    _seedDemoIssues();
   }
 
   /// Checks whether a citizen is already registered in the system (prevents duplicate registration by multiple ASHA workers)
@@ -656,6 +711,7 @@ class HealthRepository extends ChangeNotifier {
       _patients = _patients.map((p) => p.copyWith(syncStatus: SyncStatus.synced)).toList();
       _screenings = _screenings.map((s) => s.copyWith(syncStatus: SyncStatus.synced)).toList();
       _referrals = _referrals.map((r) => r.copyWith(syncStatus: SyncStatus.synced)).toList();
+      _issues = _issues.map((i) => i.copyWith(syncStatus: SyncStatus.synced)).toList();
 
       _lastSyncTimestamp = DateTime.now();
       await _persistAll();
@@ -671,6 +727,84 @@ class HealthRepository extends ChangeNotifier {
     await _storageService.savePatients(_patients.map((e) => e.toMap()).toList());
     await _storageService.saveScreenings(_screenings.map((e) => e.toMap()).toList());
     await _storageService.saveReferrals(_referrals.map((e) => e.toMap()).toList());
+    await _storageService.saveIssues(_issues.map((e) => e.toMap()).toList());
+  }
+
+  // --- Citizen Issue Actions ---
+  Future<IssueModel> raiseIssue({
+    required String citizenId,
+    required String citizenName,
+    required String contactNumber,
+    required String villageId,
+    required String villageName,
+    required String householdId,
+    required String category,
+    required String description,
+    String urgency = 'Normal',
+    bool hasVoiceNote = false,
+    int voiceDurationSeconds = 0,
+    String? voiceTranscription,
+  }) async {
+    final issue = IssueModel(
+      id: 'iss-${_uuid.v4().substring(0, 8)}',
+      citizenId: citizenId,
+      citizenName: citizenName,
+      contactNumber: contactNumber,
+      villageId: villageId,
+      villageName: villageName,
+      householdId: householdId,
+      category: category,
+      description: description,
+      urgency: urgency,
+      hasVoiceNote: hasVoiceNote,
+      voiceDurationSeconds: voiceDurationSeconds,
+      voiceTranscription: voiceTranscription,
+      isResolved: false,
+      createdAt: DateTime.now(),
+      syncStatus: SyncStatus.locallySaved,
+    );
+
+    _issues.insert(0, issue);
+    await _persistAll();
+
+    // Trigger in-app banner and web push notification
+    final isUrgent = urgency == 'Urgent';
+    NotificationService().showNotification(
+      title: '${isUrgent ? '🚨 URGENT: ' : '📬 New Issue: '}$citizenName',
+      body: hasVoiceNote
+          ? '🎙️ Voice Note (${voiceDurationSeconds}s): $description'
+          : description,
+      category: category,
+    );
+
+    notifyListeners();
+    return issue;
+  }
+
+  Future<void> resolveIssue(String issueId) async {
+    final index = _issues.indexWhere((i) => i.id == issueId);
+    if (index != -1) {
+      _issues[index] = _issues[index].copyWith(
+        isResolved: true,
+        resolvedAt: DateTime.now(),
+        syncStatus: SyncStatus.locallySaved,
+      );
+      await _persistAll();
+      notifyListeners();
+    }
+  }
+
+  Future<void> unresolveIssue(String issueId) async {
+    final index = _issues.indexWhere((i) => i.id == issueId);
+    if (index != -1) {
+      _issues[index] = _issues[index].copyWith(
+        isResolved: false,
+        resolvedAt: null,
+        syncStatus: SyncStatus.locallySaved,
+      );
+      await _persistAll();
+      notifyListeners();
+    }
   }
 
   PatientModel? getPatientById(String id) {

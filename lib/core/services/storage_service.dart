@@ -5,6 +5,7 @@ class StorageService {
   static const String _keyPatients = 'aarogya_patients_cache_v1';
   static const String _keyScreenings = 'aarogya_screenings_cache_v1';
   static const String _keyReferrals = 'aarogya_referrals_cache_v1';
+  static const String _keyIssues = 'aarogya_citizen_issues_cache_v1';
   static const String _keyUserSession = 'aarogya_active_user_session_v1';
   static const String _keyOfflineVideos = 'aarogya_offline_videos_metadata_v1';
 
@@ -62,6 +63,24 @@ class StorageService {
   Future<List<Map<String, dynamic>>> loadReferrals() async {
     await init();
     final data = _prefs.getString(_keyReferrals);
+    if (data == null || data.isEmpty) return [];
+    try {
+      final list = jsonDecode(data) as List<dynamic>;
+      return list.map((e) => Map<String, dynamic>.from(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // --- Citizen Issues Cache ---
+  Future<void> saveIssues(List<Map<String, dynamic>> issues) async {
+    await init();
+    await _prefs.setString(_keyIssues, jsonEncode(issues));
+  }
+
+  Future<List<Map<String, dynamic>>> loadIssues() async {
+    await init();
+    final data = _prefs.getString(_keyIssues);
     if (data == null || data.isEmpty) return [];
     try {
       final list = jsonDecode(data) as List<dynamic>;

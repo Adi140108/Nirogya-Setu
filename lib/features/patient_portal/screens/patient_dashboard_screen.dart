@@ -11,6 +11,7 @@ import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
+import 'raise_issue_screen.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -67,6 +68,25 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F5F9),
+      floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'citizen_raise_issue_fab',
+        backgroundColor: const Color(0xFF064E3B),
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded, size: 24),
+        label: const Text(
+          'Raise Issue to ASHA',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+        ),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (ctx) => RaiseIssueScreen(patient: activeMember),
+            ),
+          );
+        },
+      ),
       body: IndexedStack(
         index: _currentIndex,
         children: [
@@ -254,10 +274,116 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
                   // 3. Three Quick Action Buttons (Download, Share, Big QR)
                   _buildCardActionRow(context, activeMember),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 14),
+
+                  // 4. Raise Issue Card (Voice / Text directly to ASHA)
+                  _buildRaiseIssueToAshaCard(context, activeMember),
+                  const SizedBox(height: 80), // Padding for FAB
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRaiseIssueToAshaCard(BuildContext context, PatientModel activeMember) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF064E3B), Color(0xFF047857)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF064E3B).withOpacity(0.25),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 22),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Need Health Help or Medicine Refill?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Raise an issue directly to your village ASHA worker (Shanti Devi). You can dictate with mic or type.',
+            style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: const Color(0xFF064E3B),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    elevation: 0,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => RaiseIssueScreen(patient: activeMember),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                  label: const Text(
+                    'Raise Issue with (+)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white60),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (ctx) => RaiseIssueScreen(patient: activeMember),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.mic_rounded, size: 18),
+                label: const Text('Mic', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+            ],
           ),
         ],
       ),

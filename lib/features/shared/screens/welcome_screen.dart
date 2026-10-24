@@ -119,7 +119,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF0284C7).withValues(alpha: 0.18),
+                                          color: const Color(0xFF0284C7).withOpacity(0.18),
                                           blurRadius: 32,
                                           spreadRadius: 4,
                                           offset: const Offset(0, 10),
@@ -195,7 +195,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       backgroundColor: const Color(0xFF1E88E5), // Vibrant primary blue
                                       foregroundColor: Colors.white,
                                       elevation: 4,
-                                      shadowColor: const Color(0xFF1E88E5).withValues(alpha: 0.4),
+                                      shadowColor: const Color(0xFF1E88E5).withOpacity(0.4),
                                       padding: const EdgeInsets.symmetric(vertical: 16),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),

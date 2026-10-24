@@ -229,15 +229,15 @@ class RoleSelectionScreen extends StatelessWidget {
           constraints: const BoxConstraints(minHeight: 195),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.55),
+            color: Colors.white.withOpacity(0.55),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: Colors.white.withOpacity(0.85),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.06),
+                color: const Color(0xFF0284C7).withOpacity(0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -252,7 +252,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     width: 58,
                     height: 58,
                     decoration: BoxDecoration(
-                      color: badgeColor.withValues(alpha: 0.7),
+                      color: badgeColor.withOpacity(0.7),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -288,7 +288,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.5),
+                  color: badgeColor.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -323,15 +323,15 @@ class RoleSelectionScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.55),
+            color: Colors.white.withOpacity(0.55),
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.85),
+              color: Colors.white.withOpacity(0.85),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF0284C7).withValues(alpha: 0.06),
+                color: const Color(0xFF0284C7).withOpacity(0.06),
                 blurRadius: 18,
                 offset: const Offset(0, 6),
               ),
@@ -343,7 +343,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.7),
+                  color: badgeColor.withOpacity(0.7),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -382,7 +382,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: badgeColor.withValues(alpha: 0.5),
+                  color: badgeColor.withOpacity(0.5),
                   shape: BoxShape.circle,
                 ),
                 child: Center(

@@ -273,7 +273,7 @@ class _WelcomeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: Colors.white.withOpacity(0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(

@@ -188,7 +188,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: Colors.white.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(color: Colors.white),
                               ),
@@ -211,12 +211,12 @@ class _AuthScreenState extends State<AuthScreen> {
                       Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.65),
+                          color: Colors.white.withOpacity(0.65),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: widget.selectedRole == UserRole.patient
-                                ? const Color(0xFF0F766E).withValues(alpha: 0.25)
-                                : const Color(0xFF0284C7).withValues(alpha: 0.25),
+                                ? const Color(0xFF0F766E).withOpacity(0.25)
+                                : const Color(0xFF0284C7).withOpacity(0.25),
                           ),
                         ),
                         child: Row(
@@ -281,7 +281,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           backgroundColor: const Color(0xFF1E88E5),
                           foregroundColor: Colors.white,
                           elevation: 4,
-                          shadowColor: const Color(0xFF1E88E5).withValues(alpha: 0.4),
+                          shadowColor: const Color(0xFF1E88E5).withOpacity(0.4),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -318,7 +318,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.85),
+                          backgroundColor: Colors.white.withOpacity(0.85),
                           side: const BorderSide(color: Color(0xFFEA580C), width: 1.2),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
@@ -339,7 +339,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            backgroundColor: Colors.white.withValues(alpha: 0.5),
+                            backgroundColor: Colors.white.withOpacity(0.5),
                           ),
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -395,10 +395,10 @@ class _AuthScreenState extends State<AuthScreen> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFBCE3F5).withValues(alpha: 0.55),
+            color: const Color(0xFFBCE3F5).withOpacity(0.55),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: Colors.white.withOpacity(0.8),
               width: 1,
             ),
           ),
@@ -417,7 +417,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   : null,
               hintText: hint,
               hintStyle: TextStyle(
-                color: const Color(0xFF64748B).withValues(alpha: 0.7),
+                color: const Color(0xFF64748B).withOpacity(0.7),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),

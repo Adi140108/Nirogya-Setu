@@ -169,7 +169,7 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
                 ),
                 AdminField(
                   child: DropdownButtonFormField<String>(
-                    initialValue: _type,
+                    value: _type,
                     isExpanded: true,
                     decoration: adminInput('Facility type *', icon: Icons.category_outlined),
                     items: AdminRepository.hospitalTypes
@@ -281,7 +281,7 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _hasEmergency,
-                  activeThumbColor: AdminColors.hospital,
+                  activeColor: AdminColors.hospital,
                   title: const Text('24×7 Emergency services',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   onChanged: (v) => setState(() => _hasEmergency = v),
@@ -289,7 +289,7 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
                   value: _hasMaternity,
-                  activeThumbColor: AdminColors.hospital,
+                  activeColor: AdminColors.hospital,
                   title: const Text('Maternity / Labour ward',
                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   onChanged: (v) => setState(() => _hasMaternity = v),

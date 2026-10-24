@@ -133,7 +133,7 @@ class _VideoCard extends StatelessWidget {
                   Positioned(
                     left: 10,
                     top: 10,
-                    child: AdminChip(label: video.topic, color: Colors.white, surface: Colors.black.withValues(alpha: 0.55)),
+                    child: AdminChip(label: video.topic, color: Colors.white, surface: Colors.black.withOpacity(0.55)),
                   ),
                 ],
               ),
