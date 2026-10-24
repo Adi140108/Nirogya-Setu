@@ -4,7 +4,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/models/awareness_content_model.dart';
 import '../../../core/services/offline_video_manager.dart';
 import '../../../core/services/voice_service.dart';
-import '../../shared/widgets/ui.dart';
 import 'video_player_screen.dart';
 
 class AwarenessHubScreen extends StatefulWidget {
@@ -38,12 +37,21 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
     final downloadedCount = contents.where((c) => c.downloadStatus == VideoDownloadStatus.downloaded).length;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Health videos'),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Aarogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
+          ],
+        ),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
-          TextButton.icon(
+          IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Listen'),
+            tooltip: 'Audio guidance for Awareness Hub',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
@@ -55,271 +63,309 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: AppSpacing.screen,
+      body: Column(
         children: [
-          _OfflineSummary(downloaded: downloadedCount, total: contents.length, isOnline: isOnline),
-          const SizedBox(height: AppSpacing.md),
-          const _SourceNotice(),
-          const SectionHeader('Topic'),
-          _ChipRow(
-            options: topics,
-            selected: _selectedTopic,
-            labelFor: (t) => t == 'All' ? 'All topics' : t,
-            onSelected: (t) => setState(() => _selectedTopic = t),
+          // Offline Videos Counter & Guidance Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            color: const Color(0xFFE0F2F1),
+            child: Row(
+              children: [
+                const Icon(Icons.download_done_rounded, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '$downloadedCount of ${contents.length} videos stored on device (Ready for offline playback)',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                  ),
+                ),
+                if (!isOnline)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text('Offline', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(height: AppSpacing.sm),
-          _ChipRow(
-            options: languages,
-            selected: _selectedLanguage,
-            labelFor: (l) => l == 'All' ? 'All languages' : l,
-            onSelected: (l) => setState(() => _selectedLanguage = l),
-          ),
-          SectionHeader(
-            filtered.length == 1 ? '1 video' : '${filtered.length} videos',
-          ),
-          if (filtered.isEmpty)
-            const EmptyState(
-              icon: Icons.video_library_outlined,
-              title: 'No videos found',
-              message: 'Try another topic or language.',
-            )
-          else
-            for (var i = 0; i < filtered.length; i++) ...[
-              if (i > 0) const SizedBox(height: AppSpacing.md),
-              _VideoCard(
-                item: filtered[i],
-                onWatch: () => _openVideo(filtered[i]),
-                onSave: () => videoManager.downloadVideo(filtered[i].id),
-                onRemove: () => _confirmRemove(filtered[i], videoManager),
-              ),
-            ],
-        ],
-      ),
-    );
-  }
 
-  void _openVideo(AwarenessContentModel item) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => VideoPlayerScreen(content: item)),
-    );
-  }
+          // Statutory Sample vs Verified Guidance Distinction Banner
+          _buildVerificationNotice(),
 
-  Future<void> _confirmRemove(AwarenessContentModel item, OfflineVideoManager manager) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Remove from phone?'),
-        content: Text('"${item.title}" will need internet to play again.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove', style: TextStyle(color: AppColors.riskRed)),
-          ),
-        ],
-      ),
-    );
-    if (confirmed == true) manager.removeDownloadedVideo(item.id);
-  }
-}
-
-/// How many videos are saved on the phone, plus an offline label.
-class _OfflineSummary extends StatelessWidget {
-  final int downloaded;
-  final int total;
-  final bool isOnline;
-
-  const _OfflineSummary({required this.downloaded, required this.total, required this.isOnline});
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return InfoCard(
-      color: AppColors.primarySurface,
-      child: Row(
-        children: [
-          const Icon(Icons.download_done_rounded, color: AppColors.primary, size: 24),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
+          // Filters: Topics & Languages
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.white,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$downloaded of $total saved on this phone', style: text.titleSmall),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  isOnline ? 'Saved videos play without internet.' : 'You are offline. Only saved videos will play.',
-                  style: text.bodySmall,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: topics.map((t) {
+                      final isSelected = _selectedTopic == t;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ChoiceChip(
+                          label: Text(t, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+                          selected: isSelected,
+                          selectedColor: AppColors.primarySurface,
+                          labelStyle: TextStyle(color: isSelected ? AppColors.primaryDark : AppColors.textPrimary),
+                          onSelected: (_) => setState(() => _selectedTopic = t),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: languages.map((lang) {
+                      final isSelected = _selectedLanguage == lang;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          label: Text(lang == 'All' ? 'All Languages' : lang, style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+                          selected: isSelected,
+                          selectedColor: const Color(0xFFFFF3E0),
+                          checkmarkColor: AppColors.secondary,
+                          onSelected: (_) => setState(() => _selectedLanguage = lang),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ],
             ),
           ),
-          if (!isOnline) ...[
-            const SizedBox(width: AppSpacing.sm),
-            const StatusTag(
-              'Offline',
-              icon: Icons.wifi_off_rounded,
-              color: AppColors.secondary,
-              background: AppColors.secondarySurface,
+          const Divider(height: 1),
+
+          // Video Cards Grid / List
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filtered.length,
+              itemBuilder: (context, index) {
+                final item = filtered[index];
+                return _buildVideoCard(item, videoManager);
+              },
             ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SourceNotice extends StatelessWidget {
-  const _SourceNotice();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Icon(Icons.verified_user_outlined, size: 20, color: AppColors.primary),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(
-            'These videos come from the Ministry of Health & Family Welfare (MoHFW) and state health guidelines. '
-            '"Verified guidance" means it follows national rural health rules.',
-            style: Theme.of(context).textTheme.bodySmall,
           ),
-        ),
-      ],
-    );
-  }
-}
-
-/// One horizontally scrolling row of choice chips.
-class _ChipRow extends StatelessWidget {
-  final List<String> options;
-  final String selected;
-  final String Function(String) labelFor;
-  final ValueChanged<String> onSelected;
-
-  const _ChipRow({
-    required this.options,
-    required this.selected,
-    required this.labelFor,
-    required this.onSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          for (final o in options)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: ChoiceChip(
-                label: Text(labelFor(o)),
-                selected: selected == o,
-                onSelected: (_) => onSelected(o),
-              ),
-            ),
         ],
       ),
     );
   }
-}
 
-class _VideoCard extends StatelessWidget {
-  final AwarenessContentModel item;
-  final VoidCallback onWatch;
-  final VoidCallback onSave;
-  final VoidCallback onRemove;
+  Widget _buildVerificationNotice() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: const Color(0xFFF1F5F9),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.verified_user_outlined, size: 16, color: AppColors.roleAsha),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Public Health Notice: All educational media in this catalog is curated from the Ministry of Health & Family Welfare (MoHFW) and verified state guidelines. Content labeled "Verified Guidance" follows national rural protocol.',
+              style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.3),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-  const _VideoCard({
-    required this.item,
-    required this.onWatch,
-    required this.onSave,
-    required this.onRemove,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+  Widget _buildVideoCard(AwarenessContentModel item, OfflineVideoManager manager) {
     final isDownloaded = item.downloadStatus == VideoDownloadStatus.downloaded;
     final isDownloading = item.downloadStatus == VideoDownloadStatus.downloading;
 
-    return InfoCard(
-      padding: EdgeInsets.zero,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Thumbnail(topic: item.topic, onTap: onWatch),
+          // Video Thumbnail Placeholder with Play Overlay
+          Stack(
+            children: [
+              Container(
+                height: 150,
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF004D40), Color(0xFF00796B)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.play_arrow_rounded, size: 36, color: Colors.white),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        item.topic,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Download Status Pill
+              Positioned(
+                top: 10,
+                right: 10,
+                child: _buildDownloadStatusPill(item.downloadStatus),
+              ),
+
+              // Verified Badge
+              if (item.isVerifiedGuidance)
+                Positioned(
+                  top: 10,
+                  left: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified_rounded, size: 12, color: Color(0xFF69F0AE)),
+                        SizedBox(width: 4),
+                        Text(
+                          'Verified Guidance',
+                          style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          // Video Metadata Content
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text(
+                  item.title,
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  item.description,
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.3),
+                ),
+                const SizedBox(height: 10),
                 Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
+                  spacing: 12,
+                  runSpacing: 4,
                   children: [
-                    _statusTag(item.downloadStatus),
-                    if (item.isVerifiedGuidance)
-                      const StatusTag('Verified guidance', icon: Icons.verified_rounded),
+                    Text('🗣 ${item.language}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    Text('🏛 ${item.source}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                    Text('📅 ${item.reviewDate}', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                Text(item.title, style: text.titleSmall),
-                const SizedBox(height: AppSpacing.xs),
-                Text(item.description, style: text.bodySmall),
-                const SizedBox(height: AppSpacing.md),
-                Wrap(
-                  spacing: AppSpacing.lg,
-                  runSpacing: AppSpacing.xs,
-                  children: [
-                    _Meta(icon: Icons.translate_rounded, text: item.language),
-                    _Meta(icon: Icons.account_balance_outlined, text: item.source),
-                    _Meta(icon: Icons.event_outlined, text: 'Checked ${item.reviewDate}'),
-                  ],
-                ),
+
+                // Download Progress Indicator
                 if (isDownloading) ...[
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 12),
                   LinearProgressIndicator(
                     value: item.downloadProgress,
                     backgroundColor: AppColors.primarySurface,
-                    minHeight: AppSpacing.sm - 2,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    color: AppColors.primary,
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: 4),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text('Saving to phone…', style: text.bodySmall)),
-                      Text('${(item.downloadProgress * 100).toInt()}%', style: text.labelMedium),
+                      const Text('Downloading to local device storage...', style: TextStyle(fontSize: 11, color: AppColors.primary)),
+                      Text('${(item.downloadProgress * 100).toInt()}%', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
-                const SizedBox(height: AppSpacing.lg),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    icon: Icon(isDownloaded ? Icons.offline_pin_rounded : Icons.play_arrow_rounded),
-                    label: Text(isDownloaded ? 'Watch (saved)' : 'Watch video'),
-                    onPressed: onWatch,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SizedBox(
-                  width: double.infinity,
-                  child: isDownloaded
-                      ? OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(foregroundColor: AppColors.riskRed),
-                          icon: const Icon(Icons.delete_outline_rounded),
-                          label: const Text('Remove from phone'),
-                          onPressed: onRemove,
-                        )
-                      : OutlinedButton.icon(
-                          icon: const Icon(Icons.download_rounded),
-                          label: Text(isDownloading ? 'Saving…' : 'Save to watch offline'),
-                          onPressed: isDownloading ? null : onSave,
+
+                const SizedBox(height: 14),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    // Play Button
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDownloaded ? AppColors.riskGreen : AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
+                        icon: Icon(isDownloaded ? Icons.offline_pin_rounded : Icons.play_arrow_rounded, size: 18),
+                        label: Text(
+                          isDownloaded ? 'Play Offline (Saved)' : 'Watch Video',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => VideoPlayerScreen(content: item),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+
+                    // Download / Remove Offline Copy Button
+                    if (isDownloaded) ...[
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.riskRed),
+                        tooltip: 'Delete downloaded file',
+                        onPressed: () => manager.removeDownloadedVideo(item.id),
+                      ),
+                    ] else ...[
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.download_rounded, size: 18),
+                        label: const Text('Save Offline', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        onPressed: isDownloading ? null : () => manager.downloadVideo(item.id),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -329,111 +375,57 @@ class _VideoCard extends StatelessWidget {
     );
   }
 
-  /// Download status as icon + word. Not triage, so no red/amber/green:
-  /// success uses primary, attention uses secondary, neutral uses grey.
-  Widget _statusTag(VideoDownloadStatus status) {
+  Widget _buildDownloadStatusPill(VideoDownloadStatus status) {
+    Color bg;
+    Color fg;
+    IconData icon;
+
     switch (status) {
       case VideoDownloadStatus.downloaded:
-        return const StatusTag('Saved on phone', icon: Icons.check_circle_rounded);
+        bg = const Color(0xFF2E7D32);
+        fg = Colors.white;
+        icon = Icons.check_circle_rounded;
+        break;
       case VideoDownloadStatus.downloading:
-        return const StatusTag('Saving…', icon: Icons.downloading_rounded);
+        bg = const Color(0xFFE65100);
+        fg = Colors.white;
+        icon = Icons.downloading_rounded;
+        break;
       case VideoDownloadStatus.waitingForInternet:
-        return const StatusTag(
-          'Waiting for internet',
-          icon: Icons.wifi_off_rounded,
-          color: AppColors.secondary,
-          background: AppColors.secondarySurface,
-        );
+        bg = const Color(0xFFC62828);
+        fg = Colors.white;
+        icon = Icons.wifi_off_rounded;
+        break;
       case VideoDownloadStatus.updateAvailable:
-        return const StatusTag(
-          'New version available',
-          icon: Icons.update_rounded,
-          color: AppColors.secondary,
-          background: AppColors.secondarySurface,
-        );
+        bg = const Color(0xFFF57F17);
+        fg = Colors.white;
+        icon = Icons.update_rounded;
+        break;
       case VideoDownloadStatus.notDownloaded:
-        return const StatusTag(
-          'Needs internet',
-          icon: Icons.cloud_outlined,
-          color: AppColors.textSecondary,
-          background: AppColors.background,
-        );
+      default:
+        bg = Colors.black54;
+        fg = Colors.white;
+        icon = Icons.cloud_outlined;
+        break;
     }
-  }
-}
 
-/// Flat video thumbnail placeholder: shows the topic and opens the video.
-class _Thumbnail extends StatelessWidget {
-  final String topic;
-  final VoidCallback onTap;
-
-  const _Thumbnail({required this.topic, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Play video about $topic',
-      excludeSemantics: true,
-      child: Material(
-        color: AppColors.primarySurface,
-        child: InkWell(
-          onTap: onTap,
-          // Min height (not fixed) so large system text grows the box instead of overflowing.
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: AppSizes.minTouch * 2.5),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: AppSizes.minTouch,
-                    height: AppSizes.minTouch,
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: const Icon(Icons.play_arrow_rounded, size: 28, color: AppColors.primary),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                    child: Text(
-                      topic,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppColors.primaryDark),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
       ),
-    );
-  }
-}
-
-class _Meta extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _Meta({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 20, color: AppColors.textMuted),
-        const SizedBox(width: AppSpacing.xs),
-        Flexible(child: Text(text, style: Theme.of(context).textTheme.labelSmall)),
-      ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: fg),
+          const SizedBox(width: 4),
+          Text(
+            status.displayName,
+            style: TextStyle(fontSize: 10, color: fg, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
     );
   }
 }

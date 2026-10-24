@@ -14,18 +14,21 @@ class SyncStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Compact keeps the word (rule: never icon/colour alone), just tighter.
+    if (compact) {
+      return Tooltip(
+        message: status.displayName,
+        child: Icon(status.icon, size: 18, color: status.color),
+      );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(status.icon, size: compact ? 14 : 16, color: status.color),
+        Icon(status.icon, size: 16, color: status.color),
         const SizedBox(width: AppSpacing.xs),
-        Flexible(
-          child: Text(
-            status.displayName,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: status.color),
-          ),
+        Text(
+          status.displayName,
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: status.color),
         ),
       ],
     );

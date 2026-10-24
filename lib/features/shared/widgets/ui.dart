@@ -12,9 +12,6 @@ class AppButton extends StatelessWidget {
   final bool destructive;
   final bool loading;
 
-  /// Shown next to the spinner while [loading]. Defaults to [label].
-  final String? loadingLabel;
-
   const AppButton({
     super.key,
     required this.label,
@@ -23,31 +20,26 @@ class AppButton extends StatelessWidget {
     this.secondary = false,
     this.destructive = false,
     this.loading = false,
-    this.loadingLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final spinnerColor = secondary ? AppColors.primary : AppColors.textSecondary;
-    final child = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (loading)
-          Padding(
-            padding: const EdgeInsets.only(right: AppSpacing.sm),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2.5, color: spinnerColor),
-            ),
+    final child = loading
+        ? const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
           )
-        else if (icon != null) ...[Icon(icon, size: 22), const SizedBox(width: AppSpacing.sm)],
-        Flexible(child: Text(loading ? (loadingLabel ?? label) : label, textAlign: TextAlign.center)),
-      ],
-    );
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[Icon(icon, size: 22), const SizedBox(width: AppSpacing.sm)],
+              Flexible(child: Text(label, textAlign: TextAlign.center)),
+            ],
+          );
 
-    const size = Size.fromHeight(AppSizes.primaryButton);
+    final size = const Size.fromHeight(AppSizes.primaryButton);
     if (secondary) {
       return OutlinedButton(
         style: OutlinedButton.styleFrom(minimumSize: size),
@@ -66,14 +58,13 @@ class AppButton extends StatelessWidget {
   }
 }
 
-/// Flat bordered card. Optional tap, accent stripe (e.g. triage colour) and selected state.
+/// Flat bordered card. Optional tap and accent stripe (e.g. triage colour).
 class InfoCard extends StatelessWidget {
   final Widget child;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
   final Color? accent;
   final Color? color;
-  final bool selected;
 
   const InfoCard({
     super.key,
@@ -82,7 +73,6 @@ class InfoCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(AppSpacing.lg),
     this.accent,
     this.color,
-    this.selected = false,
   });
 
   @override
@@ -100,12 +90,10 @@ class InfoCard extends StatelessWidget {
       );
     }
     return Material(
-      color: color ?? (selected ? AppColors.primarySurface : AppColors.surface),
+      color: color ?? AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: AppRadius.card,
-        side: selected
-            ? const BorderSide(color: AppColors.primary, width: 2)
-            : const BorderSide(color: AppColors.border),
+        side: const BorderSide(color: AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: onTap == null ? content : InkWell(onTap: onTap, child: content),
@@ -249,99 +237,6 @@ class EmptyState extends StatelessWidget {
           if (action != null) ...[const SizedBox(height: AppSpacing.lg), action!],
         ],
       ),
-    );
-  }
-}
-
-/// Small neutral tag for non-triage status ("Pending review", "Saved on phone", "Pregnant").
-/// Always icon + word.
-class StatusTag extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final Color color;
-  final Color background;
-
-  const StatusTag(
-    this.label, {
-    super.key,
-    this.icon,
-    this.color = AppColors.primaryDark,
-    this.background = AppColors.primarySurface,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(AppRadius.sm)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[Icon(icon, size: 16, color: color), const SizedBox(width: AppSpacing.xs)],
-          Flexible(
-            child: Text(
-              label,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Square initial-letter avatar for people.
-class InitialAvatar extends StatelessWidget {
-  final String name;
-  final double size;
-
-  const InitialAvatar(this.name, {super.key, this.size = AppSizes.minTouch});
-
-  @override
-  Widget build(BuildContext context) {
-    final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
-    return ExcludeSemantics(
-      child: Container(
-        width: size,
-        height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: AppColors.primarySurface, borderRadius: BorderRadius.circular(AppRadius.sm)),
-        child: Text(
-          initial,
-          style: TextStyle(fontSize: size * 0.42, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
-        ),
-      ),
-    );
-  }
-}
-
-/// "Step N of M" header with a progress bar, for long stepped forms.
-class StepHeader extends StatelessWidget {
-  final int step; // 1-based
-  final int total;
-  final String title;
-
-  const StepHeader({super.key, required this.step, required this.total, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Step $step of $total', style: Theme.of(context).textTheme.labelMedium),
-        const SizedBox(height: AppSpacing.xs),
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
-        const SizedBox(height: AppSpacing.md),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: LinearProgressIndicator(
-            value: step / total,
-            minHeight: AppSpacing.sm - 2,
-            backgroundColor: AppColors.divider,
-          ),
-        ),
-      ],
     );
   }
 }

@@ -13,14 +13,6 @@ class AppBrandLogo extends StatelessWidget {
     this.animate = false,
   });
 
-  @override
-  Widget build(BuildContext context) => Semantics(
-        label: 'Aarogya Setu, health care for every village',
-        image: true,
-        excludeSemantics: true,
-        child: _content(context),
-      );
-
   Widget _emblem(double radius) => ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: Image.asset(
@@ -37,7 +29,8 @@ class AppBrandLogo extends StatelessWidget {
         ),
       );
 
-  Widget _content(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     const tagline = 'Health care for every village';
 
     if (isHorizontal) {
@@ -72,7 +65,10 @@ class AppBrandLogo extends StatelessWidget {
       children: [
         _emblem(iconSize * 0.2),
         const SizedBox(height: AppSpacing.lg),
-        Text('Aarogya Setu', style: Theme.of(context).textTheme.headlineSmall),
+        const Text(
+          'Aarogya Setu',
+          style: TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.xs),
         const Text(
           tagline,

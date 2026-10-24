@@ -4,7 +4,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/voice_service.dart';
-import '../../shared/widgets/ui.dart';
 
 class RegisterVillagerScreen extends StatefulWidget {
   final String? initialHouseholdId;
@@ -38,8 +37,6 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     {'id': 'village-khed-02', 'name': 'Khed Buzurg'},
     {'id': 'village-bhopal-03', 'name': 'Sundarpur'},
   ];
-
-  final _genders = const ['Female', 'Male', 'Other'];
 
   final _commonConditions = const [
     'Hypertension',
@@ -81,10 +78,16 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded, color: AppColors.secondary, size: 28),
-          title: const Text('Already registered'),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: AppColors.riskRed),
+              SizedBox(width: 8),
+              Text('Duplicate Registration Blocked', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+            ],
+          ),
           content: Text(
-            '"${duplicate.fullName}" is already registered with phone ${duplicate.contactNumber} in ${duplicate.villageName}. The same person cannot be registered twice.',
+            'A citizen named "${duplicate.fullName}" is already registered with contact "${duplicate.contactNumber}" in ${duplicate.villageName}. Multiple registrations for the same citizen are not allowed.',
           ),
           actions: [
             TextButton(
@@ -119,29 +122,15 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text('${newPatient.fullName} is registered.')),
-            ],
-          ),
+          backgroundColor: AppColors.riskGreen,
+          content: Text('✓ ${newPatient.fullName} registered successfully.'),
         ),
       );
       Navigator.pop(context);
     } catch (e) {
-      debugPrint('RegisterVillagerScreen: registerPatient failed: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Row(
-            children: [
-              Icon(Icons.error_outline_rounded, color: Colors.white),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text('Could not save. Please try again.')),
-            ],
-          ),
-        ),
+        SnackBar(backgroundColor: AppColors.riskRed, content: Text('Error: $e')),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -151,12 +140,15 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Register citizen'),
+        title: const Text('Register Citizen'),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         actions: [
-          TextButton.icon(
+          IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Listen'),
+            tooltip: 'Audio guidance for registration',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
@@ -169,208 +161,252 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.xl),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SectionHeader('About the person'),
-              ..._buildBasicFields(),
-              const SectionHeader('Village and household'),
-              ..._buildLocationFields(),
-              const SectionHeader('Health history'),
-              ..._buildHealthFields(),
+              // Basic Demographics Card
+              _buildSectionCard(
+                title: 'Basic Information',
+                icon: Icons.person_add_alt_1_rounded,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name *',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter full name' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _ageController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: 'Age *',
+                            prefixIcon: Icon(Icons.cake_outlined),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Enter age';
+                            final n = int.tryParse(v);
+                            if (n == null || n < 0 || n > 120) return 'Valid age (0-120)';
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: _gender,
+                          decoration: const InputDecoration(
+                            labelText: 'Gender *',
+                            prefixIcon: Icon(Icons.wc_outlined),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: 'Female', child: Text('Female', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Male', child: Text('Male', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'Other', child: Text('Other', overflow: TextOverflow.ellipsis)),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) {
+                              setState(() {
+                                _gender = v;
+                                if (_gender != 'Female') _isPregnant = false;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Contact Phone *',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                      hintText: '+91 98765 00000',
+                    ),
+                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter mobile number' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _guardianController,
+                    decoration: const InputDecoration(
+                      labelText: 'Guardian / Family Head',
+                      prefixIcon: Icon(Icons.family_restroom_outlined),
+                      hintText: 'e.g. Ramesh Kumar (Husband / Father)',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Location & Household Card
+              _buildSectionCard(
+                title: 'Village & Household',
+                icon: Icons.location_on_outlined,
+                children: [
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _villageId,
+                    decoration: const InputDecoration(
+                      labelText: 'Assigned Village *',
+                      prefixIcon: Icon(Icons.home_work_outlined),
+                    ),
+                    items: _allVillages.map((v) {
+                      return DropdownMenuItem(
+                        value: v['id'],
+                        child: Text(v['name']!, overflow: TextOverflow.ellipsis),
+                      );
+                    }).toList(),
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() {
+                          _villageId = v;
+                          _villageName = _allVillages.firstWhere((x) => x['id'] == v)['name']!;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _householdController,
+                    decoration: const InputDecoration(
+                      labelText: 'Household ID',
+                      prefixIcon: Icon(Icons.tag_rounded),
+                      hintText: 'e.g. HH-042',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              // Health History & Conditions
+              _buildSectionCard(
+                title: 'Medical Profile',
+                icon: Icons.medical_information_outlined,
+                children: [
+                  if (_gender == 'Female') ...[
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Is Pregnant?'),
+                      subtitle: const Text('Enroll in Antenatal Care (ANC) tracking'),
+                      value: _isPregnant,
+                      activeColor: AppColors.primary,
+                      onChanged: (val) => setState(() => _isPregnant = val),
+                    ),
+                    const Divider(),
+                  ],
+                  const Text(
+                    'Pre-existing Chronic Conditions:',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: _commonConditions.map((cond) {
+                      final isSelected = _selectedConditions.contains(cond);
+                      return FilterChip(
+                        label: Text(cond),
+                        selected: isSelected,
+                        selectedColor: AppColors.primarySurface,
+                        checkmarkColor: AppColors.primary,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              if (cond == 'None') {
+                                _selectedConditions.clear();
+                              } else {
+                                _selectedConditions.remove('None');
+                              }
+                              _selectedConditions.add(cond);
+                            } else {
+                              _selectedConditions.remove(cond);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _notesController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'ASHA Field Notes',
+                      hintText: 'Notes regarding diet, disability, or living conditions...',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 2,
+                ),
+                onPressed: _isSubmitting ? null : _submit,
+                icon: _isSubmitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Icon(Icons.check_circle_rounded),
+                label: Text(
+                  _isSubmitting ? 'Registering...' : 'Save & Register Citizen',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: AppSpacing.screen,
-          child: AppButton(
-            label: 'Save citizen',
-            icon: Icons.check_circle_rounded,
-            loading: _isSubmitting,
-            loadingLabel: 'Saving…',
-            onPressed: _submit,
           ),
         ),
       ),
     );
   }
 
-  List<Widget> _buildBasicFields() {
-    return [
-      TextFormField(
-        controller: _nameController,
-        textInputAction: TextInputAction.next,
-        textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(
-          labelText: 'Full name *',
-          prefixIcon: Icon(Icons.person_outline),
-        ),
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Please enter full name' : null,
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
-      const SizedBox(height: AppSpacing.md),
-      TextFormField(
-        controller: _ageController,
-        keyboardType: TextInputType.number,
-        textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Age *',
-          helperText: 'In years',
-          prefixIcon: Icon(Icons.cake_outlined),
-        ),
-        validator: (v) {
-          if (v == null || v.trim().isEmpty) return 'Enter age';
-          final n = int.tryParse(v);
-          if (n == null || n < 0 || n > 120) return 'Enter an age between 0 and 120';
-          return null;
-        },
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      const _FieldLabel('Gender *'),
-      Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: _genders.map((g) {
-          return ChoiceChip(
-            label: Text(g),
-            selected: _gender == g,
-            onSelected: (_) {
-              setState(() {
-                _gender = g;
-                if (_gender != 'Female') _isPregnant = false;
-              });
-            },
-          );
-        }).toList(),
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      TextFormField(
-        controller: _phoneController,
-        keyboardType: TextInputType.phone,
-        textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Phone number *',
-          prefixIcon: Icon(Icons.phone_outlined),
-          hintText: '+91 98765 00000',
-        ),
-        validator: (v) => (v == null || v.trim().isEmpty) ? 'Enter mobile number' : null,
-      ),
-      const SizedBox(height: AppSpacing.md),
-      TextFormField(
-        controller: _guardianController,
-        textInputAction: TextInputAction.next,
-        textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(
-          labelText: 'Guardian or family head',
-          prefixIcon: Icon(Icons.family_restroom_outlined),
-          hintText: 'e.g. Ramesh Kumar (husband)',
-        ),
-      ),
-    ];
-  }
-
-  List<Widget> _buildLocationFields() {
-    return [
-      const _FieldLabel('Village *'),
-      Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: _allVillages.map((v) {
-          return ChoiceChip(
-            label: Text(v['name']!),
-            selected: _villageId == v['id'],
-            onSelected: (_) {
-              setState(() {
-                _villageId = v['id']!;
-                _villageName = v['name']!;
-              });
-            },
-          );
-        }).toList(),
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      TextFormField(
-        controller: _householdController,
-        textInputAction: TextInputAction.next,
-        decoration: const InputDecoration(
-          labelText: 'Household ID',
-          prefixIcon: Icon(Icons.tag_rounded),
-          hintText: 'e.g. HH-042',
-        ),
-      ),
-    ];
-  }
-
-  List<Widget> _buildHealthFields() {
-    return [
-      if (_gender == 'Female') ...[
-        InfoCard(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: SwitchListTile(
-            title: const Text('Pregnant'),
-            subtitle: const Text('Track pregnancy check-ups (ANC)'),
-            value: _isPregnant,
-            onChanged: (val) => setState(() => _isPregnant = val),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-      ],
-      const _FieldLabel('Long-term illness (tap all that apply)'),
-      Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        children: _commonConditions.map((cond) {
-          final isSelected = _selectedConditions.contains(cond);
-          return FilterChip(
-            label: Text(cond),
-            selected: isSelected,
-            onSelected: (selected) {
-              setState(() {
-                if (selected) {
-                  if (cond == 'None') {
-                    _selectedConditions.clear();
-                  } else {
-                    _selectedConditions.remove('None');
-                  }
-                  _selectedConditions.add(cond);
-                } else {
-                  _selectedConditions.remove(cond);
-                }
-              });
-            },
-          );
-        }).toList(),
+          const Divider(height: 20),
+          ...children,
+        ],
       ),
-      const SizedBox(height: AppSpacing.lg),
-      TextFormField(
-        controller: _notesController,
-        maxLines: 3,
-        keyboardType: TextInputType.multiline,
-        textInputAction: TextInputAction.newline,
-        decoration: const InputDecoration(
-          labelText: 'Notes',
-          hintText: 'Diet, disability or living conditions',
-          alignLabelWithHint: true,
-        ),
-      ),
-    ];
-  }
-}
-
-/// Small label shown above chip groups.
-class _FieldLabel extends StatelessWidget {
-  final String text;
-  const _FieldLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: Text(text, style: Theme.of(context).textTheme.titleSmall),
     );
   }
 }

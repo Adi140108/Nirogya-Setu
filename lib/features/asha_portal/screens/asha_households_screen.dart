@@ -3,13 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
 import '../../../core/services/health_repository.dart';
-import '../../shared/widgets/network_banner.dart';
-import '../../shared/widgets/ui.dart';
 import 'register_villager_screen.dart';
 import 'patient_detail_screen.dart';
-
-/// Icon chip / avatar size, matching the shared ActionTile chip (44).
-const double _chipSize = AppSizes.minTouch - AppSpacing.xs;
 
 class AshaHouseholdsScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -40,51 +35,205 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
     }).toList();
 
     return Scaffold(
-      appBar: widget.isEmbedded ? null : AppBar(title: const Text('Households')),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              title: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Aarogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('Household & Family Registry', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
+                ],
+              ),
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
       body: Column(
         children: [
-          const NetworkBanner(),
-          _buildSearchHeader(context, householdsMap.length),
+          // Search & Filter Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Colors.white,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Village Households',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    ),
+                    Text(
+                      '${householdsMap.length} Families',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search by Household ID, family member or village...',
+                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    filled: true,
+                    fillColor: const Color(0xFFF1F5F9),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                  ),
+                  onChanged: (v) => setState(() => _searchQuery = v),
+                ),
+              ],
+            ),
+          ),
+
           Expanded(
             child: filteredHouseholds.isEmpty
-                ? SingleChildScrollView(
-                    child: householdsMap.isEmpty
-                        ? const EmptyState(
-                            icon: Icons.home_outlined,
-                            title: 'No households yet',
-                            message: 'Tap "Add household" to register a family.',
-                          )
-                        : const EmptyState(
-                            icon: Icons.search_off_rounded,
-                            title: 'No matching households',
-                            message: 'Try a different name, phone number, village or household ID.',
-                          ),
-                  )
-                : ListView.separated(
-                    // Extra bottom space so the last card is not hidden behind the button.
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      AppSpacing.lg,
-                      AppSpacing.xxl * 3,
+                ? const Center(
+                    child: Text(
+                      'No matching households found.',
+                      style: TextStyle(color: Color(0xFF64748B)),
                     ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(14),
                     itemCount: filteredHouseholds.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
                     itemBuilder: (context, index) {
                       final entry = filteredHouseholds[index];
-                      return _HouseholdCard(
-                        householdId: entry.key,
-                        members: entry.value,
-                        onOpenMember: (m) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PatientDetailScreen(patientId: m.id),
+                      final householdId = entry.key;
+                      final members = entry.value;
+                      final head = members.first;
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
                             ),
-                          );
-                        },
-                        onAddMember: () =>
-                            _openAddMemberDialog(context, repo, entry.key, entry.value.first),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Household Header
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.home_rounded, color: AppColors.primary, size: 18),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Household: $householdId',
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${members.length} Members • ${head.villageName}',
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Member List
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                children: [
+                                  ...members.map((m) {
+                                    return InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => PatientDetailScreen(patientId: m.id),
+                                          ),
+                                        );
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 6),
+                                        child: Row(
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 14,
+                                              backgroundColor: AppColors.primarySurface,
+                                              child: Text(
+                                                m.fullName.isNotEmpty ? m.fullName[0] : '?',
+                                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    '${m.fullName} (${m.displayRelationship})',
+                                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                                                  ),
+                                                  Text(
+                                                    '${m.age}y, ${m.gender} • Contact: ${m.contactNumber}',
+                                                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            if (m.isPregnant)
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFFCE7F3),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                ),
+                                                child: const Text('ANC', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFBE185D))),
+                                              ),
+                                            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }),
+
+                                  const Divider(height: 16),
+
+                                  // Add Member inside this Household
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: AppColors.primary,
+                                        side: const BorderSide(color: AppColors.primary),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                      ),
+                                      icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
+                                      label: const Text('Add Family Member to this Household', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      onPressed: () => _openAddMemberDialog(context, repo, householdId, head),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),
@@ -92,51 +241,16 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add_home_rounded),
-        label: const Text('Add household'),
+        label: const Text('New Household', style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const RegisterVillagerScreen()),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildSearchHeader(BuildContext context, int familyCount) {
-    final textTheme = Theme.of(context).textTheme;
-    return Container(
-      padding: AppSpacing.screen,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Expanded(child: Text('Village households', style: textTheme.titleMedium)),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                familyCount == 1 ? '1 family' : '$familyCount families',
-                style: textTheme.bodySmall,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            textInputAction: TextInputAction.search,
-            decoration: const InputDecoration(
-              hintText: 'Search name, phone, village or ID',
-              prefixIcon: Icon(Icons.search_rounded),
-            ),
-            onChanged: (v) => setState(() => _searchQuery = v),
-          ),
-        ],
       ),
     );
   }
@@ -152,55 +266,60 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            final textTheme = Theme.of(context).textTheme;
             return Padding(
               padding: EdgeInsets.only(
-                left: AppSpacing.lg,
-                right: AppSpacing.lg,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.lg,
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
               ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Add family member', style: textTheme.titleLarge),
-                    const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Household $householdId · ${head.villageName} · Head: ${head.fullName}',
-                      style: textTheme.bodySmall,
+                      'Add Member to Household ($householdId)',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                     ),
-                    const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Village: ${head.villageName} • Head: ${head.fullName}',
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    ),
+                    const SizedBox(height: 14),
                     TextField(
                       controller: nameCtrl,
-                      textCapitalization: TextCapitalization.words,
-                      textInputAction: TextInputAction.next,
-                      decoration: const InputDecoration(labelText: 'Full name'),
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name *',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 12),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: TextField(
                             controller: ageCtrl,
                             keyboardType: TextInputType.number,
-                            textInputAction: TextInputAction.next,
                             decoration: const InputDecoration(
-                              labelText: 'Age',
-                              helperText: 'In years',
+                              labelText: 'Age *',
+                              border: OutlineInputBorder(),
                             ),
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.md),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            initialValue: gender,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'Gender'),
+                            value: gender,
+                            decoration: const InputDecoration(
+                              labelText: 'Gender',
+                              border: OutlineInputBorder(),
+                            ),
                             items: const [
                               DropdownMenuItem(value: 'Female', child: Text('Female')),
                               DropdownMenuItem(value: 'Male', child: Text('Male')),
@@ -218,50 +337,60 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    DropdownButtonFormField<String>(
-                      initialValue: relationship,
-                      isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Relation to head of family'),
-                      items: const [
-                        DropdownMenuItem(value: 'Wife', child: Text('Wife')),
-                        DropdownMenuItem(value: 'Husband', child: Text('Husband')),
-                        DropdownMenuItem(value: 'Son', child: Text('Son')),
-                        DropdownMenuItem(value: 'Daughter', child: Text('Daughter')),
-                        DropdownMenuItem(value: 'Mother', child: Text('Mother')),
-                        DropdownMenuItem(value: 'Father', child: Text('Father')),
-                        DropdownMenuItem(value: 'Grandparent', child: Text('Grandparent')),
-                        DropdownMenuItem(value: 'Other', child: Text('Other')),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String>(
+                            value: relationship,
+                            decoration: const InputDecoration(
+                              labelText: 'Relationship to Head',
+                              border: OutlineInputBorder(),
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 'Wife', child: Text('Wife')),
+                              DropdownMenuItem(value: 'Husband', child: Text('Husband')),
+                              DropdownMenuItem(value: 'Son', child: Text('Son')),
+                              DropdownMenuItem(value: 'Daughter', child: Text('Daughter')),
+                              DropdownMenuItem(value: 'Mother', child: Text('Mother')),
+                              DropdownMenuItem(value: 'Father', child: Text('Father')),
+                              DropdownMenuItem(value: 'Grandparent', child: Text('Grandparent')),
+                              DropdownMenuItem(value: 'Other', child: Text('Other')),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setSheetState(() => relationship = v);
+                            },
+                          ),
+                        ),
                       ],
-                      onChanged: (v) {
-                        if (v != null) setSheetState(() => relationship = v);
-                      },
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: phoneCtrl,
                       keyboardType: TextInputType.phone,
-                      textInputAction: TextInputAction.done,
                       decoration: const InputDecoration(
-                        labelText: 'Phone number',
+                        labelText: 'Contact Phone *',
+                        border: OutlineInputBorder(),
                         hintText: '+91 98765 00000',
                       ),
                     ),
                     if (gender == 'Female') ...[
-                      const SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: 8),
                       CheckboxListTile(
                         contentPadding: EdgeInsets.zero,
-                        controlAffinity: ListTileControlAffinity.leading,
-                        title: const Text('She is pregnant'),
-                        subtitle: const Text('Adds her to pregnancy care (ANC) visits'),
+                        title: const Text('Is Pregnant? (Maternal Care)', style: TextStyle(fontSize: 13)),
                         value: isPregnant,
                         onChanged: (v) => setSheetState(() => isPregnant = v ?? false),
                       ),
                     ],
-                    const SizedBox(height: AppSpacing.lg),
-                    AppButton(
-                      label: 'Save member',
-                      icon: Icons.check_rounded,
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
                       onPressed: () async {
                         final name = nameCtrl.text.trim();
                         final age = int.tryParse(ageCtrl.text.trim()) ?? 0;
@@ -269,22 +398,26 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
 
                         if (name.isEmpty || age <= 0 || phone.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please enter a name, age and phone number.')),
+                            const SnackBar(content: Text('Please provide valid name, age and phone number.')),
                           );
                           return;
                         }
 
-                        // Duplicate protection check
+                        // Duplicate Protection Check
                         final duplicate = repo.findDuplicateCitizen(fullName: name, contactNumber: phone);
                         if (duplicate != null) {
                           showDialog(
                             context: context,
                             builder: (dCtx) => AlertDialog(
-                              icon: const Icon(Icons.warning_amber_rounded, color: AppColors.secondary),
-                              title: const Text('Already registered'),
+                              title: const Row(
+                                children: [
+                                  Icon(Icons.warning_amber_rounded, color: AppColors.riskRed),
+                                  SizedBox(width: 8),
+                                  Text('Duplicate Citizen Detected', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
                               content: Text(
-                                '${duplicate.fullName} is already registered with phone ${duplicate.contactNumber} '
-                                'in ${duplicate.villageName}. The same person cannot be added twice.',
+                                'A citizen named "${duplicate.fullName}" is already registered with contact "${duplicate.contactNumber}" in ${duplicate.villageName}. Duplicate entries cannot be created.',
                               ),
                               actions: [
                                 TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Close')),
@@ -311,19 +444,20 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                             Navigator.pop(ctx);
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('${newMember.fullName} added to household $householdId.'),
+                                backgroundColor: AppColors.riskGreen,
+                                content: Text('✓ ${newMember.fullName} enrolled into household $householdId.'),
                               ),
                             );
                           }
                         } catch (e) {
-                          debugPrint('Add family member failed: $e');
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Could not save member. Please try again.')),
+                              SnackBar(backgroundColor: AppColors.riskRed, content: Text('Error: $e')),
                             );
                           }
                         }
                       },
+                      child: const Text('Save & Enroll Member', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -332,124 +466,6 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
           },
         );
       },
-    );
-  }
-}
-
-/// One household: header (ID, size, village), tappable members, add-member action.
-class _HouseholdCard extends StatelessWidget {
-  final String householdId;
-  final List<PatientModel> members;
-  final ValueChanged<PatientModel> onOpenMember;
-  final VoidCallback onAddMember;
-
-  const _HouseholdCard({
-    required this.householdId,
-    required this.members,
-    required this.onOpenMember,
-    required this.onAddMember,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final head = members.first;
-    final memberCount = members.length == 1 ? '1 member' : '${members.length} members';
-
-    return InfoCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.md),
-            child: Row(
-              children: [
-                Container(
-                  width: _chipSize,
-                  height: _chipSize,
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: const Icon(Icons.home_rounded, color: AppColors.primary, size: 24),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Household $householdId', style: textTheme.titleSmall),
-                      const SizedBox(height: AppSpacing.xs / 2),
-                      Text('$memberCount · ${head.villageName}', style: textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
-          ...members.map((m) => _MemberRow(member: m, onTap: () => onOpenMember(m))),
-          const Divider(),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text('Add family member'),
-              onPressed: onAddMember,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A single family member row. Opens the patient's detail screen.
-class _MemberRow extends StatelessWidget {
-  final PatientModel member;
-  final VoidCallback onTap;
-
-  const _MemberRow({required this.member, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final m = member;
-
-    return InkWell(
-      onTap: onTap,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: AppSizes.minTouch),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
-          child: Row(
-            children: [
-              InitialAvatar(m.fullName, size: _chipSize),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${m.fullName} (${m.displayRelationship})', style: textTheme.titleSmall),
-                    const SizedBox(height: AppSpacing.xs / 2),
-                    Text(
-                      '${m.age} yrs · ${m.gender} · ${m.contactNumber}',
-                      style: textTheme.bodySmall,
-                    ),
-                    if (m.isPregnant) ...[
-                      const SizedBox(height: AppSpacing.xs),
-                      const StatusTag('Pregnant', icon: Icons.pregnant_woman_rounded),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

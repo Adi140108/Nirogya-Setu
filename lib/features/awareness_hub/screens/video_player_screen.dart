@@ -4,7 +4,6 @@ import 'package:video_player/video_player.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/awareness_content_model.dart';
 import '../../../core/services/voice_service.dart';
-import '../../shared/widgets/ui.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
   final AwarenessContentModel content;
@@ -19,6 +18,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   VideoPlayerController? _controller;
   bool _isInitialized = false;
   bool _hasError = false;
+  String _errorMessage = '';
   bool _isPlayingFromLocalFile = false;
 
   @override
@@ -63,10 +63,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
       _controller!.play();
     } catch (e) {
-      debugPrint('VideoPlayerScreen: could not play ${widget.content.id}: $e');
-      if (!mounted) return;
       setState(() {
         _hasError = true;
+        _errorMessage = e.toString();
       });
     }
   }
@@ -83,30 +82,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return '$minutes:$seconds';
   }
 
-  void _togglePlay() {
-    setState(() {
-      _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
-    });
-  }
-
-  void _toggleSound() {
-    setState(() {
-      _controller!.setVolume(_controller!.value.volume > 0 ? 0.0 : 1.0);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final content = widget.content;
-    final ready = _isInitialized && _controller != null;
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: Text(content.title),
+        title: Text(content.title, style: const TextStyle(fontSize: 14)),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
         actions: [
-          TextButton.icon(
+          IconButton(
             icon: const Icon(Icons.volume_up_outlined),
-            label: const Text('Listen'),
+            tooltip: 'Audio guidance',
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
@@ -119,243 +108,214 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         ],
       ),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final landscape = constraints.maxWidth > constraints.maxHeight;
-            if (landscape) {
-              // Video would be taller than the screen: scroll everything, and cap
-              // the video at the visible height.
-              return ListView(
+        child: Column(
+          children: [
+            // Video Player Aspect Ratio Box
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  _buildPlayer(ready, maxVideoHeight: constraints.maxHeight),
-                  Padding(
-                    padding: AppSpacing.screen,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: _buildDetails(content),
+                  if (_isInitialized && _controller != null)
+                    VideoPlayer(_controller!)
+                  else if (_hasError)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 40),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Video playback error:\n$_errorMessage',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    const Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     ),
-                  ),
-                ],
-              );
-            }
-            return Column(
-              children: [
-                _buildPlayer(ready),
-                Expanded(
-                  child: ListView(padding: AppSpacing.screen, children: _buildDetails(content)),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
 
-  Widget _buildPlayer(bool ready, {double? maxVideoHeight}) {
-    Widget video = AspectRatio(aspectRatio: 16 / 9, child: _buildVideoArea());
-    if (maxVideoHeight != null) {
-      video = Center(
-        child: ConstrainedBox(constraints: BoxConstraints(maxHeight: maxVideoHeight), child: video),
-      );
-    }
-    return ColoredBox(
-      color: _playerBg,
-      child: Column(
-        children: [
-          video,
-          if (ready) _buildControls(),
-        ],
-      ),
-    );
-  }
-
-  /// Dark player background. There is no dark surface token, so the darkest
-  /// neutral token is reused here (see report).
-  static const Color _playerBg = AppColors.textPrimary;
-
-  Widget _buildVideoArea() {
-    final ready = _isInitialized && _controller != null;
-    final text = Theme.of(context).textTheme;
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (ready)
-          VideoPlayer(_controller!)
-        else if (_hasError)
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.error_outline_rounded, color: Colors.white, size: 28),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'This video could not play.',
-                    textAlign: TextAlign.center,
-                    style: text.titleSmall?.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    'Check your internet, or save the video to your phone first.',
-                    textAlign: TextAlign.center,
-                    style: text.bodySmall?.copyWith(color: Colors.white),
-                  ),
+                  // Overlay Play/Pause Button
+                  if (_isInitialized && _controller != null)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
+                        });
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: AnimatedOpacity(
+                          opacity: _controller!.value.isPlaying ? 0.0 : 0.85,
+                          duration: const Duration(milliseconds: 250),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: const BoxDecoration(
+                              color: Colors.black45,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _controller!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
-          )
-        else
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(color: Colors.white),
-              const SizedBox(height: AppSpacing.md),
-              Text('Loading video…', style: text.bodySmall?.copyWith(color: Colors.white)),
-            ],
-          ),
 
-        // Tap anywhere on the video to play or pause.
-        if (ready)
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _togglePlay,
-              child: Center(
-                child: AnimatedOpacity(
-                  opacity: _controller!.value.isPlaying ? 0.0 : 1.0,
-                  duration: const Duration(milliseconds: 250),
-                  child: Container(
-                    width: AppSizes.minTouch + AppSpacing.lg,
-                    height: AppSizes.minTouch + AppSpacing.lg,
-                    decoration: BoxDecoration(
-                      color: _playerBg.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: Icon(
-                      _controller!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: Colors.white,
-                      size: AppSizes.minTouch - AppSpacing.sm,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildControls() {
-    final value = _controller!.value;
-    final isPlaying = value.isPlaying;
-    final hasSound = value.volume > 0;
-    final buttonStyle = TextButton.styleFrom(
-      foregroundColor: Colors.white,
-      minimumSize: const Size(AppSizes.minTouch, AppSizes.button),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          VideoProgressIndicator(
-            _controller!,
-            allowScrubbing: true,
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            colors: VideoProgressColors(
-              playedColor: AppColors.primaryLight,
-              bufferedColor: Colors.white.withValues(alpha: 0.35),
-              backgroundColor: Colors.white.withValues(alpha: 0.15),
-            ),
-          ),
-          Text(
-            '${_formatDuration(value.position)} / ${_formatDuration(value.duration)}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton.icon(
-                  style: buttonStyle,
-                  icon: Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 28),
-                  label: Text(isPlaying ? 'Pause' : 'Play'),
-                  onPressed: _togglePlay,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: TextButton.icon(
-                  style: buttonStyle,
-                  icon: Icon(hasSound ? Icons.volume_up_rounded : Icons.volume_off_rounded, size: 28),
-                  label: Text(hasSound ? 'Mute' : 'Unmute'),
-                  onPressed: _toggleSound,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Widget> _buildDetails(AwarenessContentModel content) {
-    final text = Theme.of(context).textTheme;
-    return [
-        InfoCard(
-          color: AppColors.primarySurface,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                _isPlayingFromLocalFile ? Icons.offline_pin_rounded : Icons.wifi_rounded,
-                color: AppColors.primary,
-                size: 24,
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
+            // Video Controls Progress Bar
+            if (_isInitialized && _controller != null) ...[
+              Container(
+                color: const Color(0xFF1E293B),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _isPlayingFromLocalFile ? 'Playing from this phone' : 'Playing over the internet',
-                      style: text.titleSmall,
+                    VideoProgressIndicator(
+                      _controller!,
+                      allowScrubbing: true,
+                      colors: const VideoProgressColors(
+                        playedColor: AppColors.primary,
+                        bufferedColor: Colors.white24,
+                        backgroundColor: Colors.white12,
+                      ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      _isPlayingFromLocalFile
-                          ? 'No mobile data used. Works even with Wi-Fi and mobile data off.'
-                          : 'This uses mobile data. Go back and tap "Save to watch offline" to keep it on your phone.',
-                      style: text.bodySmall,
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            _controller!.value.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _controller!.value.isPlaying ? _controller!.pause() : _controller!.play();
+                            });
+                          },
+                        ),
+                        Text(
+                          '${_formatDuration(_controller!.value.position)} / ${_formatDuration(_controller!.value.duration)}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            _controller!.value.volume > 0 ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _controller!.setVolume(_controller!.value.volume > 0 ? 0.0 : 1.0);
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ],
-          ),
+
+            // Offline Verification Badge & Metadata
+            Expanded(
+              child: Container(
+                color: Colors.white,
+                padding: const EdgeInsets.all(16),
+                child: ListView(
+                  children: [
+                    // Offline Storage Verification Banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _isPlayingFromLocalFile ? const Color(0xFFE8F5E9) : const Color(0xFFE1F5FE),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _isPlayingFromLocalFile ? const Color(0xFF2E7D32) : const Color(0xFF0288D1),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _isPlayingFromLocalFile ? Icons.offline_pin_rounded : Icons.wifi_rounded,
+                            color: _isPlayingFromLocalFile ? const Color(0xFF2E7D32) : const Color(0xFF0288D1),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _isPlayingFromLocalFile
+                                      ? 'Playing from Local Device Storage'
+                                      : 'Streaming via Network',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: _isPlayingFromLocalFile ? const Color(0xFF1B5E20) : const Color(0xFF01579B),
+                                  ),
+                                ),
+                                Text(
+                                  _isPlayingFromLocalFile
+                                      ? 'Zero mobile data consumed. Plays completely offline even with Wi-Fi & cellular disabled.'
+                                      : 'Streamed live from health server. Tap download to save for offline use.',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    Text(
+                      content.title,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Topic: ${content.topic} • Language: ${content.language}',
+                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      content.description,
+                      style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary),
+                    ),
+                    const Divider(height: 24),
+                    Row(
+                      children: [
+                        const Icon(Icons.verified_outlined, size: 16, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Source: ${content.source}',
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Clinical Review Date: ${content.reviewDate} • Version ${content.version}',
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(content.title, style: text.titleLarge),
-        const SizedBox(height: AppSpacing.xs),
-        Text('${content.topic} · ${content.language}', style: text.bodySmall),
-        const SizedBox(height: AppSpacing.md),
-        Text(content.description, style: text.bodyMedium),
-        const SectionHeader('About this video'),
-        InfoCard(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
-          child: Column(
-            children: [
-              InfoRow('Source', content.source),
-              const Divider(),
-              InfoRow('Last checked', content.reviewDate),
-              const Divider(),
-              InfoRow('Version', '${content.version}'),
-            ],
-          ),
-        ),
-    ];
+      ),
+    );
   }
 }

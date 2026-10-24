@@ -49,11 +49,11 @@ class NetworkBanner extends StatelessWidget {
                 context,
                 title: isOnline ? 'Sync Status' : 'Offline Mode',
                 hindiText: isOnline
-                    ? 'Records are being sent to the server.'
-                    : 'The app works without internet. Your records are saved on this phone.',
+                    ? 'Records are syncing to Cloud Firestore.'
+                    : 'App is functional offline. Records safely saved locally.',
                 englishText: isOnline
-                    ? 'Records are being sent to the server.'
-                    : 'The app works without internet. Your records are saved on this phone.',
+                    ? 'Records are syncing to Cloud Firestore.'
+                    : 'App is functional offline. Records safely saved locally.',
               );
             },
           ),
