@@ -135,14 +135,20 @@ class AuthService extends ChangeNotifier {
         ? email!.trim()
         : '${role.name}.user@aarogyasetu.gov.in';
 
+    // Reuse the admin-provisioned identity when the phone matches an ASHA worker
+    // or doctor, so villagers, map pins and notifications stay linked to them.
+    final staff = (role == UserRole.asha || role == UserRole.doctor)
+        ? await _findAdminProvisionedStaff(role, cleanPhone)
+        : null;
+
     final user = AppUser(
-      uid: 'user-${DateTime.now().millisecondsSinceEpoch}',
+      uid: staff?['id'] ?? 'user-${DateTime.now().millisecondsSinceEpoch}',
       email: cleanEmail,
-      displayName: cleanName,
+      displayName: displayName?.trim().isNotEmpty == true ? cleanName : (staff?['fullName'] ?? cleanName),
       role: role,
       phoneNumber: cleanPhone,
-      villageId: 'village-rampura-01',
-      facilityId: 'phc-khed-01',
+      villageId: staff?['villageId'] ?? 'village-rampura-01',
+      facilityId: staff?['hospitalId'] ?? 'phc-khed-01',
       createdAt: DateTime.now(),
     );
 

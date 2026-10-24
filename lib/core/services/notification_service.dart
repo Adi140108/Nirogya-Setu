@@ -146,6 +146,7 @@ class NotificationService {
           ),
         ),
       );
+      debugPrint('[Notifications] posted to system tray: $title');
     } catch (e) {
       debugPrint('System notification notice: $e');
     }
@@ -196,6 +197,7 @@ class NotificationService {
     if (!_cloudAvailable || ids.isEmpty) return;
     await init();
     _listeningKey = key;
+    debugPrint('[Notifications] listening for recipients: $ids');
 
     final cutoff = DateTime.now().subtract(const Duration(days: 2));
     _subscription = FirebaseFirestore.instance
@@ -207,6 +209,7 @@ class NotificationService {
         if (change.type != DocumentChangeType.added) continue;
         final data = change.doc.data();
         if (data == null || _delivered.contains(change.doc.id)) continue;
+        debugPrint('[Notifications] received ${change.doc.id} for ${data['recipientId']}');
         final created = DateTime.tryParse(data['createdAt']?.toString() ?? '');
         _markDelivered(change.doc.id);
         if (created == null || created.isBefore(cutoff)) continue;
