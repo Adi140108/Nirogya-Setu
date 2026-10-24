@@ -62,7 +62,38 @@ class AarogyaSetuApp extends StatelessWidget {
       title: 'Aarogya Setu',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      builder: (context, child) => _PhoneFrame(child: child!),
       home: const RootGateScreen(),
+    );
+  }
+}
+
+/// On wide screens (web/desktop/tablet) keep the phone layout centred
+/// instead of stretching or hugging the left edge.
+class _PhoneFrame extends StatelessWidget {
+  static const double maxWidth = 480;
+  final Widget child;
+
+  const _PhoneFrame({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    if (mq.size.width <= maxWidth) return child;
+    return ColoredBox(
+      color: AppColors.background,
+      child: Center(
+        child: Container(
+          width: maxWidth,
+          decoration: const BoxDecoration(
+            border: Border.symmetric(vertical: BorderSide(color: AppColors.divider)),
+          ),
+          child: MediaQuery(
+            data: mq.copyWith(size: Size(maxWidth, mq.size.height)),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }
