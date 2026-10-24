@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/models/patient_model.dart';
 import '../../../core/models/referral_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/sync_status_badge.dart';
+import '../../shared/widgets/ui.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'register_villager_screen.dart';
 import 'screening_form_screen.dart';
@@ -39,25 +41,18 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           const AwarenessHubScreen(isPublicAccess: false),
         ],
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          border: Border(top: BorderSide(color: AppColors.divider)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentNavIndex,
           onTap: (index) => setState(() => _currentNavIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: const Color(0xFF64748B),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
-          type: BottomNavigationBarType.fixed,
-          elevation: 8,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard_rounded),
-              label: 'Overview',
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home_rounded),
+              label: 'Home',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.family_restroom_outlined),
@@ -72,7 +67,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.ondemand_video_outlined),
               activeIcon: Icon(Icons.ondemand_video_rounded),
-              label: 'Health Hub',
+              label: 'Videos',
             ),
           ],
         ),
@@ -89,38 +84,26 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     final allScreenings = repo.screenings;
     final allReferrals = repo.referrals;
 
+    final query = _searchQuery.toLowerCase();
     final filteredPatients = allPatients.where((p) {
-      final matchesSearch = p.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      final matchesSearch = p.fullName.toLowerCase().contains(query) ||
           p.contactNumber.contains(_searchQuery) ||
-          p.villageName.toLowerCase().contains(_searchQuery.toLowerCase());
+          p.villageName.toLowerCase().contains(query);
       final matchesVillage = _selectedVillageFilter == 'All' || p.villageName == _selectedVillageFilter;
       return matchesSearch && matchesVillage;
     }).toList();
 
     final pendingFollowUpsCount = allReferrals.where((r) => r.status != ReferralStatus.closed).length;
+    final name = ashaUser?.displayName ?? 'ASHA worker';
+    final badge = ashaUser?.badgeNumber ?? 'ASHA-88';
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Aarogya Setu',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '${ashaUser?.displayName ?? "ASHA Field Worker"} • Badge: ${ashaUser?.badgeNumber ?? "ASHA-88"}',
-              style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        title: const Text('Aarogya Setu'),
         actions: [
-          IconButton(
+          TextButton.icon(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Voice Guidance',
+            label: const Text('Listen'),
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
@@ -132,7 +115,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Sign Out',
+            tooltip: 'Sign out',
             onPressed: () {
               showSignOutConfirmationDialog(
                 context: context,
@@ -141,6 +124,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               );
             },
           ),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
       body: Column(
@@ -148,29 +132,26 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: AppSpacing.screen,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // KPI Overview Stats
+                  _buildGreeting(context, name, badge, pendingFollowUpsCount),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildSummaryMetrics(
                     citizenCount: allPatients.length,
                     screeningCount: allScreenings.length,
                     activeReferralCount: allReferrals.length,
                     pendingFollowUps: pendingFollowUpsCount,
                   ),
-                  const SizedBox(height: 18),
-
-                  // Quick Action Buttons
-                  _buildQuickActionButtons(context),
-                  const SizedBox(height: 20),
-
-                  // Assigned Citizens Header with Search & Filter
-                  _buildCitizensHeader(allPatients),
-                  const SizedBox(height: 10),
-
-                  // Citizens List
+                  const SectionHeader('Tasks'),
+                  _buildTasks(context),
+                  SectionHeader('Your citizens (${filteredPatients.length})'),
+                  _buildCitizenFilters(allPatients),
+                  const SizedBox(height: AppSpacing.md),
                   _buildCitizensList(filteredPatients),
+                  // Room so the last card is not hidden behind the button.
+                  const SizedBox(height: AppSizes.primaryButton + AppSpacing.xxl),
                 ],
               ),
             ),
@@ -178,10 +159,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
         icon: const Icon(Icons.add_chart_rounded),
-        label: const Text('New Screening', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('New screening'),
         onPressed: () {
           Navigator.push(
             context,
@@ -192,266 +171,190 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     );
   }
 
+  Widget _buildGreeting(BuildContext context, String name, String badge, int followUps) {
+    final text = Theme.of(context).textTheme;
+    final followUpText = followUps == 1 ? '1 follow-up due' : '$followUps follow-ups due';
+    final firstName = name.trim().split(' ').first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Namaste, $firstName', style: text.headlineSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Badge $badge  ·  $followUpText',
+          style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSummaryMetrics({
     required int citizenCount,
     required int screeningCount,
     required int activeReferralCount,
     required int pendingFollowUps,
   }) {
+    Widget row(Widget a, Widget b) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: a),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(child: b),
+            ],
+          ),
+        );
+
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                'Assigned Citizens',
-                '$citizenCount',
-                Icons.people_alt_outlined,
-                AppColors.primary,
-                AppColors.primarySurface,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricCard(
-                'Screenings Done',
-                '$screeningCount',
-                Icons.checklist_rounded,
-                const Color(0xFF0288D1),
-                const Color(0xFFE1F5FE),
-              ),
-            ),
-          ],
+        row(
+          StatTile(label: 'Citizens', value: '$citizenCount', icon: Icons.people_alt_outlined),
+          StatTile(label: 'Screenings done', value: '$screeningCount', icon: Icons.checklist_rounded),
         ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                'Active Referrals',
-                '$activeReferralCount',
-                Icons.outgoing_mail,
-                AppColors.secondary,
-                AppColors.secondarySurface,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _buildMetricCard(
-                'Follow-ups Due',
-                '$pendingFollowUps',
-                Icons.schedule_rounded,
-                AppColors.riskYellow,
-                AppColors.riskYellowSurface,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMetricCard(String title, String value, IconData icon, Color color, Color bg) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActionButtons(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-            label: const Text('Register Citizen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const RegisterVillagerScreen()),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryDark,
-              side: const BorderSide(color: AppColors.primary),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            icon: const Icon(Icons.ondemand_video_rounded, size: 18),
-            label: const Text('Awareness Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AwarenessHubScreen(isPublicAccess: false)),
-              );
-            },
+        const SizedBox(height: AppSpacing.md),
+        row(
+          StatTile(label: 'Referrals', value: '$activeReferralCount', icon: Icons.local_hospital_outlined),
+          StatTile(
+            label: 'Follow-ups due',
+            value: '$pendingFollowUps',
+            icon: Icons.schedule_rounded,
+            color: AppColors.secondary,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCitizensHeader(List<dynamic> allPatients) {
-    final villages = {'All', ...allPatients.map((p) => p.villageName as String)}.toList();
+  Widget _buildTasks(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ActionTile(
+          title: 'Register citizen',
+          subtitle: 'Add a new person to your list',
+          icon: Icons.person_add_alt_1_rounded,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RegisterVillagerScreen()),
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.md),
+        ActionTile(
+          title: 'Health videos',
+          subtitle: 'Show short videos to families',
+          icon: Icons.ondemand_video_rounded,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AwarenessHubScreen(isPublicAccess: false)),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCitizenFilters(List<PatientModel> allPatients) {
+    final villages = {'All', ...allPatients.map((p) => p.villageName)}.toList();
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            const Text(
-              'Assigned Citizens',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            const Spacer(),
-            DropdownButton<String>(
-              value: _selectedVillageFilter,
-              underline: const SizedBox.shrink(),
-              items: villages.map((v) {
-                return DropdownMenuItem(value: v, child: Text(v, style: const TextStyle(fontSize: 12)));
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) setState(() => _selectedVillageFilter = val);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
         TextField(
-          decoration: InputDecoration(
-            hintText: 'Search by name, phone or village...',
-            prefixIcon: const Icon(Icons.search_rounded, size: 20),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
+          textInputAction: TextInputAction.search,
+          decoration: const InputDecoration(
+            hintText: 'Search name, phone or village',
+            prefixIcon: Icon(Icons.search_rounded),
           ),
           onChanged: (val) => setState(() => _searchQuery = val),
         ),
+        const SizedBox(height: AppSpacing.md),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final v in villages) ...[
+                ChoiceChip(
+                  label: Text(v == 'All' ? 'All villages' : v),
+                  selected: _selectedVillageFilter == v,
+                  onSelected: (_) => setState(() => _selectedVillageFilter = v),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildCitizensList(List<dynamic> patients) {
+  Widget _buildCitizensList(List<PatientModel> patients) {
     if (patients.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const Center(
-          child: Text(
-            'No citizens found matching query.',
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
+      return const InfoCard(
+        child: EmptyState(
+          icon: Icons.person_search_rounded,
+          title: 'No citizens found',
+          message: 'Try another name, or choose "All villages".',
         ),
       );
     }
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: patients.length,
-      itemBuilder: (context, index) {
-        final p = patients[index];
-        return Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primarySurface,
-              child: Text(
-                p.fullName.isNotEmpty ? p.fullName[0] : '?',
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
-              ),
-            ),
-            title: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    p.fullName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                ),
-                SyncStatusBadge(status: p.syncStatus, compact: true),
-              ],
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 3),
-                Text(
-                  '${p.age}y, ${p.gender} • ${p.villageName} • ${p.contactNumber}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                ),
-                if (p.isPregnant)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: Text(
-                      'Antenatal Care Active',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.riskYellow),
-                    ),
-                  ),
-              ],
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textSecondary),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PatientDetailScreen(patientId: p.id),
-                ),
-              );
-            },
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < patients.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.md),
+          _CitizenCard(patient: patients[i]),
+        ],
+      ],
+    );
+  }
+}
+
+class _CitizenCard extends StatelessWidget {
+  final PatientModel patient;
+
+  const _CitizenCard({required this.patient});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final p = patient;
+
+    return InfoCard(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => PatientDetailScreen(patientId: p.id)),
         );
       },
+      child: Row(
+        children: [
+          InitialAvatar(p.fullName),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(p.fullName, style: text.titleSmall),
+                const SizedBox(height: AppSpacing.xs),
+                Text('${p.age} yrs  ·  ${p.gender}  ·  ${p.villageName}', style: text.bodySmall),
+                Text(p.contactNumber, style: text.bodySmall),
+                if (p.isPregnant) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  const StatusTag('Pregnant', icon: Icons.pregnant_woman_rounded),
+                ],
+                const SizedBox(height: AppSpacing.xs),
+                SyncStatusBadge(status: p.syncStatus),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+        ],
+      ),
     );
   }
 }

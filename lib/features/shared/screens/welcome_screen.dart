@@ -1,242 +1,82 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../auth/screens/role_selection_screen.dart';
+import '../widgets/app_brand_logo.dart';
+import '../widgets/ui.dart';
 
-class WelcomeScreen extends StatefulWidget {
+class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
-  @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
-
-    _scaleAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.1, 0.8, curve: Curves.easeIn),
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic),
-      ),
-    );
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _navigateToRoleSelection({required bool isLogin}) {
+  void _navigateToRoleSelection(BuildContext context, {required bool isLogin}) {
     Navigator.push(
       context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 350),
-        pageBuilder: (_, __, ___) => RoleSelectionScreen(isLogin: isLogin),
-        transitionsBuilder: (_, animation, __, child) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(0, 0.08),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-            child: FadeTransition(opacity: animation, child: child),
-          );
-        },
-      ),
+      MaterialPageRoute(builder: (_) => RoleSelectionScreen(isLogin: isLogin)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE5F7EE), // Gentle pastel mint
-              Color(0xFFE0F3F8), // Soft transition
-              Color(0xFFCCE8FE), // Calming light sky blue
-              Color(0xFFBADDF8), // Bottom soft blue
+      backgroundColor: AppColors.surface,
+      body: SafeArea(
+        child: Padding(
+          padding: AppSpacing.screen,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const AppBrandLogo(iconSize: 104, isHorizontal: false),
+                        const SizedBox(height: AppSpacing.xl),
+                        Text(
+                          'Check health, keep records and get help from the nearest health centre.',
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppButton(
+                label: 'Get started',
+                icon: Icons.arrow_forward_rounded,
+                onPressed: () => _navigateToRoleSelection(context, isLogin: false),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _LoginPrompt(onLogin: () => _navigateToRoleSelection(context, isLogin: true)),
             ],
-            stops: [0.0, 0.35, 0.75, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                const Spacer(flex: 2),
-
-                // Animated App Emblem & Title
-                ScaleTransition(
-                  scale: _scaleAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      children: [
-                        // Logo icon
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF0284C7).withOpacity(0.18),
-                                blurRadius: 32,
-                                spreadRadius: 4,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.asset(
-                              'assets/images/logo_icon.png',
-                              width: 110,
-                              height: 110,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Title: Aarogya Setu
-                        RichText(
-                          textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
-                              fontSize: 34,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                              fontFamily: 'Roboto',
-                            ),
-                            children: [
-                              TextSpan(
-                                text: 'Aarogya ',
-                                style: TextStyle(color: Color(0xFF0F766E)), // Deep teal
-                              ),
-                              TextSpan(
-                                text: 'Setu',
-                                style: TextStyle(color: Color(0xFFEA580C)), // Orange
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-
-                        // Tagline
-                        const Text(
-                          'Healthy Communities. Brighter Tomorrow.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-
-                const Spacer(flex: 3),
-
-                // Bottom Action Button & Log In Link
-                SlideTransition(
-                  position: _slideAnimation,
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Get Started Button
-                        ElevatedButton(
-                          onPressed: () => _navigateToRoleSelection(isLogin: false),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1E88E5), // Vibrant primary blue
-                            foregroundColor: Colors.white,
-                            elevation: 4,
-                            shadowColor: const Color(0xFF1E88E5).withOpacity(0.4),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
-                          child: const Text(
-                            'Get Started',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Already have an account? Log In
-                        Center(
-                          child: GestureDetector(
-                            onTap: () => _navigateToRoleSelection(isLogin: true),
-                            child: RichText(
-                              text: const TextSpan(
-                                style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
-                                children: [
-                                  TextSpan(text: 'Already have an account? '),
-                                  TextSpan(
-                                    text: 'Log In',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0F172A),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _LoginPrompt extends StatelessWidget {
+  final VoidCallback onLogin;
+
+  const _LoginPrompt({required this.onLogin});
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(
+          'Already have an account?',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+        ),
+        TextButton(onPressed: onLogin, child: const Text('Log in')),
+      ],
     );
   }
 }

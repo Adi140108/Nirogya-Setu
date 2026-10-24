@@ -73,8 +73,21 @@ From `lib/features/shared/widgets/ui.dart`:
 - `ActionTile(title, subtitle, icon, onTap)` — home-screen task list rows (replaces fancy grids).
 - `EmptyState(icon, title, message, action)` — any empty list.
 - `InfoRow(label, value, valueColor:)` — label/value detail rows (vitals, profile).
+- `StatusTag(label, icon:, color:, background:)` — neutral non-triage status ("Pending review", "Saved on phone", "Pregnant").
+- `InitialAvatar(name, size:)` — person initial square.
+- `StepHeader(step:, total:, title:)` — "Step N of M" + progress for stepped forms.
+- `InfoCard(selected: true)` — selectable cards (role choice, options): 2px primary border + tint.
+- `AppButton(loading: true, loadingLabel: 'Saving…')` — spinner **with** words.
 
-Also: `PriorityBadge`, `SyncStatusBadge`, `NetworkBanner`, `AppBrandLogo`, `showSignOutConfirmationDialog`.
+Triage helpers (`priority_badge.dart`): `priority.color`, `priority.surfaceColor`, `priority.word` (Urgent/Moderate/Normal). **Never write your own triage colour switch.**
+
+Also: `PriorityBadge`, `SyncStatusBadge` (compact still shows the word), `NetworkBanner`, `AppBrandLogo` (already has semantics — don't wrap it), `showSignOutConfirmationDialog`. Bottom sheets are themed (`bottomSheetTheme`) — don't pass shape/backgroundColor.
+
+**App-bar actions:** max 2. Voice help = `TextButton.icon` "Listen". Sign-out may be an `IconButton` (logout icon) **with tooltip "Sign out"** — the one allowed icon-only action besides back/close.
+
+**Errors shown to users:** never show raw exceptions (`$e`, `e.toString()`). Show a plain sentence ("Could not save. Please try again.") and `debugPrint` the error.
+
+**Red/amber/green are triage-only.** Data warnings (duplicates, missing fields) use `AppColors.secondary`/`secondarySurface`; success states ("Saved on phone") use `primary`/`primarySurface`.
 
 Material widgets are themed already — prefer plain `ElevatedButton`, `OutlinedButton`, `TextButton`, `TextField`/`TextFormField`, `ChoiceChip`/`FilterChip`, `ListTile`, `SwitchListTile`, `CheckboxListTile`, `AlertDialog`, `SnackBar` **without per-instance style overrides** unless a rule here requires it.
 

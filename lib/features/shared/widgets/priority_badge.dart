@@ -2,6 +2,28 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/screening_rules.dart';
 
+/// Shared triage colours and words, so screens never write their own switch.
+extension HealthPriorityStyle on HealthPriority {
+  Color get color => switch (this) {
+        HealthPriority.red => AppColors.riskRed,
+        HealthPriority.yellow => AppColors.riskYellow,
+        HealthPriority.green => AppColors.riskGreen,
+      };
+
+  Color get surfaceColor => switch (this) {
+        HealthPriority.red => AppColors.riskRedSurface,
+        HealthPriority.yellow => AppColors.riskYellowSurface,
+        HealthPriority.green => AppColors.riskGreenSurface,
+      };
+
+  /// Plain word shown to users: Urgent / Moderate / Normal.
+  String get word => switch (this) {
+        HealthPriority.red => 'Urgent',
+        HealthPriority.yellow => 'Moderate',
+        HealthPriority.green => 'Normal',
+      };
+}
+
 /// Triage label. Always icon + word so it reads without relying on colour.
 class PriorityBadge extends StatelessWidget {
   final HealthPriority priority;
@@ -15,10 +37,13 @@ class PriorityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (Color bg, Color fg, String label, IconData icon) = switch (priority) {
-      HealthPriority.red => (AppColors.riskRedSurface, AppColors.riskRed, 'Urgent', Icons.warning_rounded),
-      HealthPriority.yellow => (AppColors.riskYellowSurface, AppColors.riskYellow, 'Moderate', Icons.error_outline_rounded),
-      HealthPriority.green => (AppColors.riskGreenSurface, AppColors.riskGreen, 'Normal', Icons.check_circle_outline_rounded),
+    final bg = priority.surfaceColor;
+    final fg = priority.color;
+    final label = priority.word;
+    final icon = switch (priority) {
+      HealthPriority.red => Icons.warning_rounded,
+      HealthPriority.yellow => Icons.error_outline_rounded,
+      HealthPriority.green => Icons.check_circle_outline_rounded,
     };
 
     return Semantics(

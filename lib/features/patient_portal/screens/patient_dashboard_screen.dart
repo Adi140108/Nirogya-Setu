@@ -1,14 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
+import '../../../core/models/referral_model.dart';
+import '../../../core/models/screening_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
+import '../../shared/widgets/ui.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
 
@@ -63,53 +68,121 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     // Clinical records strictly scoped to this selected family member
     final screenings = repo.getScreeningsForPatient(activeMember.id);
     final referrals = repo.getReferralsForPatient(activeMember.id);
-    final dateFormat = DateFormat('dd MMMM yyyy');
+    final dateFormat = DateFormat('dd MMM yyyy');
+
+    final appBar = _PortalAppBar(authService: authService, activeMember: activeMember);
+    final switcher = _FamilySwitcher(
+      members: familyMembers,
+      activeMember: activeMember,
+      onSelect: (id) => setState(() => _selectedMemberId = id),
+    );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
       body: IndexedStack(
         index: _currentIndex,
         children: [
-          _buildHealthCardTab(context, authService, primaryPatient, familyMembers, activeMember),
-          _buildRecordsTab(context, authService, activeMember, familyMembers, screenings, dateFormat),
-          _buildPrescriptionsTab(context, authService, activeMember, familyMembers, referrals),
+          _TabPage(
+            appBar: appBar,
+            children: [
+              _Greeting(name: primaryPatient.fullName),
+              const SizedBox(height: AppSpacing.lg),
+              switcher,
+              const SizedBox(height: AppSpacing.md),
+              _RecordStats(
+                checkups: screenings.length,
+                doctorVisits: referrals.length,
+                onCheckups: () => setState(() => _currentIndex = 1),
+                onDoctorVisits: () => setState(() => _currentIndex = 2),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _HealthCard(
+                citizen: activeMember,
+                onShowQr: () => _showQrDialog(context, activeMember),
+              ),
+              const SectionHeader('More options'),
+              ActionTile(
+                title: 'Save card on phone',
+                subtitle: 'Use it without internet',
+                icon: Icons.file_download_outlined,
+                onTap: () => _showMessage(
+                  context,
+                  'Health card for ${activeMember.fullName} is saved on this phone.',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ActionTile(
+                title: 'Share with ASHA worker',
+                subtitle: 'Send your health details',
+                icon: Icons.share_outlined,
+                onTap: () => _showMessage(
+                  context,
+                  'Your health details and hospital token were shared with your ASHA worker.',
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              AppButton(
+                label: 'Show QR at hospital',
+                icon: Icons.qr_code_2_rounded,
+                onPressed: () => _showQrDialog(context, activeMember),
+              ),
+            ],
+          ),
+          _TabPage(
+            appBar: appBar,
+            children: [
+              _TabTitle(
+                title: 'Checkups',
+                subtitle: 'Health checks done for ${activeMember.fullName}.',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              switcher,
+              const SectionHeader('Past checkups'),
+              _CheckupList(screenings: screenings, dateFormat: dateFormat),
+            ],
+          ),
+          _TabPage(
+            appBar: appBar,
+            children: [
+              _TabTitle(
+                title: 'Medicines',
+                subtitle: 'Doctor advice and medicines for ${activeMember.fullName}.',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              switcher,
+              const SectionHeader('Doctor visits'),
+              _DoctorVisitList(referrals: referrals),
+            ],
+          ),
           const AwarenessHubScreen(isPublicAccess: true),
         ],
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: DecoratedBox(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          border: Border(top: BorderSide(color: AppColors.divider)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF064E3B),
-          unselectedItemColor: const Color(0xFF64748B),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
-          type: BottomNavigationBarType.fixed,
-          elevation: 8,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.badge_outlined),
               activeIcon: Icon(Icons.badge_rounded),
-              label: 'Health Card',
+              label: 'Card',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.assessment_outlined),
               activeIcon: Icon(Icons.assessment_rounded),
-              label: 'Records',
+              label: 'Checkups',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.medication_outlined),
               activeIcon: Icon(Icons.medication_rounded),
-              label: 'Prescriptions',
+              label: 'Medicines',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.ondemand_video_outlined),
               activeIcon: Icon(Icons.ondemand_video_rounded),
-              label: 'Health Hub',
+              label: 'Videos',
             ),
           ],
         ),
@@ -117,55 +190,115 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AuthService authService, PatientModel activeMember) {
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Big hospital (OPD) QR code dialog.
+  void _showQrDialog(BuildContext context, PatientModel citizen) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final text = Theme.of(ctx).textTheme;
+        // Screen width minus dialog inset, content padding and the QR frame
+        // (padding + border) on both sides, kept between min and max.
+        const reserved = 2 * (_QrSizes.dialogInset + AppSpacing.xl + AppSpacing.md + _QrSizes.border);
+        final qrSize = (MediaQuery.sizeOf(ctx).width - reserved)
+            .clamp(_QrSizes.dialogMin, _QrSizes.dialogMax)
+            .toDouble();
+        return AlertDialog(
+          scrollable: true,
+          title: const Text('Hospital QR code'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(citizen.fullName, style: text.titleMedium, textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.xs),
+              Text('ABHA: ${citizen.computedAbhaNumber}', style: text.bodySmall, textAlign: TextAlign.center),
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.card,
+                  border: Border.all(color: AppColors.border),
+                ),
+                // Tight size keeps QrImageView (a LayoutBuilder) out of the
+                // AlertDialog's intrinsic sizing pass.
+                child: SizedBox.square(
+                  dimension: qrSize,
+                  child: QrImageView(
+                    data: citizen.opdQrData,
+                    version: QrVersions.auto,
+                    size: qrSize,
+                    padding: EdgeInsets.zero,
+                    semanticsLabel: 'Hospital QR code for ${citizen.fullName}',
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Text(
+                  'Token number: OPD-${citizen.id.hashCode.abs() % 10000}',
+                  textAlign: TextAlign.center,
+                  style: text.titleSmall?.copyWith(color: AppColors.primaryDark),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                'Show this code at the hospital desk. They will scan it to register you quickly.',
+                style: text.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Shared app bar for the citizen tabs: title, voice help, sign out.
+class _PortalAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final AuthService authService;
+  final PatientModel activeMember;
+
+  const _PortalAppBar({required this.authService, required this.activeMember});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    final message =
+        'Welcome ${activeMember.fullName}. Your health card and hospital QR code are ready to use.';
     return AppBar(
-      elevation: 0,
-      backgroundColor: Colors.white,
-      foregroundColor: const Color(0xFF0F172A),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.shield_rounded, color: Color(0xFF0284C7), size: 20),
-          ),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Aarogya Setu',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
-                ),
-                Text(
-                  'National Digital Health Ecosystem • Ayushman Bharat',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      title: const Text('Aarogya Setu', maxLines: 1, overflow: TextOverflow.ellipsis),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.volume_up_outlined, color: Color(0xFF334155)),
-          tooltip: 'Voice Guidance',
+        TextButton.icon(
+          icon: const Icon(Icons.volume_up_outlined),
+          label: const Text('Listen'),
           onPressed: () {
             VoiceService().speakPrompt(
               context,
               title: 'Aarogya Setu Citizen Portal',
-              hindiText: 'Welcome ${activeMember.fullName}. Your official ABHA Health ID and OPD QR code are active.',
-              englishText: 'Welcome ${activeMember.fullName}. Your official ABHA Health ID and OPD QR code are active.',
+              hindiText: message,
+              englishText: message,
             );
           },
         ),
         IconButton(
-          icon: const Icon(Icons.logout_rounded, color: Color(0xFF64748B)),
-          tooltip: 'Sign Out',
+          icon: const Icon(Icons.logout_rounded),
+          tooltip: 'Sign out',
           onPressed: () {
             showSignOutConfirmationDialog(
               context: context,
@@ -174,874 +307,514 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             );
           },
         ),
+        const SizedBox(width: AppSpacing.xs),
       ],
     );
   }
+}
 
-  /// Tab 0: Health Card
-  Widget _buildHealthCardTab(
-    BuildContext context,
-    AuthService authService,
-    PatientModel primaryPatient,
-    List<PatientModel> familyMembers,
-    PatientModel activeMember,
-  ) {
+/// One tab: app bar, network banner, scrolling content.
+class _TabPage extends StatelessWidget {
+  final PreferredSizeWidget appBar;
+  final List<Widget> children;
+
+  const _TabPage({required this.appBar, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      appBar: _buildAppBar(context, authService, activeMember),
+      appBar: appBar,
       body: Column(
         children: [
           const NetworkBanner(),
-
-          // Dark Offline Ready Sub-header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: const Color(0xFF1E293B),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF38BDF8),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Offline Ready • ABHA Card Cached on Device',
-                    style: TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.cloud_done_rounded, color: Color(0xFF38BDF8), size: 14),
-                    SizedBox(width: 4),
-                    Text(
-                      'Secure Offline',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 1. Household Members Switcher (For shared family phone)
-                  _buildHouseholdSwitcher(
-                    familyMembers: familyMembers,
-                    activeMember: activeMember,
-                    onSelectMember: (id) => setState(() => _selectedMemberId = id),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // 2. Official ABHA Digital Health Card
-                  _buildAbhaHealthCard(activeMember),
-                  const SizedBox(height: 12),
-
-                  // 3. Three Quick Action Buttons (Download, Share, Big QR)
-                  _buildCardActionRow(context, activeMember),
-                  const SizedBox(height: 20),
-                ],
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.xl,
               ),
+              children: children,
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  /// Tab 1: Health Records
-  Widget _buildRecordsTab(
-    BuildContext context,
-    AuthService authService,
-    PatientModel activeMember,
-    List<PatientModel> familyMembers,
-    List<dynamic> screenings,
-    DateFormat dateFormat,
-  ) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      appBar: _buildAppBar(context, authService, activeMember),
-      body: Column(
-        children: [
-          const NetworkBanner(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHouseholdSwitcher(
-                    familyMembers: familyMembers,
-                    activeMember: activeMember,
-                    onSelectMember: (id) => setState(() => _selectedMemberId = id),
-                  ),
-                  const SizedBox(height: 14),
-                  _buildScreeningsSection(screenings, dateFormat),
-                ],
+/// Home greeting plus one status line about offline use.
+class _Greeting extends StatelessWidget {
+  final String name;
+
+  const _Greeting({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final firstName = name.trim().split(' ').first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Namaste, $firstName', style: text.headlineSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.cloud_done_outlined, color: AppColors.primary, size: 22),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                'Your health card is saved on this phone. It works without internet.',
+                style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
+}
 
-  /// Tab 2: Prescriptions & Doctor Advice
-  Widget _buildPrescriptionsTab(
-    BuildContext context,
-    AuthService authService,
-    PatientModel activeMember,
-    List<PatientModel> familyMembers,
-    List<dynamic> referrals,
-  ) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
-      appBar: _buildAppBar(context, authService, activeMember),
-      body: Column(
-        children: [
-          const NetworkBanner(),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHouseholdSwitcher(
-                    familyMembers: familyMembers,
-                    activeMember: activeMember,
-                    onSelectMember: (id) => setState(() => _selectedMemberId = id),
-                  ),
-                  const SizedBox(height: 14),
-                  _buildDoctorConsultationsSection(referrals),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+/// Title block for the Checkups and Medicines tabs.
+class _TabTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _TabTitle({required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: text.headlineSmall),
+        const SizedBox(height: AppSpacing.xs),
+        Text(subtitle, style: text.bodyMedium?.copyWith(color: AppColors.textSecondary)),
+      ],
     );
   }
+}
 
-  /// Household Members Selector Bar (Enrolled by ASHA - Citizen view only)
-  Widget _buildHouseholdSwitcher({
-    required List<PatientModel> familyMembers,
-    required PatientModel activeMember,
-    required Function(String) onSelectMember,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
+/// Pick which family member's records to show. Members are added by the ASHA worker.
+class _FamilySwitcher extends StatelessWidget {
+  final List<PatientModel> members;
+  final PatientModel activeMember;
+  final ValueChanged<String> onSelect;
+
+  const _FamilySwitcher({
+    required this.members,
+    required this.activeMember,
+    required this.onSelect,
+  });
+
+  IconData _iconFor(PatientModel member) {
+    if (member.isPregnant || member.gender.toLowerCase() == 'female') {
+      return Icons.female_rounded;
+    }
+    if (member.age < 18) return Icons.child_care_rounded;
+    return Icons.person_outline_rounded;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final count = members.length;
+    return InfoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Household Health Profiles',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${familyMembers.length} Enrolled Members',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
-                ),
-              ),
+              Expanded(child: Text('Family', style: text.titleSmall)),
+              Text('$count ${count == 1 ? 'person' : 'people'}', style: text.labelMedium),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
-            'Switch profiles below to view individual records. New members are enrolled by your village ASHA worker.',
-            style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Tap a name to see their records. Your ASHA worker adds new family members.',
+            style: text.bodySmall,
           ),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: familyMembers.map((member) {
-                final isSelected = member.id == activeMember.id;
-                IconData icon = Icons.person;
-                if (member.isPregnant || member.gender.toLowerCase() == 'female') {
-                  icon = Icons.female_rounded;
-                } else if (member.age < 18) {
-                  icon = Icons.child_care_rounded;
-                }
-
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => onSelectMember(member.id),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF064E3B) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: isSelected ? const Color(0xFF047857) : const Color(0xFFCBD5E1),
-                          width: isSelected ? 1.5 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            icon,
-                            size: 16,
-                            color: isSelected ? Colors.white : const Color(0xFF0369A1),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${member.fullName} (${member.displayRelationship})',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : const Color(0xFF0F172A),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            children: [
+              for (final member in members)
+                ChoiceChip(
+                  avatar: Icon(_iconFor(member), size: 20, color: AppColors.primary),
+                  label: Text('${member.fullName} (${member.displayRelationship})'),
+                  selected: member.id == activeMember.id,
+                  onSelected: (_) => onSelect(member.id),
+                ),
+            ],
           ),
         ],
       ),
     );
   }
+}
 
-  /// Official ABHA Digital Health Card
-  Widget _buildAbhaHealthCard(PatientModel citizen) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF047857), width: 1.5),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x14047857),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+/// ABHA digital health card with the small scannable hospital QR code.
+class _HealthCard extends StatelessWidget {
+  final PatientModel citizen;
+  final VoidCallback onShowQr;
+
+  const _HealthCard({required this.citizen, required this.onShowQr});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+
+    return InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Card header
+          Row(
+            children: [
+              InitialAvatar(citizen.fullName),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(citizen.fullName, style: text.titleMedium),
+                    Text('${citizen.age} years · ${citizen.gender}', style: text.bodySmall),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              const Icon(Icons.verified_outlined, color: AppColors.primary, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
+                  'ABHA health card · Verified · Aadhaar linked',
+                  style: text.labelMedium?.copyWith(color: AppColors.primaryDark),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.xs),
+          InfoRow('Village', '${citizen.villageName}, Ward ${citizen.computedWardNumber}'),
+          InfoRow('District', citizen.computedDistrictState),
+          InfoRow('ABHA address', citizen.computedAbhaAddress),
+          const SizedBox(height: AppSpacing.xs),
+          const Divider(),
+          const SizedBox(height: AppSpacing.md),
+
+          // Health ID number + QR. QR sits beside the ID when the number fits
+          // on one line, otherwise it stacks below so the ID stays readable.
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final idStyle = text.titleMedium?.copyWith(fontWeight: FontWeight.w700);
+              final painter = TextPainter(
+                text: TextSpan(text: citizen.computedAbhaNumber, style: idStyle),
+                textScaler: MediaQuery.textScalerOf(context),
+                textDirection: Directionality.of(context),
+                maxLines: 1,
+              )..layout();
+              final idWidth = painter.width;
+              painter.dispose();
+              final thumbWidth = _QrThumb.widthFor(context);
+              final idBlock = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Health ID number (ABHA)', style: text.labelMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(citizen.computedAbhaNumber, style: idStyle),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text('Active. Works at the hospital desk.', style: text.bodySmall),
+                ],
+              );
+              final qrBox = _QrThumb(data: citizen.opdQrData, onTap: onShowQr);
+              final sideBySide =
+                  constraints.maxWidth - thumbWidth - AppSpacing.md >= idWidth;
+              if (sideBySide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(child: idBlock),
+                    const SizedBox(width: AppSpacing.md),
+                    qrBox,
+                  ],
+                );
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [idBlock, const SizedBox(height: AppSpacing.md), qrBox],
+              );
+            },
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
+    );
+  }
+}
+
+/// Named QR dimensions (not spacing) used by the card thumb and the dialog.
+abstract final class _QrSizes {
+  /// QR image on the health card.
+  static const double thumb = 88;
+
+  /// Big QR in the dialog stays between these.
+  static const double dialogMin = 120;
+  static const double dialogMax = 200;
+
+  /// Frame border width around a QR.
+  static const double border = 1;
+
+  /// Material's default horizontal AlertDialog inset (40).
+  static const double dialogInset = AppSpacing.xxl + AppSpacing.sm;
+}
+
+/// Small tappable QR on the health card. Only the QR frame has a fixed size;
+/// the caption takes its own width (see [widthFor]).
+class _QrThumb extends StatelessWidget {
+  // QR + padding + border on both sides.
+  static const double boxWidth = _QrSizes.thumb + 2 * (AppSpacing.sm + _QrSizes.border);
+  static const String _captionText = 'Tap to enlarge';
+
+  final String data;
+  final VoidCallback onTap;
+
+  const _QrThumb({required this.data, required this.onTap});
+
+  /// Real rendered width: the QR frame or the caption, whichever is wider
+  /// at the current text scale.
+  static double widthFor(BuildContext context) {
+    final painter = TextPainter(
+      text: TextSpan(text: _captionText, style: Theme.of(context).textTheme.labelSmall),
+      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: Directionality.of(context),
+      maxLines: 1,
+    )..layout();
+    final captionWidth = painter.width;
+    painter.dispose();
+    return math.max(boxWidth, captionWidth);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Show bigger QR code',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Indian Tricolor Ribbon Strip
-            Row(
-              children: [
-                Expanded(child: Container(height: 4, color: const Color(0xFFFF9933))),
-                Expanded(child: Container(height: 4, color: Colors.white)),
-                Expanded(child: Container(height: 4, color: const Color(0xFF138808))),
-              ],
-            ),
-
-            // Card Header: National Health Authority
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              color: const Color(0xFF064E3B),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.add_box_rounded, color: Color(0xFF064E3B), size: 18),
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'AAROGYA SETU • ABHA CARD',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                        Text(
-                          'NATIONAL HEALTH AUTHORITY • GOVT. OF INDIA',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.6,
-                            color: Color(0xFFA7F3D0),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF047857),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF86EFAC)),
-                        SizedBox(width: 4),
-                        Text(
-                          'e-KYC Verified',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.border, width: _QrSizes.border),
+              ),
+              child: SizedBox.square(
+                dimension: _QrSizes.thumb,
+                child: QrImageView(
+                  data: data,
+                  version: QrVersions.auto,
+                  size: _QrSizes.thumb,
+                  padding: EdgeInsets.zero,
+                  semanticsLabel: 'Hospital QR code',
+                ),
               ),
             ),
-
-            // Card Body
-            Container(
-              padding: const EdgeInsets.all(14),
-              color: const Color(0xFFFCFDFD),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Citizen Photo & Aadhaar Badge
-                      Column(
-                        children: [
-                          Container(
-                            width: 72,
-                            height: 72,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
-                            ),
-                            child: Center(
-                              child: Text(
-                                citizen.fullName.isNotEmpty ? citizen.fullName[0] : 'C',
-                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF064E3B)),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE0F2FE),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.verified_rounded, size: 10, color: Color(0xFF0284C7)),
-                                SizedBox(width: 3),
-                                Text(
-                                  'Aadhaar Linked',
-                                  style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(width: 12),
-
-                      // Demographics details
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    citizen.fullName,
-                                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFCCFBF1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${citizen.age} yrs • ${citizen.gender}',
-                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0F766E)),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Village: ${citizen.villageName}, Ward: ${citizen.computedWardNumber}',
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF334155)),
-                            ),
-                            Text(
-                              citizen.computedDistrictState,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ABHA Address Container
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEEF4FF),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'ABHA ADDRESS (PHR Address)',
-                          style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
-                        ),
-                        Text(
-                          citizen.computedAbhaAddress,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Divider
-                  const Divider(color: Color(0xFFE2E8F0), height: 1),
-                  const SizedBox(height: 8),
-
-                  // ABHA Number & OPD QR Code Row
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'ABHA NUMBER (14-Digit Health ID)',
-                              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              citizen.computedAbhaNumber,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                                color: Color(0xFF0F172A),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            const Row(
-                              children: [
-                                Icon(Icons.lock_outline_rounded, size: 10, color: Color(0xFF059669)),
-                                SizedBox(width: 3),
-                                Text(
-                                  'Verified & Active • Hospital OPD Enabled',
-                                  style: TextStyle(fontSize: 9, color: Color(0xFF059669), fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Scannable QR Code
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFCBD5E1)),
-                        ),
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              width: 64,
-                              height: 64,
-                              child: QrImageView(
-                                data: citizen.opdQrData,
-                                version: QrVersions.auto,
-                                size: 64,
-                                padding: EdgeInsets.zero,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            const Text(
-                              'SCAN OPD',
-                              style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              _captionText,
+              style: Theme.of(context).textTheme.labelSmall,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  /// 3 Action Buttons below the ABHA Card
-  Widget _buildCardActionRow(BuildContext context, PatientModel citizen) {
-    return Row(
-      children: [
-        // Download Card
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.file_download_outlined,
-            title: 'Download Card',
-            subtitle: 'Offline Pass',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: const Color(0xFF064E3B),
-                  content: Text('✓ ABHA Card for ${citizen.fullName} cached for offline presentation.'),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
+/// Two tappable counts for the selected member; each opens its tab.
+class _RecordStats extends StatelessWidget {
+  final int checkups;
+  final int doctorVisits;
+  final VoidCallback onCheckups;
+  final VoidCallback onDoctorVisits;
 
-        // Send to ASHA
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.share_outlined,
-            title: 'Share with ASHA',
-            subtitle: 'Sync Records',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: AppColors.primary,
-                  content: Text('✓ Health Profile & OPD Token shared with your village ASHA worker.'),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
+  const _RecordStats({
+    required this.checkups,
+    required this.doctorVisits,
+    required this.onCheckups,
+    required this.onDoctorVisits,
+  });
 
-        // Big QR Code
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.qr_code_scanner_rounded,
-            title: 'View OPD Token',
-            subtitle: 'Hospital Desk',
-            onTap: () => _showQrExpandedDialog(context, citizen),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-            child: Column(
-              children: [
-                Icon(icon, color: const Color(0xFF0284C7), size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: StatTile(
+              label: 'Checkups',
+              value: '$checkups',
+              icon: Icons.assessment_outlined,
+              onTap: onCheckups,
             ),
           ),
-        ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: StatTile(
+              label: 'Doctor visits',
+              value: '$doctorVisits',
+              icon: Icons.medication_outlined,
+              onTap: onDoctorVisits,
+            ),
+          ),
+        ],
       ),
     );
   }
+}
 
-  /// Big OPD QR Code Dialog
-  void _showQrExpandedDialog(BuildContext context, PatientModel citizen) {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
+/// Past health checkups (screenings) for the selected member.
+class _CheckupList extends StatelessWidget {
+  final List<ScreeningModel> screenings;
+  final DateFormat dateFormat;
+
+  const _CheckupList({required this.screenings, required this.dateFormat});
+
+  @override
+  Widget build(BuildContext context) {
+    if (screenings.isEmpty) {
+      return const InfoCard(
+        child: EmptyState(
+          icon: Icons.assessment_outlined,
+          title: 'No checkups yet',
+          message: 'Your ASHA worker will add checkups here after a visit.',
+        ),
+      );
+    }
+    final text = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final s in screenings) ...[
+          InfoCard(
+            accent: s.priority.color,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'OPD Token & ABHA Scan',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => Navigator.pop(ctx),
+                    PriorityBadge(priority: s.priority),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        dateFormat.format(s.createdAt),
+                        style: text.labelMedium,
+                        textAlign: TextAlign.end,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  citizen.fullName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF064E3B)),
-                ),
-                Text(
-                  'ABHA: ${citizen.computedAbhaNumber}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFCBD5E1), width: 2),
-                  ),
-                  child: SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: QrImageView(
-                      data: citizen.opdQrData,
-                      version: QrVersions.auto,
-                      size: 200,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'OPD Token: OPD-${citizen.id.hashCode.abs() % 10000}',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF15803D)),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Present this code at PHC registration desk for fast-track entry.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                  textAlign: TextAlign.center,
-                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(s.reason, style: text.titleSmall),
+                const SizedBox(height: AppSpacing.sm),
+                Text('What to do next', style: text.labelMedium),
+                const SizedBox(height: AppSpacing.xs),
+                Text(s.recommendedNextStep, style: text.bodyMedium),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  /// Doctor Consultations & Prescriptions
-  Widget _buildDoctorConsultationsSection(List<dynamic> referrals) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Doctor Consultations & Prescriptions',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-        ),
-        const SizedBox(height: 10),
-        if (referrals.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Center(
-              child: Text(
-                'No active doctor consultations for this member.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ),
-          )
-        else
-          ...referrals.map((r) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      PriorityBadge(priority: r.priority),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          r.status.displayName,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Doctor: ${r.assignedDoctorName ?? "Primary Health Centre Doctor"}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  ),
-                  if (r.doctorClinicalNotes != null && r.doctorClinicalNotes.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'Advice: ${r.doctorClinicalNotes}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                  if (r.doctorRecommendations != null && r.doctorRecommendations.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Medication / Dosage: ${r.doctorRecommendations}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }),
+          const SizedBox(height: AppSpacing.md),
+        ],
       ],
     );
   }
+}
 
-  /// Screenings History Section
-  Widget _buildScreeningsSection(List<dynamic> screenings, DateFormat dateFormat) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Preventive Health Screenings',
-          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+/// Doctor visits (referrals) with advice and medicines for the selected member.
+class _DoctorVisitList extends StatelessWidget {
+  final List<ReferralModel> referrals;
+
+  const _DoctorVisitList({required this.referrals});
+
+  @override
+  Widget build(BuildContext context) {
+    if (referrals.isEmpty) {
+      return const InfoCard(
+        child: EmptyState(
+          icon: Icons.medication_outlined,
+          title: 'No doctor visits yet',
+          message: 'Advice and medicines from the doctor will show here.',
         ),
-        const SizedBox(height: 10),
-        if (screenings.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Center(
-              child: Text(
-                'No screenings recorded yet for this member.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ),
-          )
-        else
-          ...screenings.map((s) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      PriorityBadge(priority: s.priority),
-                      const Spacer(),
-                      Text(
-                        dateFormat.format(s.createdAt),
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(s.reason, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Next Steps: ${s.recommendedNextStep}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+      );
+    }
+    final text = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final r in referrals) ...[
+          InfoCard(
+            accent: r.priority.color,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    PriorityBadge(priority: r.priority),
+                    StatusTag(r.status.displayName, icon: Icons.assignment_outlined),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Doctor: ${r.assignedDoctorName ?? "Health centre doctor"}',
+                  style: text.titleSmall,
+                ),
+                if (r.doctorClinicalNotes != null && r.doctorClinicalNotes!.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySurface,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Doctor's advice", style: text.labelMedium?.copyWith(color: AppColors.primaryDark)),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(r.doctorClinicalNotes!, style: text.bodyMedium),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-            );
-          }),
+                if (r.doctorRecommendations != null && r.doctorRecommendations!.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Text('Medicines and how to take them', style: text.labelMedium),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(r.doctorRecommendations!, style: text.bodyMedium),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
       ],
     );
   }

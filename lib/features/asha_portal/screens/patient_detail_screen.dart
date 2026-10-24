@@ -3,10 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
+import '../../../core/models/referral_model.dart';
+import '../../../core/models/screening_model.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
+import '../../shared/widgets/ui.dart';
 import 'screening_form_screen.dart';
 
 class PatientDetailScreen extends StatelessWidget {
@@ -21,8 +24,14 @@ class PatientDetailScreen extends StatelessWidget {
 
     if (patient == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Citizen Details')),
-        body: const Center(child: Text('Citizen record not found.')),
+        appBar: AppBar(title: const Text('Citizen details')),
+        body: const Center(
+          child: EmptyState(
+            icon: Icons.person_off_outlined,
+            title: 'Citizen not found',
+            message: 'This record may have been removed. Go back and try again.',
+          ),
+        ),
       );
     }
 
@@ -30,15 +39,12 @@ class PatientDetailScreen extends StatelessWidget {
     final referrals = repo.getReferralsForPatient(patientId);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(patient.fullName),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        title: Text(patient.fullName, overflow: TextOverflow.ellipsis),
         actions: [
-          IconButton(
+          TextButton.icon(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Audio summary of citizen',
+            label: const Text('Listen'),
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
@@ -51,343 +57,256 @@ class PatientDetailScreen extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Demographics Profile Card
-            _buildProfileCard(patient),
-            const SizedBox(height: 16),
-
-            // Quick Action Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ScreeningFormScreen(initialPatient: patient),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add_chart_rounded),
-              label: const Text(
-                'Conduct New Health Screening',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Active Referrals & Doctor Notes
+            _HeaderCard(patient: patient),
+            const SectionHeader('Details'),
+            _buildDetailsCard(patient),
+            SectionHeader('Doctor referrals (${referrals.length})'),
             _buildReferralsSection(referrals),
-            const SizedBox(height: 20),
-
-            // Screening History
+            SectionHeader('Past screenings (${screenings.length})'),
             _buildScreeningHistorySection(screenings),
           ],
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: AppSpacing.screen,
+          child: AppButton(
+            label: 'New screening',
+            icon: Icons.add_chart_rounded,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ScreeningFormScreen(initialPatient: patient),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildProfileCard(PatientModel patient) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
+  Widget _buildDetailsCard(PatientModel patient) {
+    return InfoCard(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: AppColors.primarySurface,
-                child: Text(
-                  patient.fullName.isNotEmpty ? patient.fullName[0] : '?',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      patient.fullName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${patient.age} years • ${patient.gender} • ${patient.villageName}',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-              SyncStatusBadge(status: patient.syncStatus),
-            ],
-          ),
-          const Divider(height: 24),
-          _buildInfoRow('Mobile Phone', patient.contactNumber),
+          InfoRow('Phone', patient.contactNumber),
           if (patient.guardianName != null && patient.guardianName!.isNotEmpty)
-            _buildInfoRow('Guardian / Head', patient.guardianName!),
+            InfoRow('Guardian', patient.guardianName!),
           if (patient.householdId != null && patient.householdId!.isNotEmpty)
-            _buildInfoRow('Household ID', patient.householdId!),
+            InfoRow('Household', patient.householdId!),
           if (patient.isPregnant)
-            _buildInfoRow('Maternal Status', 'Antenatal Mother (Pregnant)', isAlert: true),
-          _buildInfoRow(
-            'Chronic Conditions',
+            const InfoRow('Pregnant', 'Yes, pregnancy check-ups (ANC)', valueColor: AppColors.secondary),
+          InfoRow(
+            'Long-term illness',
             patient.chronicConditions.isEmpty ? 'None recorded' : patient.chronicConditions.join(', '),
           ),
           if (patient.notes != null && patient.notes!.isNotEmpty)
-            _buildInfoRow('Field Notes', patient.notes!),
+            InfoRow('Notes', patient.notes!),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isAlert = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+  Widget _buildReferralsSection(List<ReferralModel> referrals) {
+    if (referrals.isEmpty) {
+      return const InfoCard(
+        child: EmptyState(
+          icon: Icons.local_hospital_outlined,
+          title: 'No doctor referrals',
+          message: 'Referrals appear here after an urgent or moderate screening.',
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < referrals.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.md),
+          _ReferralCard(referral: referrals[i]),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildScreeningHistorySection(List<ScreeningModel> screenings) {
+    if (screenings.isEmpty) {
+      return const InfoCard(
+        child: EmptyState(
+          icon: Icons.history_rounded,
+          title: 'No screenings yet',
+          message: 'Tap "New screening" below to start one.',
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (int i = 0; i < screenings.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.md),
+          _ScreeningCard(screening: screenings[i]),
+        ],
+      ],
+    );
+  }
+}
+
+class _HeaderCard extends StatelessWidget {
+  final PatientModel patient;
+  const _HeaderCard({required this.patient});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    return InfoCard(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 130,
-            child: Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-            ),
-          ),
+          InitialAvatar(patient.fullName, size: AppSizes.button),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isAlert ? FontWeight.bold : FontWeight.w600,
-                color: isAlert ? AppColors.riskRed : AppColors.textPrimary,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(patient.fullName, style: text.titleLarge),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '${patient.age} yrs  ·  ${patient.gender}  ·  ${patient.villageName}',
+                  style: text.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                Wrap(
+                  spacing: AppSpacing.md,
+                  runSpacing: AppSpacing.sm,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    SyncStatusBadge(status: patient.syncStatus),
+                    if (patient.isPregnant) const StatusTag('Pregnant', icon: Icons.pregnant_woman_rounded),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildReferralsSection(List<dynamic> referrals) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.outgoing_mail, color: AppColors.roleDoctor, size: 20),
-            const SizedBox(width: 8),
-            const Text(
-              'Doctor Referrals & Consultations',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const Spacer(),
-            Text('${referrals.length} active', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (referrals.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Center(
-              child: Text(
-                'No active doctor referrals for this citizen.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ),
-          )
-        else
-          ...referrals.map((ref) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
+class _ReferralCard extends StatelessWidget {
+  final ReferralModel referral;
+  const _ReferralCard({required this.referral});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final ref = referral;
+    final notes = ref.doctorClinicalNotes;
+    final advice = ref.doctorRecommendations;
+
+    return InfoCard(
+      accent: ref.priority.color,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              PriorityBadge(priority: ref.priority),
+              StatusTag(ref.status.displayName, icon: Icons.assignment_outlined),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text('Reason', style: text.bodySmall),
+          const SizedBox(height: AppSpacing.xs),
+          Text(ref.triageReason, style: text.bodyMedium),
+          if (notes != null && notes.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      PriorityBadge(priority: ref.priority),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+                      const Icon(Icons.medical_services_outlined, size: 20, color: AppColors.primaryDark),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
                         child: Text(
-                          ref.status.displayName,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                          'Doctor\'s note · ${ref.assignedDoctorName ?? "Medical Officer"}',
+                          style: text.titleSmall?.copyWith(color: AppColors.primaryDark),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Triage: ${ref.triageReason}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                  if (ref.doctorClinicalNotes != null && ref.doctorClinicalNotes.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE3F2FD),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.medical_services_rounded, size: 14, color: AppColors.roleDoctor),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Doctor Note (${ref.assignedDoctorName ?? "Medical Officer"}):',
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.roleDoctor),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            ref.doctorClinicalNotes,
-                            style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
-                          ),
-                          if (ref.doctorRecommendations != null && ref.doctorRecommendations.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Recommendations: ${ref.doctorRecommendations}',
-                              style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: AppColors.textSecondary),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(notes, style: text.bodyMedium),
+                  if (advice != null && advice.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text('Advice', style: text.bodySmall),
+                    Text(advice, style: text.bodyMedium),
                   ],
                 ],
               ),
-            );
-          }),
-      ],
+            ),
+          ],
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildScreeningHistorySection(List<dynamic> screenings) {
-    final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+class _ScreeningCard extends StatelessWidget {
+  final ScreeningModel screening;
+  const _ScreeningCard({required this.screening});
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.history_rounded, color: AppColors.primary, size: 20),
-            const SizedBox(width: 8),
-            const Text(
-              'Screening Records History',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-            ),
-            const Spacer(),
-            Text('${screenings.length} total', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          ],
-        ),
-        const SizedBox(height: 10),
-        if (screenings.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: const Center(
-              child: Text(
-                'No screening recorded yet for this citizen.',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-            ),
-          )
-        else
-          ...screenings.map((s) {
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      PriorityBadge(priority: s.priority),
-                      const Spacer(),
-                      SyncStatusBadge(status: s.syncStatus),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    dateFormat.format(s.createdAt),
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    s.reason,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 12,
-                    children: [
-                      if (s.systolicBP != null && s.diastolicBP != null)
-                        Text('BP: ${s.systolicBP.toInt()}/${s.diastolicBP.toInt()}', style: const TextStyle(fontSize: 11)),
-                      if (s.pulseRate != null)
-                        Text('Pulse: ${s.pulseRate.toInt()} bpm', style: const TextStyle(fontSize: 11)),
-                      if (s.temperatureF != null)
-                        Text('Temp: ${s.temperatureF.toStringAsFixed(1)}°F', style: const TextStyle(fontSize: 11)),
-                      if (s.spo2Percent != null)
-                        Text('SpO2: ${s.spo2Percent.toInt()}%', style: const TextStyle(fontSize: 11)),
-                      if (s.bloodSugarMgDl != null)
-                        Text('RBS: ${s.bloodSugarMgDl.toInt()} mg/dL', style: const TextStyle(fontSize: 11)),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }),
-      ],
+  static final _dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final s = screening;
+
+    return InfoCard(
+      accent: s.priority.color,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              PriorityBadge(priority: s.priority),
+              SyncStatusBadge(status: s.syncStatus),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(_dateFormat.format(s.createdAt), style: text.bodySmall),
+          const SizedBox(height: AppSpacing.sm),
+          Text(s.reason, style: text.bodyMedium),
+          if (s.systolicBP != null && s.diastolicBP != null)
+            InfoRow('Blood pressure', '${s.systolicBP!.toInt()}/${s.diastolicBP!.toInt()} mmHg'),
+          if (s.pulseRate != null) InfoRow('Pulse', '${s.pulseRate!.toInt()} beats/min'),
+          if (s.temperatureF != null) InfoRow('Temperature', '${s.temperatureF!.toStringAsFixed(1)} °F'),
+          if (s.spo2Percent != null) InfoRow('Oxygen (SpO2)', '${s.spo2Percent!.toInt()}%'),
+          if (s.bloodSugarMgDl != null) InfoRow('Blood sugar', '${s.bloodSugarMgDl!.toInt()} mg/dL'),
+        ],
+      ),
     );
   }
 }

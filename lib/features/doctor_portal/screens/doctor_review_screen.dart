@@ -8,6 +8,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
+import '../../shared/widgets/ui.dart';
 
 class DoctorReviewScreen extends StatefulWidget {
   final String referralId;
@@ -45,7 +46,7 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
   Future<void> _submitReview() async {
     if (_clinicalNotesController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter clinical consultation notes.')),
+        const SnackBar(content: Text('Please enter your consultation notes.')),
       );
       return;
     }
@@ -67,15 +68,15 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: AppColors.riskGreen,
-          content: Text('✓ Clinical notes saved and synced to ASHA portal (${_selectedStatus.displayName}).'),
+          content: Text('Review saved and shared with the ASHA (${_selectedStatus.displayName}).'),
         ),
       );
       Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
+      debugPrint('DoctorReviewScreen: save failed: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: AppColors.riskRed, content: Text('Error saving: $e')),
+        const SnackBar(content: Text('Could not save the review. Please try again.')),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -89,345 +90,234 @@ class _DoctorReviewScreenState extends State<DoctorReviewScreen> {
     final patient = repo.getPatientById(referral.patientId);
     final screeningList = repo.screenings.where((s) => s.id == referral.screeningId).toList();
     final screening = screeningList.isNotEmpty ? screeningList.first : null;
+    final textTheme = Theme.of(context).textTheme;
 
     final dateFormat = DateFormat('dd MMM yyyy, hh:mm a');
 
     return Scaffold(
-      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('Citizen Review: ${referral.patientName}'),
-        backgroundColor: AppColors.roleDoctor,
-        foregroundColor: Colors.white,
+        title: Text('Review: ${referral.patientName}', maxLines: 1, overflow: TextOverflow.ellipsis),
         actions: [
-          IconButton(
+          TextButton.icon(
             icon: const Icon(Icons.volume_up_outlined),
-            tooltip: 'Audio summary of referral',
+            label: const Text('Listen'),
             onPressed: () {
               VoiceService().speakPrompt(
                 context,
                 title: 'Doctor Referral Review',
-                hindiText: '${referral.patientName}, priority ${referral.priority.name.toUpperCase()}. Originating ASHA: ${referral.originatingAshaName}.',
-                englishText: '${referral.patientName}, priority ${referral.priority.name.toUpperCase()}. Originating ASHA: ${referral.originatingAshaName}.',
+                hindiText: '${referral.patientName}, ${referral.priority.word}. Originating ASHA: ${referral.originatingAshaName}.',
+                englishText: '${referral.patientName}, ${referral.priority.word}. Originating ASHA: ${referral.originatingAshaName}.',
               );
             },
           ),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Referral Priority & Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      PriorityBadge(priority: referral.priority),
-                      const Spacer(),
-                      SyncStatusBadge(status: referral.syncStatus),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '${referral.patientName} (${referral.patientAge}y, ${referral.patientGender})',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'Village: ${referral.villageName} • Contact: ${patient?.contactNumber ?? "N/A"}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Triage Trigger: ${referral.triageReason}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                        ),
-                        if (referral.primarySymptoms.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            'Reported Symptoms: ${referral.primarySymptoms.join(", ")}',
-                            style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Screening Vitals Inspection
-            if (screening != null) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      body: ListView(
+        padding: AppSpacing.screen,
+        children: [
+          // Header: who, how urgent, why
+          InfoCard(
+            accent: referral.priority.color,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
                   children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.monitor_heart_outlined, color: AppColors.primary, size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'Recorded Vitals from Field Screening',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 8,
-                      children: [
-                        _buildVitalPill('BP', screening.systolicBP != null ? '${screening.systolicBP!.toInt()}/${screening.diastolicBP!.toInt()} mmHg' : 'N/A'),
-                        _buildVitalPill('Pulse', screening.pulseRate != null ? '${screening.pulseRate!.toInt()} bpm' : 'N/A'),
-                        _buildVitalPill('Temp', screening.temperatureF != null ? '${screening.temperatureF!.toStringAsFixed(1)}°F' : 'N/A'),
-                        _buildVitalPill('SpO2', screening.spo2Percent != null ? '${screening.spo2Percent!.toInt()}%' : 'N/A'),
-                        _buildVitalPill('Blood Sugar', screening.bloodSugarMgDl != null ? '${screening.bloodSugarMgDl!.toInt()} mg/dL' : 'N/A'),
-                      ],
-                    ),
-                    if (screening.lifestyleObservations.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Text(
-                        'Observations: ${screening.lifestyleObservations}',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                      ),
-                    ],
+                    PriorityBadge(priority: referral.priority),
+                    SyncStatusBadge(status: referral.syncStatus),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // Originating ASHA Notes
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.badge_outlined, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ASHA Field Note (${referral.originatingAshaName}):',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          referral.ashaNotes,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textPrimary),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  '${referral.patientName}, ${referral.patientAge} yrs, ${referral.patientGender}',
+                  style: textTheme.titleLarge,
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                InfoRow('Village', referral.villageName),
+                InfoRow('Phone', patient?.contactNumber ?? 'Not given'),
+                InfoRow('Status', referral.status.displayName),
+                InfoRow('Reason', referral.triageReason),
+                if (referral.primarySymptoms.isNotEmpty) InfoRow('Symptoms', referral.primarySymptoms.join(', ')),
+              ],
             ),
-            const SizedBox(height: 16),
+          ),
 
-            // Doctor Consultation Input Form
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
+          // Vitals
+          if (screening != null) ...[
+            const SectionHeader('Vitals from field visit'),
+            InfoCard(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.edit_note_rounded, color: AppColors.roleDoctor, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Doctor Clinical Consultation & Notes *',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                    ],
+                  InfoRow(
+                    'Blood pressure',
+                    screening.systolicBP != null ? '${screening.systolicBP!.toInt()}/${screening.diastolicBP!.toInt()} mmHg' : 'Not recorded',
                   ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<ReferralStatus>(
-                    isExpanded: true,
-                    value: _selectedStatus,
-                    decoration: const InputDecoration(
-                      labelText: 'Referral Status',
-                      prefixIcon: Icon(Icons.flag_outlined),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: ReferralStatus.underReview,
-                        child: Text('Under Clinical Review'),
-                      ),
-                      DropdownMenuItem(
-                        value: ReferralStatus.consulted,
-                        child: Text('Consulted / Prescribed'),
-                      ),
-                      DropdownMenuItem(
-                        value: ReferralStatus.escalatedToFacility,
-                        child: Text('Escalate to District Hospital'),
-                      ),
-                      DropdownMenuItem(
-                        value: ReferralStatus.closed,
-                        child: Text('Closed / Resolved'),
-                      ),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) setState(() => _selectedStatus = val);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _clinicalNotesController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Clinical Diagnosis / Assessment Notes *',
-                      hintText: 'Enter clinical impressions, confirmed diagnosis or differential diagnosis...',
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _recommendationsController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Prescriptions & ASHA Follow-up Instructions',
-                      hintText: 'Prescribed medication dosage, dietary advice, repeat vitals schedule...',
-                    ),
-                  ),
+                  InfoRow('Pulse', screening.pulseRate != null ? '${screening.pulseRate!.toInt()} beats/min' : 'Not recorded'),
+                  InfoRow('Temperature', screening.temperatureF != null ? '${screening.temperatureF!.toStringAsFixed(1)} °F' : 'Not recorded'),
+                  InfoRow('Oxygen (SpO2)', screening.spo2Percent != null ? '${screening.spo2Percent!.toInt()}%' : 'Not recorded'),
+                  InfoRow('Blood sugar', screening.bloodSugarMgDl != null ? '${screening.bloodSugarMgDl!.toInt()} mg/dL' : 'Not recorded'),
+                  if (screening.lifestyleObservations.isNotEmpty) InfoRow('Observations', screening.lifestyleObservations),
                 ],
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Status Change Audit History
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.history_toggle_off_rounded, color: AppColors.textSecondary, size: 18),
-                      SizedBox(width: 8),
-                      Text(
-                        'Referral Audit Trail & Timestamps',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  if (referral.statusHistory.isEmpty)
-                    const Text('No status changes recorded.', style: TextStyle(fontSize: 12, color: AppColors.textSecondary))
-                  else
-                    ...referral.statusHistory.map((item) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.circle, size: 8, color: AppColors.primary),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '${item.updatedByName} • ${item.status.toUpperCase()}',
-                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
-                                  ),
-                                  if (item.note != null && item.note!.isNotEmpty)
-                                    Text(item.note!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                                  Text(
-                                    dateFormat.format(item.timestamp),
-                                    style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Submit Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.roleDoctor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: _isSaving ? null : _submitReview,
-              icon: _isSaving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
-                  : const Icon(Icons.check_circle_rounded),
-              label: Text(
-                _isSaving ? 'Submitting Review...' : 'Save Clinical Review & Sync Status',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
             ),
           ],
+
+          // ASHA note
+          const SectionHeader('Note from ASHA'),
+          InfoCard(
+            color: AppColors.primarySurface,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.badge_outlined, color: AppColors.primary, size: 24),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        referral.originatingAshaName,
+                        style: textTheme.titleSmall?.copyWith(color: AppColors.primaryDark),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(referral.ashaNotes, style: textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Consultation form
+          const SectionHeader('Your consultation'),
+          DropdownButtonFormField<ReferralStatus>(
+            isExpanded: true,
+            initialValue: _selectedStatus,
+            decoration: const InputDecoration(
+              labelText: 'Referral status',
+              prefixIcon: Icon(Icons.flag_outlined),
+            ),
+            items: const [
+              DropdownMenuItem(
+                value: ReferralStatus.underReview,
+                child: Text('Under review'),
+              ),
+              DropdownMenuItem(
+                value: ReferralStatus.consulted,
+                child: Text('Consulted / prescribed'),
+              ),
+              DropdownMenuItem(
+                value: ReferralStatus.escalatedToFacility,
+                child: Text('Send to district hospital'),
+              ),
+              DropdownMenuItem(
+                value: ReferralStatus.closed,
+                child: Text('Closed / resolved'),
+              ),
+            ],
+            onChanged: (val) {
+              if (val != null) setState(() => _selectedStatus = val);
+            },
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextFormField(
+            controller: _clinicalNotesController,
+            minLines: 3,
+            maxLines: 6,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              labelText: 'Diagnosis and notes *',
+              hintText: 'Clinical impression, confirmed or differential diagnosis',
+              helperText: 'Required',
+              alignLabelWithHint: true,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextFormField(
+            controller: _recommendationsController,
+            minLines: 3,
+            maxLines: 6,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: const InputDecoration(
+              labelText: 'Prescription and follow-up for ASHA',
+              hintText: 'Medicine and dose, diet advice, when to recheck vitals',
+              alignLabelWithHint: true,
+            ),
+          ),
+
+          // History
+          const SectionHeader('History'),
+          InfoCard(
+            child: referral.statusHistory.isEmpty
+                ? Text('No status changes yet.', style: textTheme.bodySmall)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final item in referral.statusHistory) _buildHistoryItem(context, item, dateFormat),
+                    ],
+                  ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: AppSpacing.screen,
+          child: AppButton(
+            label: 'Save review',
+            icon: Icons.check_circle_rounded,
+            loading: _isSaving,
+            loadingLabel: 'Saving…',
+            onPressed: _submitReview,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildVitalPill(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAF9),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
+  /// Turns a raw status value like "under_review" into "Under review".
+  String _readableStatus(String raw) {
+    final text = raw.replaceAll('_', ' ').trim().toLowerCase();
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+
+  Widget _buildHistoryItem(BuildContext context, ReferralStatusLog item, DateFormat dateFormat) {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const Icon(Icons.schedule_rounded, size: 20, color: AppColors.textSecondary),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${item.updatedByName} · ${_readableStatus(item.status)}', style: textTheme.titleSmall),
+                if (item.note != null && item.note!.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs / 2),
+                  Text(item.note!, style: textTheme.bodySmall),
+                ],
+                const SizedBox(height: AppSpacing.xs / 2),
+                Text(
+                  dateFormat.format(item.timestamp),
+                  style: textTheme.labelSmall?.copyWith(color: AppColors.textMuted, fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

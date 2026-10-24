@@ -179,6 +179,16 @@ class AppTheme {
         contentTextStyle: _text.bodyMedium,
       ),
 
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: AppColors.border,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
+        ),
+      ),
+
       listTileTheme: const ListTileThemeData(
         minVerticalPadding: 12,
         contentPadding: EdgeInsets.symmetric(horizontal: 16),

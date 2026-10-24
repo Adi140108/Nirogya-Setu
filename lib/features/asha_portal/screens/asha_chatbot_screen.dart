@@ -30,7 +30,7 @@ class AshaChatbotScreen extends StatefulWidget {
 class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   final List<ChatMessage> _messages = [
     ChatMessage(
-      text: "Hello! I am your Aarogya Setu Clinical Assistant. I can guide you on ICMR rural triage rules, maternal warning signs, child health protocols, and emergency referrals. How can I assist your field screening today?",
+      text: "Hello! I am your Aarogya Setu health assistant. Ask me about danger signs in pregnancy, child health, triage rules, or when to refer a citizen to the doctor.",
       isUser: false,
       timestamp: DateTime.now(),
       isOffline: true,
@@ -120,10 +120,11 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
       }
     } catch (e) {
       // Fallback to offline engine upon any network error
+      debugPrint('Online assistant failed, using offline guide: $e');
       final fallback = _queryOfflineKnowledge(clean);
       setState(() {
         _messages.add(ChatMessage(
-          text: "$fallback\n\n*(Note: Switched to offline clinical protocols due to network)*",
+          text: "$fallback\n\n(Online answer could not load, so this is from the offline guide.)",
           isUser: false,
           timestamp: DateTime.now(),
           isOffline: true,
@@ -248,39 +249,36 @@ IMPORTANT: Never withhold breastmilk or food.""";
     showDialog(
       context: context,
       builder: (ctx) {
+        final textTheme = Theme.of(ctx).textTheme;
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.tune_rounded, color: AppColors.primary),
-              SizedBox(width: 8),
-              Text('Assistant Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Enter Groq API Key for real-time cloud LLM responses (Llama 3.3 70B).',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                decoration: const InputDecoration(
-                  labelText: 'Groq API Key',
-                  hintText: 'gsk_...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.key_rounded),
+          icon: const Icon(Icons.tune_rounded, color: AppColors.primary),
+          title: const Text('Assistant settings'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add a key to get online answers when you have internet.',
+                  style: textTheme.bodyMedium,
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '• If empty, the assistant uses local ICMR offline protocols.\n• No internet required for offline clinical rules.',
-                style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: controller,
+                  textInputAction: TextInputAction.done,
+                  decoration: const InputDecoration(
+                    labelText: 'Groq API key',
+                    hintText: 'gsk_...',
+                    prefixIcon: Icon(Icons.key_rounded),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Leave it empty to use the offline guide. The offline guide works without internet.',
+                  style: textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -288,10 +286,6 @@ IMPORTANT: Never withhold breastmilk or food.""";
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
               onPressed: () async {
                 await _saveGroqApiKey(controller.text);
                 if (ctx.mounted) Navigator.pop(ctx);
@@ -300,8 +294,8 @@ IMPORTANT: Never withhold breastmilk or food.""";
                     SnackBar(
                       content: Text(
                         controller.text.trim().isNotEmpty
-                            ? '✓ Groq API Key saved. Online Llama 3.3 active.'
-                            : '✓ Using offline ICMR clinical knowledge engine.',
+                            ? 'Key saved. Online answers are on.'
+                            : 'Using the offline guide.',
                       ),
                     ),
                   );
@@ -318,152 +312,99 @@ IMPORTANT: Never withhold breastmilk or food.""";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         automaticallyImplyLeading: !widget.isEmbedded,
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Aarogya Setu',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-            Text(
-              'ASHA Clinical Assistant',
-              style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        actions: [
-          Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: _groqApiKey != null ? const Color(0xFF065F46) : const Color(0xFF0F766E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF6EE7B7)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _groqApiKey != null ? Icons.bolt_rounded : Icons.offline_pin_rounded,
-                    size: 12,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _groqApiKey != null ? 'Groq Llama' : 'Offline Engine',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Configure Groq API Key',
-            onPressed: _showSettingsDialog,
-          ),
-        ],
+        title: const Text('Health assistant'),
       ),
       body: Column(
         children: [
-          // Suggested Query Chips
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: Colors.white,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: _suggestedPrompts.map((p) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ActionChip(
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      label: Text(p, style: const TextStyle(fontSize: 11, color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
-                      onPressed: () => _sendMessage(p),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
+          _buildTopPanel(context),
 
-          // Message Stream
+          // Message stream
           Expanded(
-            child: ListView.builder(
+            child: ListView.separated(
               controller: _scrollController,
-              padding: const EdgeInsets.all(14),
+              padding: AppSpacing.screen,
               itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final msg = _messages[index];
-                return _buildMessageBubble(msg);
-              },
+              separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
+              itemBuilder: (context, index) => _buildMessageBubble(_messages[index]),
             ),
           ),
 
           if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
                   ),
-                  SizedBox(width: 8),
-                  Text('Analyzing clinical protocol...', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Text('Finding an answer…', style: Theme.of(context).textTheme.bodySmall),
+                  ),
                 ],
               ),
             ),
 
-          // Input Bar
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
-            ),
+          _buildInputBar(),
+        ],
+      ),
+    );
+  }
+
+  /// Mode status (online/offline) with a settings action, then suggested questions.
+  Widget _buildTopPanel(BuildContext context) {
+    final online = _groqApiKey != null;
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      ),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: AppSpacing.lg, right: AppSpacing.sm),
             child: Row(
               children: [
+                Icon(
+                  online ? Icons.cloud_done_outlined : Icons.offline_pin_outlined,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: AppSpacing.sm),
                 Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    textInputAction: TextInputAction.send,
-                    decoration: InputDecoration(
-                      hintText: 'Ask clinical or screening questions...',
-                      hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                    ),
-                    onSubmitted: _sendMessage,
+                  child: Text(
+                    online ? 'Online answers' : 'Offline guide, works without internet',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: AppColors.primary,
-                  radius: 20,
-                  child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
-                    onPressed: () => _sendMessage(_textController.text),
-                  ),
+                TextButton.icon(
+                  icon: const Icon(Icons.settings_outlined),
+                  label: const Text('Settings'),
+                  onPressed: _showSettingsDialog,
                 ),
               ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: Row(
+              children: _suggestedPrompts.map((p) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: ActionChip(
+                    label: Text(p),
+                    onPressed: () => _sendMessage(p),
+                  ),
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -471,65 +412,76 @@ IMPORTANT: Never withhold breastmilk or food.""";
     );
   }
 
+  Widget _buildInputBar() {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.md, AppSpacing.sm, AppSpacing.md),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _textController,
+                  textInputAction: TextInputAction.send,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: const InputDecoration(hintText: 'Type your question'),
+                  onSubmitted: _sendMessage,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              IconButton.filled(
+                icon: const Icon(Icons.send_rounded),
+                tooltip: 'Send',
+                onPressed: () => _sendMessage(_textController.text),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageBubble(ChatMessage msg) {
+    final textTheme = Theme.of(context).textTheme;
     return Align(
       alignment: msg.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
-        padding: const EdgeInsets.all(14),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.85),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: msg.isUser ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(msg.isUser ? 16 : 4),
-            bottomRight: Radius.circular(msg.isUser ? 4 : 16),
-          ),
-          border: Border.all(
-            color: msg.isUser ? Colors.transparent : const Color(0xFFE2E8F0),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: msg.isUser ? AppColors.primary : AppColors.surface,
+          borderRadius: AppRadius.card,
+          border: msg.isUser ? null : Border.all(color: AppColors.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             if (!msg.isUser) ...[
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.health_and_safety_rounded, size: 14, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Clinical Guidance',
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ),
-                  const Spacer(),
-                  if (msg.isOffline)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: const Text('ICMR Offline', style: TextStyle(fontSize: 8.5, color: Color(0xFF475569))),
+                  const Icon(Icons.health_and_safety_outlined, size: 20, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      msg.isOffline ? 'Assistant · offline guide' : 'Assistant',
+                      style: textTheme.labelSmall,
                     ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: AppSpacing.sm),
             ],
             Text(
               msg.text,
-              style: TextStyle(
-                fontSize: 13,
-                height: 1.45,
-                color: msg.isUser ? Colors.white : const Color(0xFF0F172A),
+              style: textTheme.bodyMedium?.copyWith(
+                color: msg.isUser ? Colors.white : AppColors.textPrimary,
               ),
             ),
           ],
