@@ -123,13 +123,18 @@ class RoleSelectionScreen extends StatelessWidget {
                       icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const Text(
-                      'Aarogya Setu',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                        letterSpacing: -0.3,
+                    const Expanded(
+                      child: Text(
+                        'Aarogya Setu',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF0F172A),
+                          letterSpacing: -0.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     InkWell(

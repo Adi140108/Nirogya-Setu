@@ -49,8 +49,10 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: AppColors.primary,
           unselectedItemColor: const Color(0xFF64748B),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          selectedFontSize: 11,
+          unselectedFontSize: 10,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
           items: const [
@@ -292,11 +294,14 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-            label: const Text('Register Citizen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Register Citizen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
             onPressed: () {
               Navigator.push(
                 context,
@@ -305,17 +310,20 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             },
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         Expanded(
           child: OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primaryDark,
               side: const BorderSide(color: AppColors.primary),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            icon: const Icon(Icons.ondemand_video_rounded, size: 18),
-            label: const Text('Awareness Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            icon: const Icon(Icons.ondemand_video_rounded, size: 16),
+            label: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Awareness Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            ),
             onPressed: () {
               Navigator.push(
                 context,

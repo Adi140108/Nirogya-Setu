@@ -86,8 +86,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF064E3B),
           unselectedItemColor: const Color(0xFF64748B),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+          selectedFontSize: 11,
+          unselectedFontSize: 10,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
           items: const [
@@ -213,6 +215,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   child: Text(
                     'Offline Ready • ABHA Card Cached on Device',
                     style: TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const Row(
@@ -352,10 +356,15 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Household Health Profiles',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+              const Expanded(
+                child: Text(
+                  'Household Health Profiles',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
@@ -483,6 +492,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         Text(
                           'AAROGYA SETU • ABHA CARD',
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'NATIONAL HEALTH AUTHORITY • GOVT. OF INDIA',
@@ -492,6 +503,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                             letterSpacing: 0.6,
                             color: Color(0xFFA7F3D0),
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -581,8 +594,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                   child: Text(
                                     citizen.fullName,
                                     style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
+                                const SizedBox(width: 6),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
@@ -654,13 +670,17 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                               style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
                             ),
                             const SizedBox(height: 2),
-                            Text(
-                              citizen.computedAbhaNumber,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.2,
-                                color: Color(0xFF0F172A),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                citizen.computedAbhaNumber,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                  color: Color(0xFF0F172A),
+                                ),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -668,9 +688,13 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                               children: [
                                 Icon(Icons.lock_outline_rounded, size: 10, color: Color(0xFF059669)),
                                 SizedBox(width: 3),
-                                Text(
-                                  'Verified & Active • Hospital OPD Enabled',
-                                  style: TextStyle(fontSize: 9, color: Color(0xFF059669), fontWeight: FontWeight.w600),
+                                Expanded(
+                                  child: Text(
+                                    'Verified & Active • Hospital OPD Enabled',
+                                    style: TextStyle(fontSize: 9, color: Color(0xFF059669), fontWeight: FontWeight.w600),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ],
                             ),
