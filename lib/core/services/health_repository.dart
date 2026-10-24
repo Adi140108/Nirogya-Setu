@@ -1024,6 +1024,49 @@ class HealthRepository extends ChangeNotifier {
     }
   }
 
+  /// Finds the citizen behind a scanned QR code: on this device first (by id,
+  /// then ABHA number), otherwise from the cloud database. A record fetched
+  /// from the cloud is kept locally so it can be opened and reviewed.
+  Future<PatientModel?> resolveScannedPatient({String? patientId, String? abhaNumber}) async {
+    if (patientId != null && patientId.isNotEmpty) {
+      final local = getPatientById(patientId);
+      if (local != null) return local;
+    }
+    if (abhaNumber != null && abhaNumber.isNotEmpty) {
+      for (final p in _patients) {
+        if (p.computedAbhaNumber == abhaNumber) return p;
+      }
+    }
+    if (Firebase.apps.isEmpty) return null;
+    try {
+      final patients = FirebaseFirestore.instance.collection('patients');
+      Map<String, dynamic>? data;
+      if (patientId != null && patientId.isNotEmpty) {
+        final doc = await patients.doc(patientId).get().timeout(const Duration(seconds: 10));
+        if (doc.exists) data = doc.data();
+      }
+      if (data == null && abhaNumber != null && abhaNumber.isNotEmpty) {
+        final query = await patients
+            .where('abhaNumber', isEqualTo: abhaNumber)
+            .limit(1)
+            .get()
+            .timeout(const Duration(seconds: 10));
+        if (query.docs.isNotEmpty) data = query.docs.first.data();
+      }
+      if (data == null) return null;
+      final patient = PatientModel.fromMap(data).copyWith(syncStatus: SyncStatus.synced);
+      if (getPatientById(patient.id) == null) {
+        _patients.add(patient);
+        await _persistAll();
+        notifyListeners();
+      }
+      return patient;
+    } catch (e) {
+      debugPrint('Scanned citizen lookup failed: $e');
+      return null;
+    }
+  }
+
   PatientModel? getPatientById(String id) {
     try {
       return _patients.firstWhere((p) => p.id == id);

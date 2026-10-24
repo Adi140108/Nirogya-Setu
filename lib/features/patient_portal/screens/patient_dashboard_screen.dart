@@ -7,6 +7,7 @@ import '../../../core/models/patient_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/admin_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/services/patient_qr.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
@@ -278,9 +279,6 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   _buildAbhaHealthCard(activeMember),
                   const SizedBox(height: 12),
 
-                  // 3. Three Quick Action Buttons (Download, Share, Big QR)
-                  _buildCardActionRow(context, activeMember),
-                  const SizedBox(height: 14),
 
                   // 4. Raise Issue Card (Voice / Text directly to ASHA)
                   _buildRaiseIssueToAshaCard(context, activeMember),
@@ -882,27 +880,14 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            const Row(
-                              children: [
-                                Icon(Icons.lock_outline_rounded, size: 10, color: Color(0xFF059669)),
-                                SizedBox(width: 3),
-                                Expanded(
-                                  child: Text(
-                                    'Verified & Active • Hospital OPD Enabled',
-                                    style: TextStyle(fontSize: 9, color: Color(0xFF059669), fontWeight: FontWeight.w600),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Scannable QR Code
-                      Container(
+                      // Scannable citizen QR code (opens this account when scanned by ASHA / doctor)
+                      GestureDetector(
+                        onTap: () => _showScanQrDialog(context, citizen),
+                        child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -915,7 +900,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                               width: 64,
                               height: 64,
                               child: QrImageView(
-                                data: citizen.opdQrData,
+                                data: PatientQr.encode(citizen),
                                 version: QrVersions.auto,
                                 size: 64,
                                 padding: EdgeInsets.zero,
@@ -923,11 +908,12 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                             ),
                             const SizedBox(height: 2),
                             const Text(
-                              'SCAN OPD',
+                              'TAP TO SCAN',
                               style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
                             ),
                           ],
                         ),
+                      ),
                       ),
                     ],
                   ),
@@ -940,180 +926,41 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     );
   }
 
-  /// 3 Action Buttons below the ABHA Card
-  Widget _buildCardActionRow(BuildContext context, PatientModel citizen) {
-    return Row(
-      children: [
-        // Download Card
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.file_download_outlined,
-            title: context.watch<AppLocale>().t('downloadCard'),
-            subtitle: context.watch<AppLocale>().t('offlinePass'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: const Color(0xFF064E3B),
-                  content: Text(context.read<AppLocale>().t('cardCachedNotice')),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // Send to ASHA
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.share_outlined,
-            title: context.watch<AppLocale>().t('shareWithAsha'),
-            subtitle: context.watch<AppLocale>().t('syncRecords'),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: AppColors.primary,
-                  content: Text(context.read<AppLocale>().t('sharedNotice')),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(width: 8),
-
-        // Big QR Code
-        Expanded(
-          child: _buildActionTile(
-            icon: Icons.qr_code_scanner_rounded,
-            title: context.watch<AppLocale>().t('viewOpdToken'),
-            subtitle: context.watch<AppLocale>().t('hospitalDesk'),
-            onTap: () => _showQrExpandedDialog(context, citizen),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-            child: Column(
-              children: [
-                Icon(icon, color: const Color(0xFF0284C7), size: 22),
-                const SizedBox(height: 4),
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B)),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Big OPD QR Code Dialog
-  void _showQrExpandedDialog(BuildContext context, PatientModel citizen) {
-    showDialog(
+  /// Large QR for scanning by the ASHA worker or doctor.
+  void _showScanQrDialog(BuildContext context, PatientModel citizen) {
+    showDialog<void>(
       context: context,
-      builder: (ctx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'OPD Token & ABHA Scan',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  citizen.fullName,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF064E3B)),
-                ),
-                Text(
-                  'ABHA: ${citizen.computedAbhaNumber}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFCBD5E1), width: 2),
-                  ),
-                  child: SizedBox(
-                    width: 200,
-                    height: 200,
-                    child: QrImageView(
-                      data: citizen.opdQrData,
-                      version: QrVersions.auto,
-                      size: 200,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF0FDF4),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'OPD Token: OPD-${citizen.id.hashCode.abs() % 10000}',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF15803D)),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Present this code at PHC registration desk for fast-track entry.',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(citizen.fullName,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A))),
+              const SizedBox(height: 4),
+              Text('ABHA: ${citizen.computedAbhaNumber}',
+                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 240,
+                height: 240,
+                child: QrImageView(data: PatientQr.encode(citizen), version: QrVersions.auto, size: 240),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Show this to your ASHA worker or doctor. Scanning it opens your health record directly.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12.5, color: Color(0xFF475569), height: 1.35),
+              ),
+              const SizedBox(height: 8),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 

@@ -10,6 +10,7 @@ import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
+import '../../shared/screens/patient_qr_scanner_screen.dart';
 import 'doctor_review_screen.dart';
 import '../../../core/services/app_locale.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
@@ -113,6 +114,14 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       actions: [
         const LanguageSelector(),
         const SizedBox(width: 4),
+        IconButton(
+          icon: const Icon(Icons.qr_code_scanner_rounded),
+          tooltip: 'Scan citizen QR',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PatientQrScannerScreen(accentColor: AppColors.roleDoctor)),
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.volume_up_outlined),
           tooltip: 'Voice Guidance',
