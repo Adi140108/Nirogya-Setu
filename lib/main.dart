@@ -72,7 +72,7 @@ class AarogyaSetuApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aarogya Setu',
+      title: 'Nirogya Setu',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -140,7 +140,7 @@ class RootGateScreen extends StatelessWidget {
               CircularProgressIndicator(color: AppColors.primary),
               SizedBox(height: 16),
               Text(
-                'Aarogya Setu loading...',
+                'Nirogya Setu loading...',
                 style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryDark),
               ),
             ],

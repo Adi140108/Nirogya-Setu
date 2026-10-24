@@ -142,7 +142,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   ),
                                   const SizedBox(height: 24),
 
-                                  // Title: Aarogya Setu
+                                  // Title: Nirogya Setu
                                   RichText(
                                     textAlign: TextAlign.center,
                                     text: const TextSpan(
@@ -154,12 +154,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                       ),
                                       children: [
                                         TextSpan(
-                                          text: 'Aarogya ',
-                                          style: TextStyle(color: Color(0xFF0F766E)), // Deep teal
+                                          text: 'Nirogya ',
+                                          style: TextStyle(color: Color(0xFF8B3A22)), // Warm Warli Terracotta
                                         ),
                                         TextSpan(
                                           text: 'Setu',
-                                          style: TextStyle(color: Color(0xFFEA580C)), // Orange
+                                          style: TextStyle(color: Color(0xFF2E5A36)), // Neem Leaf Green
                                         ),
                                       ],
                                     ),

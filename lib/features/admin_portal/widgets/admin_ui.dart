@@ -489,7 +489,7 @@ Future<void> showCredentialsDialog(
       actions: [
         TextButton.icon(
           onPressed: () {
-            Clipboard.setData(ClipboardData(text: 'Aarogya Setu login\nMobile: $mobile\nPassword: $password'));
+            Clipboard.setData(ClipboardData(text: 'Nirogya Setu login\nMobile: $mobile\nPassword: $password'));
             showAdminSnack(ctx, 'Login details copied');
           },
           icon: const Icon(Icons.copy_rounded, size: 18),

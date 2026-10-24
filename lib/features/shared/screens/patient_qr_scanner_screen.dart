@@ -5,7 +5,7 @@ import '../../../core/services/health_repository.dart';
 import '../../../core/services/patient_qr.dart';
 import '../../asha_portal/screens/patient_detail_screen.dart';
 
-/// Scans a citizen's Aarogya Setu QR code and opens that citizen's record,
+/// Scans a citizen's Nirogya Setu QR code and opens that citizen's record,
 /// replacing manual search by name or phone number.
 class PatientQrScannerScreen extends StatefulWidget {
   final Color accentColor;
@@ -37,7 +37,7 @@ class _PatientQrScannerScreenState extends State<PatientQrScannerScreen> {
 
     final parsed = PatientQr.decode(raw);
     if (parsed == null) {
-      setState(() => _message = 'This is not an Aarogya Setu citizen QR code.');
+      setState(() => _message = 'This is not a Nirogya Setu citizen QR code.');
       return;
     }
 
@@ -117,7 +117,7 @@ class _PatientQrScannerScreenState extends State<PatientQrScannerScreen> {
             child: Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.7),
+                color: Colors.black.withOpacity(0.7),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -133,7 +133,7 @@ class _PatientQrScannerScreenState extends State<PatientQrScannerScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      _message ?? 'Point the camera at the QR code on the citizen\'s Aarogya Setu health card.',
+                      _message ?? 'Point the camera at the QR code on the citizen\'s Nirogya Setu health card.',
                       style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.3),
                     ),
                   ),

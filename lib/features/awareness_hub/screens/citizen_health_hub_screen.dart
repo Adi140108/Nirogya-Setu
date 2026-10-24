@@ -58,7 +58,7 @@ class _CitizenHealthHubScreenState extends State<CitizenHealthHubScreen> {
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Aarogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Nirogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
           ],
         ),

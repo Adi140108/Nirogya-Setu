@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/app_locale.dart';
 import 'register_villager_screen.dart';
@@ -22,8 +23,9 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ashaUser = context.watch<AuthService>().currentUser;
     final repo = context.watch<HealthRepository>();
-    final householdsMap = repo.getHouseholds();
+    final householdsMap = repo.getHouseholds(forAsha: ashaUser);
 
     final filteredHouseholds = householdsMap.entries.where((entry) {
       if (_searchQuery.isEmpty) return true;
@@ -44,7 +46,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
               title: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Aarogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text('Nirogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   Text('Household & Family Registry', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
                 ],
               ),

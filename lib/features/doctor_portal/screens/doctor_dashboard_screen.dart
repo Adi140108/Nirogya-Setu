@@ -100,7 +100,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Aarogya Setu',
+            'Nirogya Setu',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           Text(

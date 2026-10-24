@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -51,9 +52,11 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   void initState() {
     super.initState();
     _householdController = TextEditingController(text: widget.initialHouseholdId ?? '');
-    // If a household ID is provided, inherit state, district, and village from existing household members
+    // If a household ID is provided, inherit state, district, and village from existing household members;
+    // otherwise inherit directly from the logged-in ASHA worker's assigned jurisdiction.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final ashaUser = context.read<AuthService>().currentUser;
       final repo = context.read<HealthRepository>();
       if (widget.initialHouseholdId != null) {
         final existingMember = repo.patients
@@ -61,14 +64,80 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
             .firstOrNull;
         if (existingMember != null) {
           setState(() {
-            _selectedState = existingMember.state ?? 'Uttar Pradesh';
-            _selectedDistrict = existingMember.district ?? 'Varanasi';
+            _selectedState = existingMember.state ?? _selectedState;
+            _selectedDistrict = existingMember.district ?? _selectedDistrict;
             _villageName = existingMember.villageName;
             _villageId = existingMember.villageId;
           });
+          return;
         }
       }
+
+      if (ashaUser != null) {
+        setState(() {
+          if ((ashaUser.state ?? '').isNotEmpty) _selectedState = ashaUser.state!;
+          if ((ashaUser.district ?? '').isNotEmpty) _selectedDistrict = ashaUser.district!;
+          if ((ashaUser.villageName ?? '').isNotEmpty) _villageName = ashaUser.villageName!;
+          if ((ashaUser.villageId ?? '').isNotEmpty) _villageId = ashaUser.villageId!;
+        });
+      }
     });
+  }
+
+  void _fillSampleCitizenData() {
+    final rand = Random();
+    final sampleMale = [
+      'Manjunath Gowda',
+      'Ramesh Verma',
+      'Suresh Patil',
+      'Anand Kumar',
+      'Devendra Singh',
+      'Rajendra Prasad',
+    ];
+    final sampleFemale = [
+      'Lakshmi Devi',
+      'Sunita Bai',
+      'Kavita Sharma',
+      'Rekha Yadav',
+      'Geeta Kumari',
+      'Savita Devi',
+    ];
+
+    final isFemale = rand.nextBool();
+    final chosenName = isFemale
+        ? sampleFemale[rand.nextInt(sampleFemale.length)]
+        : sampleMale[rand.nextInt(sampleMale.length)];
+
+    final chosenAge = 22 + rand.nextInt(45);
+    final phoneNum = '98${10000000 + rand.nextInt(89999999)}';
+    final hhNum = 'HH-${100 + rand.nextInt(900)}';
+    final abha = '91-${1000 + rand.nextInt(9000)}-${1000 + rand.nextInt(9000)}-${1000 + rand.nextInt(9000)}';
+
+    setState(() {
+      _nameController.text = chosenName;
+      _ageController.text = '$chosenAge';
+      _phoneController.text = phoneNum;
+      if (_householdController.text.isEmpty) {
+        _householdController.text = hhNum;
+      }
+      _guardianController.text = isFemale ? 'Gowda / Father' : 'Father / Head of House';
+      _gender = isFemale ? 'Female' : 'Male';
+      _isPregnant = isFemale && chosenAge < 40 && rand.nextBool();
+      _abhaController.text = abha;
+      _passwordController.text = 'Citizen@123';
+      _notesController.text = 'Auto-filled sample profile for verification.';
+      _selectedConditions.clear();
+      if (rand.nextBool()) {
+        _selectedConditions.add('Hypertension');
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('⚡ Sample citizen details filled.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
   }
 
   @override
@@ -260,6 +329,17 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.white.withOpacity(0.18),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            ),
+            icon: const Icon(Icons.bolt_rounded, size: 16),
+            label: const Text('Sample Data', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            onPressed: _fillSampleCitizenData,
+          ),
+          const SizedBox(width: 4),
           IconButton(
             icon: const Icon(Icons.volume_up_outlined),
             tooltip: 'Audio guidance for registration',

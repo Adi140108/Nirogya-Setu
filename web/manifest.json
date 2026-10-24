@@ -1,11 +1,11 @@
 {
-    "name": "Aarogya Setu",
-    "short_name": "Aarogya Setu",
+    "name": "Nirogya Setu",
+    "short_name": "Nirogya Setu",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Nirogya Setu — Sehat, Ghar Ke Darwaze Tak",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

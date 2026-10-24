@@ -71,7 +71,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     ),
                     const Expanded(
                       child: Text(
-                        'Aarogya Setu',
+                        'Nirogya Setu',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,

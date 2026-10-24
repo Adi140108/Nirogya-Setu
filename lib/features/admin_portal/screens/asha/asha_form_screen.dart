@@ -77,6 +77,38 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
     super.dispose();
   }
 
+  void _fillSampleAshaData() {
+    final rand = Random();
+    final names = [
+      'Sunita Devi',
+      'Geeta Bai',
+      'Pooja Kumari',
+      'Kavita Gowda',
+      'Radha Sharma',
+      'Anandi Bai',
+    ];
+    final selectedName = names[rand.nextInt(names.length)];
+    final age = 28 + rand.nextInt(25);
+    final mobile = '9845${100000 + rand.nextInt(899999)}';
+
+    setState(() {
+      _name.text = selectedName;
+      _age.text = '$age';
+      _gender = 'Female';
+      _mobile.text = mobile;
+      _education = AdminRepository.ashaEducationLevels.contains('12th Standard (Higher Secondary)')
+          ? '12th Standard (Higher Secondary)'
+          : AdminRepository.ashaEducationLevels.first;
+      _state = 'Karnataka';
+      _district = 'Bengaluru Rural';
+      _village.text = 'Nelamangala';
+      _address.text = 'House No. 42, Ward 3, Near Primary School';
+      _joiningDate = DateTime.now().subtract(Duration(days: 30 + rand.nextInt(120)));
+    });
+
+    showAdminSnack(context, '⚡ Sample ASHA worker details filled.');
+  }
+
   Future<void> _pickJoiningDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -232,6 +264,19 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
         foregroundColor: AdminColors.ink,
         title: Text(_isEdit ? 'Edit ASHA Worker' : 'Add ASHA Worker',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        actions: [
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: AdminColors.asha,
+              backgroundColor: AdminColors.ashaSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            ),
+            icon: const Icon(Icons.bolt_rounded, size: 16),
+            label: const Text('Sample Data', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            onPressed: _fillSampleAshaData,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Form(
         key: _formKey,

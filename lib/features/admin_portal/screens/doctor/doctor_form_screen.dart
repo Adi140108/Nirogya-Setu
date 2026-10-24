@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -50,6 +51,42 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
     _hospitalId = e?.hospitalId;
     _name.addListener(_refreshPreview);
     _mobile.addListener(_refreshPreview);
+  }
+
+  void _fillSampleDoctorData(List<HospitalModel> hospitals) {
+    final rand = Random();
+    final names = [
+      'Dr. Ananya Rao, MD',
+      'Dr. Vikram Sethi, MS',
+      'Dr. Priya Nair, MD',
+      'Dr. Arvind Deshmukh, MD',
+      'Dr. Meenakshi Sundaram, DNB',
+    ];
+    final selectedName = names[rand.nextInt(names.length)];
+    final age = 32 + rand.nextInt(26);
+    final mobile = '9871${100000 + rand.nextInt(899999)}';
+    final regNo = 'MCI-${rand.nextInt(89999) + 10000}';
+
+    setState(() {
+      _name.text = selectedName;
+      _age.text = '$age';
+      _gender = selectedName.contains('Ananya') || selectedName.contains('Priya') || selectedName.contains('Meenakshi')
+          ? 'Female'
+          : 'Male';
+      _mobile.text = mobile;
+      _email.text = '${selectedName.replaceAll(RegExp(r'[^a-zA-Z]'), '').toLowerCase()}@nirogyasetu.gov.in';
+      _qualification.text = 'MBBS, MD (General Medicine)';
+      _registration.text = regNo;
+      _experience.text = '${4 + rand.nextInt(20)}';
+      _specialization = AdminRepository.doctorSpecializations.contains('General Medicine')
+          ? 'General Medicine'
+          : AdminRepository.doctorSpecializations.first;
+      if (hospitals.isNotEmpty && _hospitalId == null) {
+        _hospitalId = hospitals.first.id;
+      }
+    });
+
+    showAdminSnack(context, '⚡ Sample Doctor details filled.');
   }
 
   void _refreshPreview() {
@@ -137,6 +174,19 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
         foregroundColor: AdminColors.ink,
         title: Text(_isEdit ? 'Edit Doctor' : 'Add Doctor',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        actions: [
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: AdminColors.doctor,
+              backgroundColor: AdminColors.doctorSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            ),
+            icon: const Icon(Icons.bolt_rounded, size: 16),
+            label: const Text('Sample Data', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            onPressed: () => _fillSampleDoctorData(hospitals),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: hospitals.isEmpty
           ? const AdminEmptyState(

@@ -165,7 +165,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Aarogya Setu',
+                  'Nirogya Setu',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                 ),
                 Text(
@@ -186,7 +186,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           onPressed: () {
             VoiceService().speakPrompt(
               context,
-              title: 'Aarogya Setu Citizen Portal',
+              title: 'Nirogya Setu Citizen Portal',
               hindiText: 'Welcome ${activeMember.fullName}. Your official ABHA Health ID and OPD QR code are active.',
               englishText: 'Welcome ${activeMember.fullName}. Your official ABHA Health ID and OPD QR code are active.',
             );
@@ -687,7 +687,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'AAROGYA SETU • ABHA CARD',
+                          'NIROGYA SETU • ABHA CARD',
                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

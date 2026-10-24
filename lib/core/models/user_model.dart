@@ -47,6 +47,9 @@ class AppUser {
   final UserRole role;
   final String? phoneNumber;
   final String? villageId;
+  final String? villageName;
+  final String? district;
+  final String? state;
   final String? facilityId;
   final String? badgeNumber;
   final DateTime createdAt;
@@ -58,6 +61,9 @@ class AppUser {
     required this.role,
     this.phoneNumber,
     this.villageId,
+    this.villageName,
+    this.district,
+    this.state,
     this.facilityId,
     this.badgeNumber,
     required this.createdAt,
@@ -71,6 +77,9 @@ class AppUser {
       'role': role.value,
       'phoneNumber': phoneNumber,
       'villageId': villageId,
+      'villageName': villageName,
+      'district': district,
+      'state': state,
       'facilityId': facilityId,
       'badgeNumber': badgeNumber,
       'createdAt': createdAt.toIso8601String(),
@@ -85,6 +94,9 @@ class AppUser {
       role: UserRoleExtension.fromString(map['role']),
       phoneNumber: map['phoneNumber'],
       villageId: map['villageId'],
+      villageName: map['villageName'],
+      district: map['district'],
+      state: map['state'],
       facilityId: map['facilityId'],
       badgeNumber: map['badgeNumber'],
       createdAt: map['createdAt'] != null
@@ -100,6 +112,9 @@ class AppUser {
     UserRole? role,
     String? phoneNumber,
     String? villageId,
+    String? villageName,
+    String? district,
+    String? state,
     String? facilityId,
     String? badgeNumber,
     DateTime? createdAt,
@@ -111,6 +126,9 @@ class AppUser {
       role: role ?? this.role,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       villageId: villageId ?? this.villageId,
+      villageName: villageName ?? this.villageName,
+      district: district ?? this.district,
+      state: state ?? this.state,
       facilityId: facilityId ?? this.facilityId,
       badgeNumber: badgeNumber ?? this.badgeNumber,
       createdAt: createdAt ?? this.createdAt,

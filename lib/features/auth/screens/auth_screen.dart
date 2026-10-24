@@ -162,12 +162,12 @@ class _AuthScreenState extends State<AuthScreen> {
                                     ),
                                     children: [
                                       TextSpan(
-                                        text: 'Aarogya ',
-                                        style: TextStyle(color: Color(0xFF0F766E)),
+                                        text: 'Nirogya ',
+                                        style: TextStyle(color: Color(0xFF8B3A22)),
                                       ),
                                       TextSpan(
                                         text: 'Setu',
-                                        style: TextStyle(color: Color(0xFFEA580C)),
+                                        style: TextStyle(color: Color(0xFF2E5A36)),
                                       ),
                                     ],
                                   ),

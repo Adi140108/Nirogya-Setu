@@ -49,7 +49,7 @@ class AppLocale extends ChangeNotifier {
 
 const Map<String, Map<String, String>> _strings = {
   'en': {
-    'tagline': 'Healthy Communities. Brighter Tomorrow.',
+    'tagline': 'Sehat, Ghar Ke Darwaze Tak',
     'loginToContinue': 'Log In to Continue',
     'selectRole': 'Select Your Role',
     'chooseRole': 'Choose your role to log in',
@@ -65,7 +65,7 @@ const Map<String, Map<String, String>> _strings = {
     'ok': 'OK',
     'cancel': 'Cancel',
     'signOut': 'Sign Out',
-    'signOutTitle': 'Sign out from Aarogya Setu?',
+    'signOutTitle': 'Sign out from Nirogya Setu?',
     'signOutBody': 'You will need to log in again to access your portal.',
     'portalLogin': 'PORTAL LOGIN',
     'login': 'Log In',
@@ -90,7 +90,7 @@ const Map<String, Map<String, String>> _strings = {
     'records': 'Records',
     'analytics': 'Analytics',
     'clinicalConsultation': 'Clinical Consultation',
-    'citizenPortal': 'Aarogya Setu Citizen Portal',
+    'citizenPortal': 'Nirogya Setu Citizen Portal',
     'healthHub': 'Health Hub',
     'healthCard': 'Health Card',
     'hospitalDesk': 'Hospital Desk',
@@ -153,7 +153,7 @@ const Map<String, Map<String, String>> _strings = {
     'sharedNotice': '✓ Health Profile & OPD Token shared with your village ASHA worker.',
   },
   'hi': {
-    'tagline': 'स्वस्थ समुदाय। उज्ज्वल कल।',
+    'tagline': 'सेहत, घर के दरवाजे तक',
     'loginToContinue': ' जारी रखने के लिए लॉगिन करें',
     'selectRole': 'अपनी भूमिका चुनें',
     'chooseRole': 'लॉगिन के लिए अपनी भूमिका चुनें',
@@ -169,7 +169,7 @@ const Map<String, Map<String, String>> _strings = {
     'ok': 'ठीक है',
     'cancel': 'रद्द करें',
     'signOut': 'साइन आउट',
-    'signOutTitle': 'आरोग्य सेतु से साइन आउट करें?',
+    'signOutTitle': 'निरोग्य सेतु से साइन आउट करें?',
     'signOutBody': 'अपने पोर्टल में प्रवेश के लिए आपको फिर लॉगिन करना होगा।',
     'portalLogin': 'पोर्टल लॉगिन',
     'login': 'लॉग इन',
@@ -194,7 +194,7 @@ const Map<String, Map<String, String>> _strings = {
     'records': 'रिकॉर्ड्स',
     'analytics': 'विश्लेषण',
     'clinicalConsultation': 'नैदानिक परामर्श',
-    'citizenPortal': 'आरोग्य सेतु नागरिक पोर्टल',
+    'citizenPortal': 'निरोग्य सेतु नागरिक पोर्टल',
     'healthHub': 'स्वास्थ्य केंद्र',
     'healthCard': 'हेल्थ कार्ड',
     'hospitalDesk': 'अस्पताल डेस्क',

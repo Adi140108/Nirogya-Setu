@@ -131,7 +131,7 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   /// 4. Requirements & Specialist needed when escalation is required.
   /// Any query outside these criteria must be strictly declined.
   static const String _systemPrompt =
-      'You are the Aarogya Setu ASHA Clinical AI Assistant powered by Qwen on Groq cloud inference. '
+      'You are the Nirogya Setu ASHA Clinical AI Assistant powered by Qwen on Groq cloud inference. '
       'Your sole responsibility is to assist accredited ASHA healthcare workers in assessing patients in rural communities.\n\n'
       'STRICT BOUNDARIES: You must answer ONLY within the following 4 clinical criteria and NOTHING ELSE:\n'
       '1. PRELIMINARY DIAGNOSIS ASSISTANCE: Analyze symptoms and vitals (BP, SpO2, pulse, temp, blood sugar). List likely health conditions and flag critical danger signs based on ICMR / National Health Mission protocols.\n'
@@ -527,7 +527,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
 - Red-flag with normal SpO2: Stridor, chest in-drawing, or severe dyspnea.""";
     }
 
-    return """• CLINICAL TRIAGE PROTOCOL (Aarogya Setu):
+    return """• CLINICAL TRIAGE PROTOCOL (Nirogya Setu):
 1. Measure complete vitals (BP, SpO2, Pulse, Blood Sugar, Temperature).
 2. Classify:
    - GREEN: Routine wellness, revisit in 6 months.
@@ -685,7 +685,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Aarogya Setu',
+              'Nirogya Setu',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
             Text(

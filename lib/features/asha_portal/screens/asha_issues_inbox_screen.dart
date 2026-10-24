@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/issue_model.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 
 class AshaIssuesInboxScreen extends StatefulWidget {
@@ -96,8 +97,9 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
 
   @override
   Widget build(BuildContext context) {
+    final ashaUser = context.watch<AuthService>().currentUser;
     final repo = context.watch<HealthRepository>();
-    final allIssues = List<IssueModel>.from(repo.issues);
+    final allIssues = List<IssueModel>.from(repo.getIssuesForAsha(ashaUser));
 
     // Sort according to timing (newest first)
     allIssues.sort((a, b) => b.createdAt.compareTo(a.createdAt));

@@ -8,6 +8,7 @@ import '../models/screening_model.dart';
 import '../models/referral_model.dart';
 import '../models/issue_model.dart';
 import '../models/sync_status.dart';
+import '../models/user_model.dart';
 import '../constants/screening_rules.dart';
 import 'storage_service.dart';
 import 'notification_service.dart';
@@ -526,14 +527,80 @@ class HealthRepository extends ChangeNotifier {
     return null;
   }
 
-  /// Returns a map of householdId -> List<PatientModel> of members
-  Map<String, List<PatientModel>> getHouseholds() {
+  /// Returns only the patients belonging to the logged-in ASHA worker's jurisdiction.
+  /// If [ashaUser] is null or not an ASHA role, returns all patients.
+  List<PatientModel> getPatientsForAsha(AppUser? ashaUser) {
+    if (ashaUser == null || ashaUser.role != UserRole.asha) {
+      return List.unmodifiable(_patients);
+    }
+
+    final ashaUid = ashaUser.uid.trim();
+    final ashaVillageName = (ashaUser.villageName ?? '').trim().toLowerCase();
+    final ashaVillageId = (ashaUser.villageId ?? '').trim().toLowerCase();
+
+    final filtered = _patients.where((p) {
+      // 1. Direct registration match
+      if (p.ashaId.trim() == ashaUid) return true;
+
+      // 2. Village name match
+      if (ashaVillageName.isNotEmpty &&
+          p.villageName.trim().toLowerCase() == ashaVillageName) {
+        return true;
+      }
+
+      // 3. Village ID match
+      if (ashaVillageId.isNotEmpty &&
+          p.villageId.trim().toLowerCase() == ashaVillageId) {
+        return true;
+      }
+
+      return false;
+    }).toList();
+
+    return List.unmodifiable(filtered);
+  }
+
+  /// Returns a map of householdId -> List<PatientModel> of members,
+  /// optionally strictly scoped to an ASHA worker's jurisdiction.
+  Map<String, List<PatientModel>> getHouseholds({AppUser? forAsha}) {
+    final patientPool = forAsha != null && forAsha.role == UserRole.asha
+        ? getPatientsForAsha(forAsha)
+        : _patients;
+
     final Map<String, List<PatientModel>> map = {};
-    for (final p in _patients) {
-      final hId = (p.householdId != null && p.householdId!.trim().isNotEmpty) ? p.householdId! : 'HH-Unassigned';
+    for (final p in patientPool) {
+      final hId = (p.householdId != null && p.householdId!.trim().isNotEmpty)
+          ? p.householdId!
+          : 'HH-Unassigned';
       map.putIfAbsent(hId, () => []).add(p);
     }
     return map;
+  }
+
+  /// Returns only issues relevant to the logged-in ASHA worker's jurisdiction.
+  List<IssueModel> getIssuesForAsha(AppUser? ashaUser) {
+    if (ashaUser == null || ashaUser.role != UserRole.asha) {
+      return List.unmodifiable(_issues);
+    }
+
+    final ashaUid = ashaUser.uid.trim();
+    final ashaVillageName = (ashaUser.villageName ?? '').trim().toLowerCase();
+    final ashaVillageId = (ashaUser.villageId ?? '').trim().toLowerCase();
+
+    final filtered = _issues.where((i) {
+      if (i.ashaId != null && i.ashaId!.trim() == ashaUid) return true;
+      if (ashaVillageName.isNotEmpty &&
+          i.villageName.trim().toLowerCase() == ashaVillageName) {
+        return true;
+      }
+      if (ashaVillageId.isNotEmpty &&
+          i.villageId.trim().toLowerCase() == ashaVillageId) {
+        return true;
+      }
+      return false;
+    }).toList();
+
+    return List.unmodifiable(filtered);
   }
 
   /// Returns all available villages, matching the given state & district if specified.

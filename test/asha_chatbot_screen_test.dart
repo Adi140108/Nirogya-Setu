@@ -18,7 +18,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify Screen Title
-      expect(find.text('Aarogya Setu'), findsOneWidget);
+      expect(find.text('Nirogya Setu'), findsOneWidget);
       expect(find.text('ASHA Clinical Assistant'), findsOneWidget);
 
       // Verify the 4 clinical criteria in initial welcome message

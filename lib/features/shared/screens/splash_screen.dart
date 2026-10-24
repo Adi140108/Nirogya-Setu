@@ -156,12 +156,12 @@ class _SplashScreenState extends State<SplashScreen>
                           ),
                           children: [
                             TextSpan(
-                              text: 'Aarogya',
-                              style: TextStyle(color: Color(0xFF00695C)), // Teal
+                              text: 'Nirogya ',
+                              style: TextStyle(color: Color(0xFF8B3A22)), // Warm Warli Terracotta
                             ),
                             TextSpan(
                               text: 'Setu',
-                              style: TextStyle(color: Color(0xFFE65100)), // Warm Orange
+                              style: TextStyle(color: Color(0xFF2E5A36)), // Neem Leaf Green
                             ),
                           ],
                         ),
@@ -170,20 +170,20 @@ class _SplashScreenState extends State<SplashScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
+                          color: const Color(0xFFFBE9E7),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.eco_rounded, size: 14, color: Color(0xFF2E7D32)),
+                            Icon(Icons.eco_rounded, size: 14, color: Color(0xFF2E5A36)),
                             SizedBox(width: 6),
                             Text(
-                              'Healthy Communities. Brighter Tomorrow.',
+                              'Sehat, Ghar Ke Darwaze Tak',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF1B5E20),
+                                color: Color(0xFF8B3A22),
                                 letterSpacing: 0.2,
                               ),
                             ),

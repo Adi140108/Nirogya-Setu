@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -53,6 +54,41 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
     _hasMaternity = e?.hasMaternityWard ?? false;
   }
 
+  void _fillSampleHospitalData() {
+    final rand = Random();
+    final names = [
+      'Nelamangala Taluk General Hospital',
+      'Community Health Centre (CHC) Anandpur',
+      'Varanasi Rural Sub-District Hospital',
+      'Primary Health Centre (PHC) Khed',
+      'District Civil Hospital Shivpur',
+    ];
+    final selectedName = names[rand.nextInt(names.length)];
+    final total = 60 + rand.nextInt(140);
+    final avail = 12 + rand.nextInt(35);
+    final icu = 4 + rand.nextInt(12);
+
+    setState(() {
+      _name.text = selectedName;
+      _type = AdminRepository.hospitalTypes.contains('Sub-District Hospital')
+          ? 'Sub-District Hospital'
+          : AdminRepository.hospitalTypes.first;
+      _address.text = 'Near Main Bus Stand, Station Road';
+      _villageTown.text = 'Nelamangala';
+      _district.text = 'Bengaluru Rural';
+      _state.text = 'Karnataka';
+      _pincode.text = '562123';
+      _contact.text = '9845${100000 + rand.nextInt(899999)}';
+      _totalBeds.text = '$total';
+      _availableBeds.text = '$avail';
+      _icuBeds.text = '$icu';
+      _hasEmergency = true;
+      _hasMaternity = true;
+    });
+
+    showAdminSnack(context, '⚡ Sample hospital details filled.');
+  }
+
   @override
   void dispose() {
     for (final c in [
@@ -101,7 +137,7 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
       } else {
         await repo.addHospital(
           name: _name.text.trim(),
-          type: _type!,
+          type: _type ?? AdminRepository.hospitalTypes.first,
           address: _address.text.trim(),
           villageTown: _villageTown.text.trim(),
           district: _district.text.trim(),
@@ -148,6 +184,19 @@ class _HospitalFormScreenState extends State<HospitalFormScreen> {
         foregroundColor: AdminColors.ink,
         title: Text(_isEdit ? 'Edit Hospital' : 'Add Hospital',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        actions: [
+          TextButton.icon(
+            style: TextButton.styleFrom(
+              foregroundColor: AdminColors.hospital,
+              backgroundColor: AdminColors.hospitalSurface,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            ),
+            icon: const Icon(Icons.bolt_rounded, size: 16),
+            label: const Text('Sample Data', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            onPressed: _fillSampleHospitalData,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Form(
         key: _formKey,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/referral_model.dart';
+import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../shared/widgets/network_banner.dart';
@@ -90,11 +91,15 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     final repo = context.watch<HealthRepository>();
     final ashaUser = authService.currentUser;
 
-    final allPatients = repo.patients;
-    final allScreenings = repo.screenings;
-    final allReferrals = repo.referrals;
+    final myPatients = repo.getPatientsForAsha(ashaUser);
+    final myPatientIds = myPatients.map((p) => p.id).toSet();
 
-    final filteredPatients = allPatients.where((p) {
+    final myScreenings = repo.screenings.where((s) => myPatientIds.contains(s.patientId)).toList();
+    final myReferrals = repo.referrals.where((r) => myPatientIds.contains(r.patientId)).toList();
+    final myIssues = repo.getIssuesForAsha(ashaUser);
+    final pendingIssuesCount = myIssues.where((i) => !i.isResolved).length;
+
+    final filteredPatients = myPatients.where((p) {
       final matchesSearch = p.fullName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           p.contactNumber.contains(_searchQuery) ||
           p.villageName.toLowerCase().contains(_searchQuery.toLowerCase());
@@ -102,7 +107,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
       return matchesSearch && matchesVillage;
     }).toList();
 
-    final pendingFollowUpsCount = allReferrals.where((r) => r.status != ReferralStatus.closed).length;
+    final pendingFollowUpsCount = myReferrals.where((r) => r.status != ReferralStatus.closed).length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -111,11 +116,11 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Aarogya Setu',
+              'Nirogya Setu',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             Text(
-              '${ashaUser?.displayName ?? "ASHA Field Worker"} • Badge: ${ashaUser?.badgeNumber ?? "ASHA-88"}',
+              '${ashaUser?.displayName ?? "ASHA Field Worker"} • ${(ashaUser?.villageName ?? "").isNotEmpty ? "${ashaUser!.villageName} • " : ""}Badge: ${ashaUser?.badgeNumber ?? "ASHA"}',
               style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
             ),
           ],
@@ -138,7 +143,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               clipBehavior: Clip.none,
               children: [
                 const Icon(Icons.inbox_rounded, size: 26),
-                if (repo.pendingIssuesCount > 0)
+                if (pendingIssuesCount > 0)
                   Positioned(
                     right: -4,
                     top: -4,
@@ -153,7 +158,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                         minHeight: 18,
                       ),
                       child: Text(
-                        '${repo.pendingIssuesCount}',
+                        '$pendingIssuesCount',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
@@ -199,9 +204,9 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                 children: [
                   // KPI Overview Stats
                   _buildSummaryMetrics(
-                    citizenCount: allPatients.length,
-                    screeningCount: allScreenings.length,
-                    activeReferralCount: allReferrals.length,
+                    citizenCount: myPatients.length,
+                    screeningCount: myScreenings.length,
+                    activeReferralCount: myReferrals.length,
                     pendingFollowUps: pendingFollowUpsCount,
                   ),
                   const SizedBox(height: 18),
@@ -211,11 +216,11 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                   const SizedBox(height: 20),
 
                   // Assigned Citizens Header with Search & Filter
-                  _buildCitizensHeader(allPatients),
+                  _buildCitizensHeader(myPatients),
                   const SizedBox(height: 10),
 
                   // Citizens List
-                  _buildCitizensList(filteredPatients),
+                  _buildCitizensList(filteredPatients, ashaUser),
                 ],
               ),
             ),
@@ -382,6 +387,9 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
 
   Widget _buildCitizensHeader(List<dynamic> allPatients) {
     final villages = {'All', ...allPatients.map((p) => p.villageName as String)}.toList();
+    if (!villages.contains(_selectedVillageFilter)) {
+      _selectedVillageFilter = 'All';
+    }
 
     return Column(
       children: [
@@ -423,20 +431,57 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     );
   }
 
-  Widget _buildCitizensList(List<dynamic> patients) {
+  Widget _buildCitizensList(List<dynamic> patients, AppUser? ashaUser) {
     if (patients.isEmpty) {
+      final villageTitle = (ashaUser?.villageName ?? '').isNotEmpty
+          ? 'in ${ashaUser!.villageName}'
+          : 'in your assigned village';
+
       return Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
         ),
-        child: Center(
-          child: Text(
-            context.watch<AppLocale>().t('noCitizensFound'),
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: AppColors.primarySurface,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.people_outline_rounded, size: 36, color: AppColors.primary),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No citizens registered $villageTitle yet',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppColors.textPrimary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Onboard households and start door-to-door community health screenings.',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+              label: const Text('Register First Citizen'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const RegisterVillagerScreen()),
+              ),
+            ),
+          ],
         ),
       );
     }

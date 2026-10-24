@@ -41,7 +41,7 @@ class AppBrandLogo extends StatelessWidget {
           ),
           const SizedBox(width: 14),
 
-          // Right: "Aarogya Setu" & Bottom Tagline
+          // Right: "Nirogya Setu" & Bottom Tagline
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,12 +58,12 @@ class AppBrandLogo extends StatelessWidget {
                     ),
                     children: const [
                       TextSpan(
-                        text: 'Aarogya',
-                        style: TextStyle(color: Color(0xFF00695C)), // Deep Forest Teal
+                        text: 'Nirogya ',
+                        style: TextStyle(color: Color(0xFF8B3A22)), // Warm Warli Terracotta
                       ),
                       TextSpan(
                         text: 'Setu',
-                        style: TextStyle(color: Color(0xFFE65100)), // Warm Vibrant Orange
+                        style: TextStyle(color: Color(0xFF2E5A36)), // Neem Leaf Green
                       ),
                     ],
                   ),
@@ -72,11 +72,11 @@ class AppBrandLogo extends StatelessWidget {
 
                 // Bottom Tagline
                 const Text(
-                  'Healthy Communities. Brighter Tomorrow.',
+                  'Sehat, Ghar Ke Darwaze Tak',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1B5E20), // Forest Green
+                    color: Color(0xFF8B3A22), // Terracotta
                     letterSpacing: 0.1,
                   ),
                 ),
@@ -111,24 +111,24 @@ class AppBrandLogo extends StatelessWidget {
             ),
             children: [
               TextSpan(
-                text: 'Aarogya',
-                style: TextStyle(color: Color(0xFF00695C)),
+                text: 'Nirogya ',
+                style: TextStyle(color: Color(0xFF8B3A22)),
               ),
               TextSpan(
                 text: 'Setu',
-                style: TextStyle(color: Color(0xFFE65100)),
+                style: TextStyle(color: Color(0xFF2E5A36)),
               ),
             ],
           ),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Healthy Communities. Brighter Tomorrow.',
+          'Sehat, Ghar Ke Darwaze Tak',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2E7D32),
+            color: Color(0xFF8B3A22),
             letterSpacing: 0.2,
           ),
         ),

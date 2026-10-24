@@ -214,7 +214,7 @@ class NotificationService {
         _markDelivered(change.doc.id);
         if (created == null || created.isBefore(cutoff)) continue;
         showNotification(
-          title: data['title']?.toString() ?? 'Aarogya Setu',
+          title: data['title']?.toString() ?? 'Nirogya Setu',
           body: data['body']?.toString() ?? '',
           category: data['type']?.toString(),
         );
