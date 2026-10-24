@@ -9,7 +9,7 @@ import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
-import '../../awareness_hub/screens/awareness_hub_screen.dart';
+import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import 'doctor_review_screen.dart';
 import '../../../core/services/app_locale.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
@@ -47,7 +47,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           _buildTriageQueueTab(context, authService, doctor, referrals, redCount, yellowCount, pendingCount, consultedCount),
           _buildConsultedTab(context, authService, doctor, referrals),
           _buildAnalyticsTab(context, authService, doctor, repo),
-          const AwarenessHubScreen(isPublicAccess: false),
+          const CitizenHealthHubScreen(),
         ],
       ),
       bottomNavigationBar: Container(

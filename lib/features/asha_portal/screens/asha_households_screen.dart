@@ -6,7 +6,7 @@ import '../../../core/services/health_repository.dart';
 import '../../../core/services/app_locale.dart';
 import 'register_villager_screen.dart';
 import 'patient_detail_screen.dart';
-import 'village_household_map_screen.dart';
+import '../widgets/issue_map_preview.dart';
 
 class AshaHouseholdsScreen extends StatefulWidget {
   final bool isEmbedded;
@@ -53,95 +53,8 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
             ),
       body: Column(
         children: [
-          // Top Box: Written as "Map"
-          Container(
-            margin: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (ctx) => const VillageHouseholdMapScreen(),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primaryGreen.withOpacity(0.4)),
-                      ),
-                      child: const Icon(Icons.map_rounded, color: Color(0xFF34D399), size: 26),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text(
-                                'Map',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryGreen,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'Village Geo-View',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            'Tap to view geographic map of ${householdsMap.length} households in Rampura',
-                            style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          // Live map preview of open issues (tap for full-screen map)
+          const AshaIssueMapPreview(),
 
           // Search & Filter Header
           Container(

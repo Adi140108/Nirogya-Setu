@@ -5,6 +5,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/admin_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
 import '../../shared/widgets/network_banner.dart';
@@ -282,10 +284,77 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
                   // 4. Raise Issue Card (Voice / Text directly to ASHA)
                   _buildRaiseIssueToAshaCard(context, activeMember),
+                  const SizedBox(height: 14),
+
+                  // 5. Call the citizen's own ASHA worker
+                  _buildCallAshaCard(context, activeMember),
                   const SizedBox(height: 80), // Padding for FAB
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCallAshaCard(BuildContext context, PatientModel activeMember) {
+    final asha = context.watch<AdminRepository>().ashaById(activeMember.ashaId);
+    final name = asha?.fullName ?? 'Your ASHA worker';
+    final mobile = asha?.mobileNumber ?? '';
+
+    Future<void> call() async {
+      final ok = await launchUrl(Uri(scheme: 'tel', path: '+91${AdminRepository.normalizeMobile(mobile)}'));
+      if (!ok && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open the phone dialer on this device.')),
+        );
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
+            child: const Icon(Icons.health_and_safety_rounded, color: Color(0xFF064E3B), size: 26),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name,
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                const SizedBox(height: 2),
+                Text(
+                  mobile.isEmpty
+                      ? 'ASHA worker contact not available yet'
+                      : 'Your ASHA worker • ${AdminRepository.formatMobile(mobile)}',
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: mobile.isEmpty ? null : call,
+            icon: const Icon(Icons.call_rounded, size: 18),
+            label: const Text('Call ASHA', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

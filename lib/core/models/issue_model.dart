@@ -19,6 +19,19 @@ class IssueModel {
   final DateTime createdAt;
   final SyncStatus syncStatus;
 
+  /// ASHA worker responsible for this citizen (used to route notifications and map pins).
+  final String? ashaId;
+
+  /// Where the citizen was when the issue was raised (null if location was unavailable).
+  final double? latitude;
+  final double? longitude;
+
+  /// Last change time; used to merge copies of the issue across devices.
+  final DateTime? updatedAt;
+
+  bool get hasLocation => latitude != null && longitude != null;
+  DateTime get lastChangedAt => updatedAt ?? resolvedAt ?? createdAt;
+
   const IssueModel({
     required this.id,
     required this.citizenId,
@@ -37,6 +50,10 @@ class IssueModel {
     this.resolvedAt,
     required this.createdAt,
     this.syncStatus = SyncStatus.locallySaved,
+    this.ashaId,
+    this.latitude,
+    this.longitude,
+    this.updatedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +75,10 @@ class IssueModel {
       'resolvedAt': resolvedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
       'syncStatus': syncStatus.value,
+      'ashaId': ashaId,
+      'latitude': latitude,
+      'longitude': longitude,
+      'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
@@ -82,6 +103,10 @@ class IssueModel {
           ? DateTime.tryParse(map['createdAt']) ?? DateTime.now()
           : DateTime.now(),
       syncStatus: SyncStatusExtension.fromString(map['syncStatus']),
+      ashaId: map['ashaId'] as String?,
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      updatedAt: map['updatedAt'] is String ? DateTime.tryParse(map['updatedAt']) : null,
     );
   }
 
@@ -103,6 +128,11 @@ class IssueModel {
     DateTime? resolvedAt,
     DateTime? createdAt,
     SyncStatus? syncStatus,
+    String? ashaId,
+    double? latitude,
+    double? longitude,
+    DateTime? updatedAt,
+    bool clearResolvedAt = false,
   }) {
     return IssueModel(
       id: id ?? this.id,
@@ -119,9 +149,13 @@ class IssueModel {
       voiceDurationSeconds: voiceDurationSeconds ?? this.voiceDurationSeconds,
       voiceTranscription: voiceTranscription ?? this.voiceTranscription,
       isResolved: isResolved ?? this.isResolved,
-      resolvedAt: resolvedAt ?? this.resolvedAt,
+      resolvedAt: clearResolvedAt ? null : (resolvedAt ?? this.resolvedAt),
       createdAt: createdAt ?? this.createdAt,
       syncStatus: syncStatus ?? this.syncStatus,
+      ashaId: ashaId ?? this.ashaId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import '../models/patient_model.dart';
 import '../models/screening_model.dart';
 import '../models/referral_model.dart';
@@ -68,6 +69,61 @@ class HealthRepository extends ChangeNotifier {
       }
     }
     notifyListeners();
+    _listenForCloudIssues();
+  }
+
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _issuesSubscription;
+
+  /// Keeps citizen issues in sync across devices: an issue raised on a citizen's
+  /// phone appears on the ASHA worker's phone, and a resolution flows back.
+  void _listenForCloudIssues() {
+    if (Firebase.apps.isEmpty) return;
+    _issuesSubscription = FirebaseFirestore.instance.collection('issues').snapshots().listen((snapshot) async {
+      var changed = false;
+      for (final doc in snapshot.docs) {
+        final data = Map<String, dynamic>.from(doc.data());
+        final remote = IssueModel.fromMap(data, id: doc.id).copyWith(syncStatus: SyncStatus.synced);
+        final index = _issues.indexWhere((i) => i.id == remote.id);
+        if (index == -1) {
+          _issues.add(remote);
+          changed = true;
+        } else if (remote.lastChangedAt.isAfter(_issues[index].lastChangedAt)) {
+          _issues[index] = remote;
+          changed = true;
+        }
+      }
+      if (changed) {
+        _issues.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        await _storageService.saveIssues(_issues.map((e) => e.toMap()).toList());
+        notifyListeners();
+      }
+    }, onError: (Object e) => debugPrint('Issue live sync paused: $e'));
+  }
+
+  Future<void> _pushIssue(IssueModel issue) async {
+    if (Firebase.apps.isEmpty) return;
+    try {
+      final map = issue.copyWith(syncStatus: SyncStatus.synced).toMap();
+      await FirebaseFirestore.instance
+          .collection('issues')
+          .doc(issue.id)
+          .set(map, SetOptions(merge: true))
+          .timeout(const Duration(seconds: 10));
+      final index = _issues.indexWhere((i) => i.id == issue.id);
+      if (index != -1) {
+        _issues[index] = _issues[index].copyWith(syncStatus: SyncStatus.synced);
+        await _storageService.saveIssues(_issues.map((e) => e.toMap()).toList());
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Issue upload queued (offline or permission pending): $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _issuesSubscription?.cancel();
+    super.dispose();
   }
 
   void _seedDemoIssues() {
@@ -744,7 +800,11 @@ class HealthRepository extends ChangeNotifier {
     bool hasVoiceNote = false,
     int voiceDurationSeconds = 0,
     String? voiceTranscription,
+    String? ashaId,
+    double? latitude,
+    double? longitude,
   }) async {
+    final now = DateTime.now();
     final issue = IssueModel(
       id: 'iss-${_uuid.v4().substring(0, 8)}',
       citizenId: citizenId,
@@ -760,37 +820,54 @@ class HealthRepository extends ChangeNotifier {
       voiceDurationSeconds: voiceDurationSeconds,
       voiceTranscription: voiceTranscription,
       isResolved: false,
-      createdAt: DateTime.now(),
+      createdAt: now,
       syncStatus: SyncStatus.locallySaved,
+      ashaId: ashaId ?? getPatientById(citizenId)?.ashaId,
+      latitude: latitude,
+      longitude: longitude,
+      updatedAt: now,
     );
 
     _issues.insert(0, issue);
     await _persistAll();
-
-    // Trigger in-app banner and web push notification
-    final isUrgent = urgency == 'Urgent';
-    NotificationService().showNotification(
-      title: '${isUrgent ? '🚨 URGENT: ' : '📬 New Issue: '}$citizenName',
-      body: hasVoiceNote
-          ? '🎙️ Voice Note (${voiceDurationSeconds}s): $description'
-          : description,
-      category: category,
-    );
-
     notifyListeners();
+
+    // Deliver to the responsible ASHA worker's device(s).
+    final isUrgent = urgency == 'Urgent';
+    unawaited(_pushIssue(issue));
+    if (issue.ashaId != null) {
+      unawaited(NotificationService().sendToUsers(
+        recipientIds: [issue.ashaId!],
+        title: '${isUrgent ? '🚨 URGENT: ' : '📬 New issue: '}$citizenName',
+        body: '$category • ${hasVoiceNote ? '🎙️ Voice note (${voiceDurationSeconds}s): ' : ''}$description',
+        type: 'issue_raised',
+        issueId: issue.id,
+      ));
+    }
     return issue;
   }
 
   Future<void> resolveIssue(String issueId) async {
     final index = _issues.indexWhere((i) => i.id == issueId);
     if (index != -1) {
+      final now = DateTime.now();
       _issues[index] = _issues[index].copyWith(
         isResolved: true,
-        resolvedAt: DateTime.now(),
+        resolvedAt: now,
+        updatedAt: now,
         syncStatus: SyncStatus.locallySaved,
       );
       await _persistAll();
       notifyListeners();
+      final issue = _issues[index];
+      unawaited(_pushIssue(issue));
+      unawaited(NotificationService().sendToUsers(
+        recipientIds: [issue.citizenId],
+        title: '✅ Your issue has been attended',
+        body: 'Your ASHA worker marked "${issue.category}" as resolved.',
+        type: 'issue_resolved',
+        issueId: issue.id,
+      ));
     }
   }
 
@@ -799,11 +876,13 @@ class HealthRepository extends ChangeNotifier {
     if (index != -1) {
       _issues[index] = _issues[index].copyWith(
         isResolved: false,
-        resolvedAt: null,
+        clearResolvedAt: true,
+        updatedAt: DateTime.now(),
         syncStatus: SyncStatus.locallySaved,
       );
       await _persistAll();
       notifyListeners();
+      unawaited(_pushIssue(_issues[index]));
     }
   }
 

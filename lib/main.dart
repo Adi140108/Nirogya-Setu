@@ -19,6 +19,8 @@ import 'features/doctor_portal/screens/doctor_dashboard_screen.dart';
 import 'features/patient_portal/screens/patient_dashboard_screen.dart';
 import 'features/shared/screens/welcome_screen.dart';
 import 'features/shared/widgets/notification_banner_overlay.dart';
+import 'features/shared/widgets/notification_session_binder.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +33,9 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase initialization notice (running offline/local mode): $e');
   }
+
+  // Notification channel for the Android notification panel
+  await NotificationService().init();
 
   // 2. Initialize persistent local storage
   final storageService = StorageService();
@@ -109,7 +114,9 @@ class AarogyaSetuApp extends StatelessWidget {
         ),
       ),
       builder: (context, child) {
-        return NotificationBannerOverlay(child: child ?? const SizedBox.shrink());
+        return NotificationSessionBinder(
+          child: NotificationBannerOverlay(child: child ?? const SizedBox.shrink()),
+        );
       },
       home: const RootGateScreen(),
     );

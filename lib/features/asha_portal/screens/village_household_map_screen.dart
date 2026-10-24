@@ -1,10 +1,20 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/models/patient_model.dart';
+import '../../../core/services/admin_repository.dart';
+import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
-import 'patient_detail_screen.dart';
+import '../../../core/services/location_service.dart';
+import '../widgets/issue_map.dart';
 
+/// Full-screen live map (OpenStreetMap) of open issues raised by the citizens
+/// this ASHA worker looks after. Pins are coloured by time since the issue was
+/// raised: green < 36 h, yellow 36–72 h, red after 72 h until attended.
 class VillageHouseholdMapScreen extends StatefulWidget {
   const VillageHouseholdMapScreen({super.key});
 
@@ -13,471 +23,311 @@ class VillageHouseholdMapScreen extends StatefulWidget {
 }
 
 class _VillageHouseholdMapScreenState extends State<VillageHouseholdMapScreen> {
-  String _selectedFilter = 'All';
-  String? _selectedHouseholdId;
+  final MapController _mapController = MapController();
+  LatLng? _myLocation;
+  LatLng? _districtCenter;
+  String? _requestedDistrictKey;
+  Timer? _ticker;
+  bool _fittedOnce = false;
 
-  // Mock geo-coordinates and metadata for village households
-  final List<Map<String, dynamic>> _householdLocations = [
-    {
-      'id': 'HH-042',
-      'x': 0.28,
-      'y': 0.35,
-      'sector': 'North Rampura (Near Canal)',
-      'priority': 'Normal',
-      'hasPendingIssue': true,
-    },
-    {
-      'id': 'HH-088',
-      'x': 0.65,
-      'y': 0.25,
-      'sector': 'East Rampura (Panchayat Road)',
-      'priority': 'High',
-      'hasPendingIssue': true,
-    },
-    {
-      'id': 'HH-104',
-      'x': 0.45,
-      'y': 0.62,
-      'sector': 'Central Village (Market Square)',
-      'priority': 'Moderate',
-      'hasPendingIssue': false,
-    },
-    {
-      'id': 'HH-112',
-      'x': 0.78,
-      'y': 0.70,
-      'sector': 'South Rampura (School Road)',
-      'priority': 'Normal',
-      'hasPendingIssue': false,
-    },
-    {
-      'id': 'HH-019',
-      'x': 0.20,
-      'y': 0.75,
-      'sector': 'West Rampura (Well Area)',
-      'priority': 'Normal',
-      'hasPendingIssue': false,
-    },
-  ];
+  /// With no open cases, open on the ASHA worker's district.
+  void _ensureDistrictCenter(({String district, String state})? district, bool hasPins) {
+    if (district == null) return;
+    final key = '${district.district}|${district.state}';
+    if (_requestedDistrictKey == key) return;
+    _requestedDistrictKey = key;
+    _districtCenter = DistrictLocator.cached(district.district, district.state);
+    if (_districtCenter != null) return;
+    DistrictLocator.locate(district.district, district.state).then((point) {
+      if (!mounted || point == null) return;
+      setState(() => _districtCenter = point);
+      if (!hasPins) _mapController.move(point, 10);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Re-colour pins as time passes.
+    _ticker = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+    _loadMyLocation(moveCamera: false);
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadMyLocation({required bool moveCamera}) async {
+    final pos = await LocationService.currentPosition();
+    if (!mounted) return;
+    if (pos == null) {
+      if (moveCamera) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location unavailable. Turn on location and allow access.')),
+        );
+      }
+      return;
+    }
+    setState(() => _myLocation = LatLng(pos.latitude, pos.longitude));
+    if (moveCamera) _mapController.move(_myLocation!, 16);
+  }
+
+  void _fitAll(List<IssuePin> pins) {
+    if (pins.isEmpty) return;
+    if (pins.length == 1) {
+      _mapController.move(pins.first.point, 16);
+      return;
+    }
+    _mapController.fitCamera(CameraFit.coordinates(
+      coordinates: pins.map((p) => p.point).toList(),
+      padding: const EdgeInsets.all(60),
+      maxZoom: 16,
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<HealthRepository>();
-    final householdsMap = repo.getHouseholds();
+    final admin = context.watch<AdminRepository>();
+    final user = context.watch<AuthService>().currentUser;
+    final ashaId = resolveAshaId(user, admin);
+    final pins = pinsForAsha(ashaId, repo);
+    _ensureDistrictCenter(ashaDistrict(ashaId, admin), pins.isNotEmpty);
 
-    final filteredPins = _householdLocations.where((loc) {
-      if (_selectedFilter == 'All') return true;
-      if (_selectedFilter == 'High Risk') return loc['priority'] == 'High';
-      if (_selectedFilter == 'Issues Pending') return loc['hasPendingIssue'] == true;
-      return true;
-    }).toList();
+    if (!_fittedOnce && pins.length > 1) {
+      _fittedOnce = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _fitAll(pins);
+      });
+    }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
       appBar: AppBar(
-        title: const Text(
-          'Village Household Geo-Map',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Live Issue Map', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            Text('Open issues from your citizens', style: TextStyle(fontSize: 11, color: Color(0xFFD1FAE5))),
+          ],
         ),
         backgroundColor: AppColors.primaryGreen,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
+            icon: const Icon(Icons.zoom_out_map_rounded),
+            tooltip: 'Show all pins',
+            onPressed: pins.isEmpty ? null : () => _fitAll(pins),
+          ),
+          IconButton(
             icon: const Icon(Icons.my_location_rounded),
-            tooltip: 'Center on Rampura Village',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Centered on Village Rampura • GPS Precision: 4m'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+            tooltip: 'My location',
+            onPressed: () => _loadMyLocation(moveCamera: true),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Filter Chips
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            width: double.infinity,
             color: Colors.white,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildFilterChip('All', Icons.map_outlined),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('High Risk', Icons.warning_amber_rounded,
-                      activeColor: Colors.red),
-                  const SizedBox(width: 8),
-                  _buildFilterChip('Issues Pending', Icons.mark_email_unread_rounded,
-                      activeColor: Colors.orange),
-                ],
-              ),
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  pins.isEmpty
+                      ? 'No open issues with a location right now'
+                      : '${pins.length} open issue${pins.length == 1 ? '' : 's'} • tap a pin for patient details',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                ),
+                const SizedBox(height: 6),
+                IssueMapLegend(pins: pins),
+              ],
             ),
           ),
-
-          // Interactive Map Area
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    // Stylized Village Topography Canvas
-                    CustomPaint(
-                      size: Size(constraints.maxWidth, constraints.maxHeight),
-                      painter: _VillageTopographyPainter(),
-                    ),
-
-                    // Household Pins
-                    ...filteredPins.map((loc) {
-                      final hId = loc['id'] as String;
-                      final isSelected = _selectedHouseholdId == hId;
-                      final isHigh = loc['priority'] == 'High';
-                      final hasIssue = loc['hasPendingIssue'] == true;
-
-                      final pinLeft = loc['x'] * constraints.maxWidth - 20;
-                      final pinTop = loc['y'] * constraints.maxHeight - 20;
-
-                      return Positioned(
-                        left: pinLeft.clamp(10.0, constraints.maxWidth - 50),
-                        top: pinTop.clamp(10.0, constraints.maxHeight - 60),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() => _selectedHouseholdId = hId);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: isSelected
-                                            ? Colors.black
-                                            : (isHigh
-                                                ? Colors.red
-                                                : (hasIssue
-                                                    ? Colors.amber.shade800
-                                                    : AppColors.primaryGreen)),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.3),
-                                            blurRadius: 6,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.home_rounded,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ),
-                                    if (hasIssue)
-                                      Positioned(
-                                        right: -2,
-                                        top: -2,
-                                        child: Container(
-                                          width: 10,
-                                          height: 10,
-                                          decoration: BoxDecoration(
-                                            color: Colors.redAccent,
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: Colors.white, width: 1.5),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(height: 3),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.92),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                        color: isSelected
-                                            ? Colors.black
-                                            : Colors.grey.shade300),
-                                  ),
-                                  child: Text(
-                                    hId,
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: isSelected ? Colors.black : Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-
-                    // Map Legend overlay
-                    Positioned(
-                      top: 14,
-                      left: 14,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.92),
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.08),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            _buildLegendItem(AppColors.primaryGreen, 'Normal'),
-                            const SizedBox(width: 8),
-                            _buildLegendItem(Colors.red, 'High Risk'),
-                            const SizedBox(width: 8),
-                            _buildLegendItem(Colors.amber.shade800, 'Issue Raised'),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Bottom info sheet when a household is selected
-                    if (_selectedHouseholdId != null)
-                      Positioned(
-                        left: 16,
-                        right: 16,
-                        bottom: 16,
-                        child: _buildHouseholdDetailCard(
-                          householdsMap[_selectedHouseholdId] ?? [],
-                          _householdLocations.firstWhere(
-                            (l) => l['id'] == _selectedHouseholdId,
-                            orElse: () => {},
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
+            child: IssueMapView(
+              pins: pins,
+              controller: _mapController,
+              interactive: true,
+              center: pins.isEmpty ? (_districtCenter ?? _myLocation ?? kDefaultMapCenter) : focusPoint(pins),
+              zoom: pins.isEmpty ? 10 : 15,
+              myLocation: _myLocation,
+              onPinTap: (pin) => showIssuePinDetails(context, pin),
             ),
           ),
         ],
       ),
     );
   }
-
-  Widget _buildFilterChip(String label, IconData icon, {Color? activeColor}) {
-    final isSelected = _selectedFilter == label;
-    final color = activeColor ?? AppColors.primaryGreen;
-
-    return ChoiceChip(
-      selected: isSelected,
-      selectedColor: color.withOpacity(0.18),
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: isSelected ? color : Colors.grey.shade600,
-      ),
-      label: Text(label),
-      labelStyle: TextStyle(
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        color: isSelected ? color : Colors.black87,
-      ),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: isSelected ? color : Colors.grey.shade300,
-        ),
-      ),
-      onSelected: (val) {
-        if (val) setState(() => _selectedFilter = label);
-      },
-    );
-  }
-
-  Widget _buildLegendItem(Color color, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 4),
-        Text(text, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-      ],
-    );
-  }
-
-  Widget _buildHouseholdDetailCard(
-      List<PatientModel> members, Map<String, dynamic> loc) {
-    final head = members.isNotEmpty
-        ? members.firstWhere((m) => m.relationship == 'Self',
-            orElse: () => members.first)
-        : null;
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 6,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryGreen.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.location_on_rounded,
-                          color: AppColors.primaryGreen, size: 20),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Household: ${_selectedHouseholdId ?? ""}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  ],
-                ),
-                IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  onPressed: () => setState(() => _selectedHouseholdId = null),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Sector: ${loc['sector'] ?? "Rampura Village"}',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-            ),
-            if (head != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                'Head of House: ${head.fullName} • ${members.length} Registered Members',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-              ),
-            ],
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                onPressed: () {
-                  if (head != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (ctx) => PatientDetailScreen(patientId: head.id),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.visibility_rounded,
-                    size: 16, color: Colors.white),
-                label: const Text(
-                  'Open Household Members',
-                  style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-class _VillageTopographyPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Village background field
-    final bgPaint = Paint()..color = const Color(0xFFE2E8F0);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), bgPaint);
+/// Bottom-sheet popup with the patient and issue details behind a map pin.
+Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
+  final issue = pin.issue;
+  final patient = pin.patient;
+  final color = pin.stage.color;
 
-    // Green fields & crop patches
-    final fieldPaint = Paint()..color = const Color(0xFFDCFCE7).withOpacity(0.7);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.05, size.height * 0.08, size.width * 0.4,
-            size.height * 0.25),
-        const Radius.circular(16),
+  Widget row(IconData icon, String label, String value) {
+    if (value.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF64748B)),
+          const SizedBox(width: 10),
+          SizedBox(width: 92, child: Text(label, style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)))),
+          Expanded(
+            child: Text(value,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
+          ),
+        ],
       ),
-      fieldPaint,
     );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(size.width * 0.55, size.height * 0.5, size.width * 0.4,
-            size.height * 0.35),
-        const Radius.circular(16),
-      ),
-      fieldPaint,
-    );
-
-    // Water canal / pond
-    final waterPaint = Paint()..color = const Color(0xFFBAE6FD);
-    canvas.drawOval(
-      Rect.fromLTWH(size.width * 0.1, size.height * 0.45, size.width * 0.22,
-          size.height * 0.14),
-      waterPaint,
-    );
-
-    // Village Road paths
-    final roadPaint = Paint()
-      ..color = const Color(0xFFCBD5E1)
-      ..strokeWidth = 14
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final roadPath = Path();
-    roadPath.moveTo(size.width * 0.1, size.height * 0.1);
-    roadPath.quadraticBezierTo(
-      size.width * 0.5,
-      size.height * 0.4,
-      size.width * 0.9,
-      size.height * 0.85,
-    );
-    roadPath.moveTo(size.width * 0.5, size.height * 0.4);
-    roadPath.lineTo(size.width * 0.2, size.height * 0.8);
-
-    canvas.drawPath(roadPath, roadPaint);
-
-    final roadCenterPaint = Paint()
-      ..color = Colors.white70
-      ..strokeWidth = 2
-      ..style = PaintingStyle.stroke;
-    canvas.drawPath(roadPath, roadCenterPaint);
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+    builder: (ctx) => SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.85),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: color, size: 30),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(issue.citizenName,
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A))),
+                        Text(
+                          '${pin.stage.label} • raised ${elapsedLabel(issue.createdAt)}',
+                          style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (issue.urgency == 'Urgent')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(12)),
+                      child: const Text('URGENT',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(issue.category,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                    const SizedBox(height: 4),
+                    Text(issue.description, style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.35)),
+                    if (issue.hasVoiceNote && (issue.voiceTranscription ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text('🎙️ ${issue.voiceTranscription}',
+                          style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: Color(0xFF475569))),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              row(Icons.person_outline_rounded, 'Patient',
+                  patient != null ? '${patient.fullName} • ${patient.age} yrs • ${patient.gender}' : issue.citizenName),
+              row(Icons.call_outlined, 'Contact', issue.contactNumber),
+              row(Icons.house_outlined, 'Household', issue.householdId),
+              row(Icons.location_city_outlined, 'Village', issue.villageName),
+              if (patient != null && patient.isPregnant) row(Icons.pregnant_woman_rounded, 'ANC', 'Pregnant — under ANC tracking'),
+              if (patient != null && patient.chronicConditions.isNotEmpty)
+                row(Icons.medical_information_outlined, 'Conditions', patient.chronicConditions.join(', ')),
+              row(Icons.schedule_rounded, 'Raised on', DateFormat('dd MMM yyyy, hh:mm a').format(issue.createdAt)),
+              row(Icons.gps_fixed_rounded, 'Location',
+                  '${issue.latitude!.toStringAsFixed(5)}, ${issue.longitude!.toStringAsFixed(5)}'),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryGreen,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: issue.contactNumber.trim().isEmpty
+                          ? null
+                          : () => launchUrl(Uri(scheme: 'tel', path: issue.contactNumber.replaceAll(' ', ''))),
+                      icon: const Icon(Icons.call_rounded, size: 18),
+                      label: const Text('Call', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primaryGreen,
+                        side: const BorderSide(color: AppColors.primaryGreen),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () => launchUrl(
+                        Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${issue.latitude},${issue.longitude}'),
+                        mode: LaunchMode.externalApplication,
+                      ),
+                      icon: const Icon(Icons.directions_rounded, size: 18),
+                      label: const Text('Directions', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    await ctx.read<HealthRepository>().resolveIssue(issue.id);
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  },
+                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  label: const Text('Mark as attended', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }

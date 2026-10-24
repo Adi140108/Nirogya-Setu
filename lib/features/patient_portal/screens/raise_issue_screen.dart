@@ -7,6 +7,7 @@ import '../../../core/models/patient_model.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/app_locale.dart';
 import '../../../core/services/translation_service.dart';
+import '../../../core/services/location_service.dart';
 
 class RaiseIssueScreen extends StatefulWidget {
   final PatientModel? patient;
@@ -338,6 +339,12 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
     }
 
     final repo = Provider.of<HealthRepository>(context, listen: false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Sending your issue and current location to your ASHA worker…')),
+    );
+    // Record where the citizen is right now so the ASHA worker sees a pin on the map.
+    final position = await LocationService.currentPosition(timeout: const Duration(seconds: 10));
+    if (!mounted) return;
 
     // Save issue with the translated English clinical summary, while preserving original voice/transcript
     await repo.raiseIssue(
@@ -353,9 +360,18 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
       hasVoiceNote: _hasRecordedVoice,
       voiceDurationSeconds: _recordingDuration,
       voiceTranscription: _recordedTranscription ?? rawInput,
+      ashaId: widget.patient?.ashaId,
+      latitude: position?.latitude,
+      longitude: position?.longitude,
     );
 
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    if (position == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Issue sent. Location was unavailable, so no map pin was added.')),
+      );
+    }
 
     setState(() => _isSubmitting = false);
 

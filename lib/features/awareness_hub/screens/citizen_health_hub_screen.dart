@@ -9,7 +9,7 @@ import '../../../core/services/voice_service.dart';
 import '../widgets/youtube_thumbnail.dart';
 import 'citizen_video_player_screen.dart';
 
-/// Citizen Health Hub: shows exactly the videos the administrator publishes
+/// Health Hub (shared by citizens, ASHA workers and doctors): shows exactly the videos the administrator publishes
 /// from Admin Portal > Manage Videos (kept in sync through the cloud database).
 /// The chosen language changes each card's title and the video that plays.
 /// Any language version can be downloaded for offline viewing.

@@ -6,7 +6,7 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/sync_status_badge.dart';
-import '../../awareness_hub/screens/awareness_hub_screen.dart';
+import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import 'register_villager_screen.dart';
 import 'screening_form_screen.dart';
 import 'patient_detail_screen.dart';
@@ -38,7 +38,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           _buildOverviewTab(context),
           const AshaHouseholdsScreen(isEmbedded: false),
           const AshaChatbotScreen(isEmbedded: false),
-          const AwarenessHubScreen(isPublicAccess: false),
+          const CitizenHealthHubScreen(),
         ],
       ),
       bottomNavigationBar: Container(
@@ -362,7 +362,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const AwarenessHubScreen(isPublicAccess: false)),
+                MaterialPageRoute(builder: (_) => const CitizenHealthHubScreen()),
               );
             },
           ),
