@@ -81,6 +81,8 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
         videoId: variant.youtubeId,
         autoPlay: true,
         params: const YoutubePlayerParams(
+          // The package's default origin (www.youtube.com) makes YouTube reject the embed with error 152.
+          origin: 'https://www.youtube-nocookie.com',
           showFullscreenButton: true,
           strictRelatedVideos: true,
           showVideoAnnotations: false,
