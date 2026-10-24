@@ -265,6 +265,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
     final ageCtrl = TextEditingController();
     final phoneCtrl = TextEditingController(text: head.contactNumber);
     final passwordCtrl = TextEditingController();
+    final abhaCtrl = TextEditingController();
     String gender = 'Female';
     String relationship = 'Wife';
     bool isPregnant = false;
@@ -382,6 +383,17 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
+                      controller: abhaCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'ABHA ID / Number (Optional)',
+                        border: OutlineInputBorder(),
+                        hintText: '14-digit number or name@abdm',
+                        prefixIcon: Icon(Icons.badge_outlined),
+                        helperText: 'Displayed on Citizen Health Card',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
                       controller: passwordCtrl,
                       decoration: const InputDecoration(
                         labelText: 'Citizen Password (Optional)',
@@ -454,6 +466,9 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                             villageName: head.villageName,
                             contactNumber: phone,
                             isPregnant: isPregnant,
+                            abhaNumber: abhaCtrl.text.trim().isNotEmpty ? abhaCtrl.text.trim() : null,
+                            district: head.district,
+                            state: head.state,
                             password: passwordCtrl.text.trim().isNotEmpty ? passwordCtrl.text.trim() : null,
                           );
 

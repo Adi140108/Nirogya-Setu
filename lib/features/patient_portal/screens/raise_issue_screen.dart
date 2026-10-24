@@ -35,7 +35,6 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
   // Real SpeechToText engine
   final SpeechToText _speech = SpeechToText();
   bool _speechAvailable = false;
-  bool _isListening = false;
   Timer? _silenceTimer;
 
   // Language map for multi-language speech recognition

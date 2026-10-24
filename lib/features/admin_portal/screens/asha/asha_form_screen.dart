@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/india_locations.dart';
 import '../../../../core/models/admin_models.dart';
 import '../../../../core/services/admin_repository.dart';
+import '../../../../core/services/health_repository.dart';
 import '../../widgets/admin_ui.dart';
 
 /// Add or edit an ASHA worker. A login password is generated automatically on add.
@@ -85,6 +87,66 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
     if (picked != null) setState(() => _joiningDate = picked);
   }
 
+  Future<void> _showAddVillageDialog(BuildContext context, HealthRepository health) async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.add_location_alt_rounded, color: AppColors.primary),
+            SizedBox(width: 8),
+            Text('Add Village', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('State: ${_state ?? ""}, District: ${_district ?? ""}',
+                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              textCapitalization: TextCapitalization.words,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'New Village Name *',
+                hintText: 'e.g. Anandpur',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              final text = controller.text.trim();
+              if (text.isNotEmpty) Navigator.pop(ctx, text);
+            },
+            child: const Text('Add & Select'),
+          ),
+        ],
+      ),
+    );
+
+    if (name != null && name.trim().isNotEmpty) {
+      final cleanName = name.trim();
+      await health.addVillage(
+        name: cleanName,
+        district: _district ?? '',
+        state: _state ?? '',
+      );
+      setState(() => _village.text = cleanName);
+    }
+  }
+
   Future<void> _save() async {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
@@ -150,8 +212,14 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
   @override
   Widget build(BuildContext context) {
     final repo = context.watch<AdminRepository>();
+    final health = context.watch<HealthRepository>();
     final hospitals = repo.hospitals;
     final selectedHospital = hospitals.any((h) => h.id == _hospitalId) ? _hospitalId : null;
+    final availableVillages = repo.getVillagesForDistrict(
+      state: _state ?? '',
+      district: _district ?? '',
+      patients: health.patients,
+    );
 
     final previewPassword = _name.text.trim().isNotEmpty && AdminRepository.validateMobile(_mobile.text) == null
         ? AdminRepository.generatePassword(_name.text, _mobile.text)
@@ -257,14 +325,6 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
               icon: Icons.work_outline_rounded,
               children: [
                 AdminField(
-                  child: TextFormField(
-                    controller: _village,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: adminInput('Village name *', icon: Icons.location_on_outlined, hint: 'e.g. Rampura'),
-                    validator: (v) => (v ?? '').trim().length < 2 ? 'Enter the village this ASHA worker serves' : null,
-                  ),
-                ),
-                AdminField(
                   child: AdminSearchSelectField(
                     label: 'State / UT *',
                     icon: Icons.map_outlined,
@@ -272,7 +332,10 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                     options: IndiaLocations.states,
                     validator: (_) => _state == null ? 'Select the state' : null,
                     onChanged: (v) => setState(() {
-                      if (v != _state) _district = null;
+                      if (v != _state) {
+                        _district = null;
+                        _village.clear();
+                      }
                       _state = v;
                     }),
                   ),
@@ -287,8 +350,72 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                     disabledHint: 'Select the state first',
                     allowCustom: true,
                     validator: (_) => _district == null ? 'Select the district' : null,
-                    onChanged: (v) => setState(() => _district = v),
+                    onChanged: (v) => setState(() {
+                      if (v != _district) _village.clear();
+                      _district = v;
+                    }),
                   ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: AdminField(
+                        child: AdminSearchSelectField(
+                          label: 'Assigned Village *',
+                          icon: Icons.location_on_outlined,
+                          value: _village.text.isNotEmpty ? _village.text : null,
+                          options: availableVillages,
+                          enabled: _district != null,
+                          disabledHint: 'Select State & District first',
+                          allowCustom: true,
+                          validator: (_) => _village.text.trim().isEmpty ? 'Select or add assigned village' : null,
+                          onChanged: (v) => setState(() => _village.text = v),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Tooltip(
+                        message: 'Add New Village',
+                        child: InkWell(
+                          onTap: _district == null ? null : () => _showAddVillageDialog(context, health),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _district == null ? const Color(0xFFF1F5F9) : const Color(0xFFE0F2FE),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _district == null ? const Color(0xFFCBD5E1) : const Color(0xFFBAE6FD),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.add_location_alt_rounded,
+                                  size: 18,
+                                  color: _district == null ? const Color(0xFF94A3B8) : const Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '+ Add',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: _district == null ? const Color(0xFF94A3B8) : const Color(0xFF0369A1),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 AdminField(
                   child: DropdownButtonFormField<String?>(

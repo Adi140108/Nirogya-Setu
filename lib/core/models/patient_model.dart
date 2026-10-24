@@ -17,6 +17,8 @@ class PatientModel {
   final String? notes;
   final String? abhaNumber;
   final String? abhaAddress;
+  final String? district;
+  final String? state;
   final String? relationship;
   final String? hindiName;
   final String? wardNumber;
@@ -43,6 +45,8 @@ class PatientModel {
     this.notes,
     this.abhaNumber,
     this.abhaAddress,
+    this.district,
+    this.state,
     this.relationship,
     this.hindiName,
     this.wardNumber,
@@ -71,6 +75,8 @@ class PatientModel {
       'notes': notes,
       'abhaNumber': abhaNumber,
       'abhaAddress': abhaAddress,
+      'district': district ?? computedDistrict,
+      'state': state ?? computedState,
       'relationship': relationship,
       'hindiName': hindiName,
       'wardNumber': wardNumber,
@@ -100,6 +106,8 @@ class PatientModel {
       notes: map['notes'],
       abhaNumber: map['abhaNumber'],
       abhaAddress: map['abhaAddress'],
+      district: map['district'],
+      state: map['state'],
       relationship: map['relationship'],
       hindiName: map['hindiName'],
       wardNumber: map['wardNumber'],
@@ -132,6 +140,8 @@ class PatientModel {
     String? notes,
     String? abhaNumber,
     String? abhaAddress,
+    String? district,
+    String? state,
     String? relationship,
     String? hindiName,
     String? wardNumber,
@@ -158,6 +168,8 @@ class PatientModel {
       notes: notes ?? this.notes,
       abhaNumber: abhaNumber ?? this.abhaNumber,
       abhaAddress: abhaAddress ?? this.abhaAddress,
+      district: district ?? this.district,
+      state: state ?? this.state,
       relationship: relationship ?? this.relationship,
       hindiName: hindiName ?? this.hindiName,
       wardNumber: wardNumber ?? this.wardNumber,
@@ -171,7 +183,14 @@ class PatientModel {
 
   /// 14-digit standardized ABHA number formatted like 91-XXXX-XXXX-XXXX
   String get computedAbhaNumber {
-    if (abhaNumber != null && abhaNumber!.trim().isNotEmpty) return abhaNumber!;
+    if (abhaNumber != null && abhaNumber!.trim().isNotEmpty) {
+      final clean = abhaNumber!.trim();
+      final digitsOnly = clean.replaceAll(RegExp(r'[^0-9]'), '');
+      if (digitsOnly.length == 14 && !clean.contains('-')) {
+        return '${digitsOnly.substring(0, 2)}-${digitsOnly.substring(2, 6)}-${digitsOnly.substring(6, 10)}-${digitsOnly.substring(10, 14)}';
+      }
+      return clean;
+    }
     final digits = id.hashCode.abs().toString().padRight(12, '7').substring(0, 12);
     return '91-${digits.substring(0, 4)}-${digits.substring(4, 8)}-${digits.substring(8, 12)}';
   }
@@ -179,6 +198,7 @@ class PatientModel {
   /// ABHA address e.g. name.surname@abdm
   String get computedAbhaAddress {
     if (abhaAddress != null && abhaAddress!.trim().isNotEmpty) return abhaAddress!;
+    if (abhaNumber != null && abhaNumber!.contains('@')) return abhaNumber!;
     final sanitized = fullName.toLowerCase().trim().replaceAll(RegExp(r'[^a-z0-9]'), '.');
     return '$sanitized@abdm';
   }
@@ -206,7 +226,9 @@ class PatientModel {
   }
 
   String get computedWardNumber => wardNumber ?? '4';
-  String get computedDistrictState => districtState ?? 'District: Varanasi, Uttar Pradesh';
+  String get computedDistrict => district ?? 'Varanasi';
+  String get computedState => state ?? 'Uttar Pradesh';
+  String get computedDistrictState => districtState ?? 'District: $computedDistrict, $computedState';
 
   /// Generates the official QR code OPD token payload
   String get opdQrData {

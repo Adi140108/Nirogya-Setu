@@ -63,7 +63,7 @@ class NotificationService {
     if (_initialized || kIsWeb) return;
     try {
       await _plugin.initialize(
-        settings: const InitializationSettings(
+        const InitializationSettings(
           android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         ),
       );
@@ -132,10 +132,10 @@ class NotificationService {
     if (!_initialized) return;
     try {
       await _plugin.show(
-        id: _nextSystemId++,
-        title: title,
-        body: body,
-        notificationDetails: NotificationDetails(
+        _nextSystemId++,
+        title,
+        body,
+        NotificationDetails(
           android: AndroidNotificationDetails(
             _channel.id,
             _channel.name,

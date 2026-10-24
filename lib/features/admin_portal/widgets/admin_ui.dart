@@ -284,15 +284,22 @@ class AdminInfoRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final Widget? trailing;
 
-  const AdminInfoRow({super.key, required this.icon, required this.label, required this.value});
+  const AdminInfoRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, size: 18, color: AdminColors.muted),
           const SizedBox(width: 10),
@@ -304,6 +311,7 @@ class AdminInfoRow extends StatelessWidget {
             child: Text(value.isEmpty ? '—' : value,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AdminColors.ink)),
           ),
+          if (trailing != null) trailing!,
         ],
       ),
     );

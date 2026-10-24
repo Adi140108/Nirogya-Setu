@@ -51,7 +51,7 @@ class _AshaIssueMapPreviewState extends State<AshaIssueMapPreview> {
       height: 210,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8, offset: const Offset(0, 3))],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8, offset: const Offset(0, 3))],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -80,7 +80,7 @@ class _AshaIssueMapPreviewState extends State<AshaIssueMapPreview> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+                    color: const Color(0xFF0F172A).withOpacity(0.85),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

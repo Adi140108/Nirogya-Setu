@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/screening_rules.dart';
+import '../../../../core/models/admin_models.dart';
 import '../../../../core/models/patient_model.dart';
 import '../../../../core/services/admin_repository.dart';
 import '../../../../core/services/health_repository.dart';
@@ -70,6 +71,121 @@ class AshaDetailScreen extends StatelessWidget {
     if (!context.mounted) return;
     showAdminSnack(context, 'ASHA worker deleted');
     Navigator.pop(context);
+  }
+
+  Future<void> _changeVillage(
+    BuildContext context,
+    AdminRepository repo,
+    HealthRepository health,
+    AshaWorkerModel worker,
+  ) async {
+    final available = repo.getVillagesForDistrict(
+      state: worker.state,
+      district: worker.district,
+      patients: health.patients,
+    );
+
+    String selected = worker.villageName;
+    final textController = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (dCtx, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.edit_location_alt_rounded, color: AppColors.primary),
+                  SizedBox(width: 8),
+                  Text('Assign Village', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text('ASHA Worker: ${worker.fullName}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    Text('${worker.district}, ${worker.state}',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                    const SizedBox(height: 14),
+                    const Text('Select Assigned Village:',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: available.contains(selected) ? selected : null,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      hint: const Text('Choose a village'),
+                      items: [
+                        ...available.map((v) => DropdownMenuItem(value: v, child: Text(v))),
+                        const DropdownMenuItem(value: '__NEW__', child: Text('+ Add New Village...')),
+                      ],
+                      onChanged: (v) {
+                        if (v != null) {
+                          setDialogState(() => selected = v);
+                        }
+                      },
+                    ),
+                    if (selected == '__NEW__') ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: textController,
+                        autofocus: true,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: const InputDecoration(
+                          labelText: 'New Village Name *',
+                          hintText: 'e.g. Rampura',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (selected == '__NEW__') {
+                      final custom = textController.text.trim();
+                      if (custom.isNotEmpty) Navigator.pop(ctx, custom);
+                    } else if (selected.isNotEmpty) {
+                      Navigator.pop(ctx, selected);
+                    }
+                  },
+                  child: const Text('Assign & Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (result != null && result.trim().isNotEmpty && context.mounted) {
+      final finalVillage = result.trim();
+      await health.addVillage(name: finalVillage, district: worker.district, state: worker.state);
+      await repo.assignVillageToAsha(
+        ashaId: worker.id,
+        villageName: finalVillage,
+        district: worker.district,
+        state: worker.state,
+      );
+      if (context.mounted) {
+        showAdminSnack(context, '✓ Village "$finalVillage" assigned and saved to database');
+      }
+    }
   }
 
   @override
@@ -191,7 +307,20 @@ class AshaDetailScreen extends StatelessWidget {
               children: [
                 AdminInfoRow(icon: Icons.cake_outlined, label: 'Age / Gender', value: '${worker.age} yrs • ${worker.gender}'),
                 AdminInfoRow(icon: Icons.school_outlined, label: 'Education', value: worker.education),
-                AdminInfoRow(icon: Icons.location_on_outlined, label: 'Village', value: worker.villageName),
+                AdminInfoRow(
+                  icon: Icons.location_on_outlined,
+                  label: 'Village',
+                  value: worker.villageName,
+                  trailing: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.edit_location_alt_rounded, size: 15, color: AdminColors.accent),
+                    label: const Text('Assign', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AdminColors.accent)),
+                    onPressed: () => _changeVillage(context, repo, health, worker),
+                  ),
+                ),
                 AdminInfoRow(icon: Icons.location_city_outlined, label: 'District', value: worker.district),
                 AdminInfoRow(icon: Icons.map_outlined, label: 'State', value: worker.state),
                 AdminInfoRow(

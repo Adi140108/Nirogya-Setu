@@ -20,6 +20,7 @@ class HealthRepository extends ChangeNotifier {
   List<ScreeningModel> _screenings = [];
   List<ReferralModel> _referrals = [];
   List<IssueModel> _issues = [];
+  List<Map<String, String>> _customVillages = [];
 
   bool _isSyncing = false;
   String? _lastSyncError;
@@ -52,6 +53,8 @@ class HealthRepository extends ChangeNotifier {
     final storedScreenings = await _storageService.loadScreenings();
     final storedReferrals = await _storageService.loadReferrals();
     final storedIssues = await _storageService.loadIssues();
+    final storedVillages = await _storageService.loadJsonList(StorageService.keyCustomVillages);
+    _customVillages = storedVillages.map((m) => m.map((k, v) => MapEntry(k, v.toString()))).toList();
 
     if (storedPatients.isEmpty && storedScreenings.isEmpty && storedReferrals.isEmpty) {
       // Seed demonstration data for testing all 3 roles
@@ -70,6 +73,32 @@ class HealthRepository extends ChangeNotifier {
     }
     notifyListeners();
     _listenForCloudIssues();
+    _listenForCloudVillages();
+  }
+
+  void _listenForCloudVillages() {
+    if (Firebase.apps.isEmpty) return;
+    FirebaseFirestore.instance.collection('admin_villages').snapshots().listen((snapshot) async {
+      var changed = false;
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final name = (data['name'] ?? '').toString().trim();
+        final district = (data['district'] ?? '').toString().trim();
+        final state = (data['state'] ?? '').toString().trim();
+        if (name.isEmpty) continue;
+        final exists = _customVillages.any((v) =>
+            (v['name'] ?? '').toLowerCase() == name.toLowerCase() &&
+            (v['district'] ?? '').toLowerCase() == district.toLowerCase());
+        if (!exists) {
+          _customVillages.add({'name': name, 'district': district, 'state': state});
+          changed = true;
+        }
+      }
+      if (changed) {
+        await _storageService.saveJsonList(StorageService.keyCustomVillages, _customVillages);
+        notifyListeners();
+      }
+    }, onError: (_) {});
   }
 
   StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _issuesSubscription;
@@ -507,6 +536,88 @@ class HealthRepository extends ChangeNotifier {
     return map;
   }
 
+  /// Returns all available villages, matching the given state & district if specified.
+  List<String> getVillagesFor({String? state, String? district}) {
+    final cleanState = (state ?? '').trim().toLowerCase();
+    final cleanDistrict = (district ?? '').trim().toLowerCase();
+
+    final result = <String>{};
+
+    // 1. From all registered patients (citizens / households)
+    for (final p in _patients) {
+      final pState = p.computedState.trim().toLowerCase();
+      final pDistrict = p.computedDistrict.trim().toLowerCase();
+      final stateMatches = cleanState.isEmpty || pState.isEmpty || pState == cleanState;
+      final districtMatches = cleanDistrict.isEmpty || pDistrict.isEmpty || pDistrict == cleanDistrict;
+
+      if (stateMatches && districtMatches && p.villageName.trim().isNotEmpty) {
+        result.add(p.villageName.trim());
+      }
+    }
+
+    // 2. From custom registered villages
+    for (final v in _customVillages) {
+      final vName = (v['name'] ?? '').trim();
+      final vState = (v['state'] ?? '').trim().toLowerCase();
+      final vDistrict = (v['district'] ?? '').trim().toLowerCase();
+      final stateMatches = cleanState.isEmpty || vState.isEmpty || vState == cleanState;
+      final districtMatches = cleanDistrict.isEmpty || vDistrict.isEmpty || vDistrict == cleanDistrict;
+
+      if (stateMatches && districtMatches && vName.isNotEmpty) {
+        result.add(vName);
+      }
+    }
+
+    // 3. Fallback standard villages for Varanasi / Uttar Pradesh (or if cleanDistrict is Varanasi)
+    if (cleanDistrict.isEmpty || cleanDistrict == 'varanasi' || cleanState == 'uttar pradesh') {
+      result.addAll(['Rampura', 'Khed Buzurg', 'Sundarpur', 'Shivpur', 'Cholapur', 'Sarnath']);
+    }
+
+    final list = result.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return list;
+  }
+
+  /// Adds a new village to the registry and persists to local storage and Firestore
+  Future<void> addVillage({
+    required String name,
+    required String district,
+    required String state,
+  }) async {
+    final cleanName = name.trim();
+    final cleanDistrict = district.trim();
+    final cleanState = state.trim();
+    if (cleanName.isEmpty) return;
+
+    final exists = _customVillages.any((v) =>
+        (v['name'] ?? '').toLowerCase() == cleanName.toLowerCase() &&
+        (v['district'] ?? '').toLowerCase() == cleanDistrict.toLowerCase());
+
+    if (!exists) {
+      final entry = {
+        'name': cleanName,
+        'district': cleanDistrict,
+        'state': cleanState,
+      };
+      _customVillages.add(entry);
+      await _storageService.saveJsonList(StorageService.keyCustomVillages, _customVillages);
+      notifyListeners();
+
+      if (Firebase.apps.isNotEmpty) {
+        try {
+          final slug = '${cleanName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-')}-${cleanDistrict.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-')}';
+          await FirebaseFirestore.instance.collection('admin_villages').doc(slug).set({
+            'name': cleanName,
+            'district': cleanDistrict,
+            'state': cleanState,
+            'createdAt': DateTime.now().toIso8601String(),
+          }, SetOptions(merge: true));
+        } catch (e) {
+          debugPrint('Cloud village sync pending: $e');
+        }
+      }
+    }
+  }
+
   // --- Patient Actions ---
   Future<PatientModel> registerPatient({
     required String ashaId,
@@ -522,6 +633,10 @@ class HealthRepository extends ChangeNotifier {
     List<String> knownAllergies = const [],
     List<String> chronicConditions = const [],
     String? notes,
+    String? abhaNumber,
+    String? abhaAddress,
+    String? district,
+    String? state,
     String? password,
   }) async {
     // Duplicate citizen barrier
@@ -547,6 +662,10 @@ class HealthRepository extends ChangeNotifier {
       knownAllergies: knownAllergies,
       chronicConditions: chronicConditions,
       notes: notes,
+      abhaNumber: abhaNumber,
+      abhaAddress: abhaAddress,
+      district: district,
+      state: state,
       password: password,
       syncStatus: SyncStatus.locallySaved, // Saved locally first!
       createdAt: DateTime.now(),
@@ -554,6 +673,12 @@ class HealthRepository extends ChangeNotifier {
     );
 
     _patients.insert(0, newPatient);
+    // Keep village in database
+    await addVillage(
+      name: villageName,
+      district: district ?? newPatient.computedDistrict,
+      state: state ?? newPatient.computedState,
+    );
     await _persistAll();
     notifyListeners();
     return newPatient;
@@ -582,6 +707,10 @@ class HealthRepository extends ChangeNotifier {
     required String contactNumber,
     bool isPregnant = false,
     List<String> chronicConditions = const [],
+    String? abhaNumber,
+    String? abhaAddress,
+    String? district,
+    String? state,
     String? password,
   }) async {
     // Duplicate citizen barrier
@@ -605,6 +734,10 @@ class HealthRepository extends ChangeNotifier {
       relationship: relationship,
       isPregnant: isPregnant,
       chronicConditions: chronicConditions,
+      abhaNumber: abhaNumber,
+      abhaAddress: abhaAddress,
+      district: district,
+      state: state,
       password: password,
       syncStatus: SyncStatus.locallySaved,
       createdAt: DateTime.now(),
@@ -612,6 +745,11 @@ class HealthRepository extends ChangeNotifier {
     );
 
     _patients.insert(0, newMember);
+    await addVillage(
+      name: villageName,
+      district: district ?? newMember.computedDistrict,
+      state: state ?? newMember.computedState,
+    );
     await _persistAll();
     notifyListeners();
     return newMember;

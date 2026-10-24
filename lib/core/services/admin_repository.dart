@@ -495,6 +495,106 @@ class AdminRepository extends ChangeNotifier {
     await _afterStaffWrite();
   }
 
+  /// Assigns a village to an ASHA worker and commits directly to local database and Firestore
+  Future<void> assignVillageToAsha({
+    required String ashaId,
+    required String villageName,
+    required String district,
+    required String state,
+  }) async {
+    final index = _asha.indexWhere((e) => e.id == ashaId);
+    if (index == -1) return;
+
+    final updated = _asha[index].copyWith(
+      villageName: villageName.trim(),
+      villageId: villageIdFor(villageName, district: district),
+      district: district.trim(),
+      state: state.trim(),
+      syncStatus: SyncStatus.pendingSync,
+      updatedAt: DateTime.now(),
+    );
+    _asha[index] = updated;
+    await _afterStaffWrite();
+
+    // Mirror to Firestore user document for immediate cross-portal recognition
+    if (_cloudAvailable) {
+      try {
+        final payload = {
+          'assignedVillage': villageName.trim(),
+          'villageName': villageName.trim(),
+          'villageId': updated.villageId,
+          'district': district.trim(),
+          'state': state.trim(),
+          'updatedAt': DateTime.now().toIso8601String(),
+        };
+        await FirebaseFirestore.instance.collection('users').doc(updated.id).set(payload, SetOptions(merge: true));
+        final mobile = normalizeMobile(updated.mobileNumber);
+        if (mobile.isNotEmpty) {
+          await FirebaseFirestore.instance.collection('users').doc(mobile).set(payload, SetOptions(merge: true));
+        }
+      } catch (e) {
+        debugPrint('Direct user doc village sync notice: $e');
+      }
+    }
+  }
+
+  /// Returns all villages matching the given State and District
+  List<String> getVillagesForDistrict({
+    required String state,
+    required String district,
+    List<PatientModel>? patients,
+  }) {
+    final cleanState = state.trim().toLowerCase();
+    final cleanDistrict = district.trim().toLowerCase();
+    final villages = <String>{};
+
+    // 1. From patients/households
+    if (patients != null) {
+      for (final p in patients) {
+        final pState = p.computedState.trim().toLowerCase();
+        final pDistrict = p.computedDistrict.trim().toLowerCase();
+        if ((cleanState.isEmpty || pState.isEmpty || pState == cleanState) &&
+            (cleanDistrict.isEmpty || pDistrict.isEmpty || pDistrict == cleanDistrict)) {
+          if (p.villageName.trim().isNotEmpty) {
+            villages.add(p.villageName.trim());
+          }
+        }
+      }
+    }
+
+    // 2. From assigned ASHA workers
+    for (final a in ashaWorkers) {
+      final aState = a.state.trim().toLowerCase();
+      final aDistrict = a.district.trim().toLowerCase();
+      if ((cleanState.isEmpty || aState.isEmpty || aState == cleanState) &&
+          (cleanDistrict.isEmpty || aDistrict.isEmpty || aDistrict == cleanDistrict)) {
+        if (a.villageName.trim().isNotEmpty) {
+          villages.add(a.villageName.trim());
+        }
+      }
+    }
+
+    // 3. From hospitals
+    for (final h in hospitals) {
+      final hState = h.state.trim().toLowerCase();
+      final hDistrict = h.district.trim().toLowerCase();
+      if ((cleanState.isEmpty || hState.isEmpty || hState == cleanState) &&
+          (cleanDistrict.isEmpty || hDistrict.isEmpty || hDistrict == cleanDistrict)) {
+        if (h.villageTown.trim().isNotEmpty) {
+          villages.add(h.villageTown.trim());
+        }
+      }
+    }
+
+    // 4. Default fallbacks if Varanasi / Uttar Pradesh
+    if (cleanDistrict.isEmpty || cleanDistrict == 'varanasi' || cleanState == 'uttar pradesh') {
+      villages.addAll(['Rampura', 'Khed Buzurg', 'Sundarpur', 'Shivpur', 'Cholapur', 'Sarnath']);
+    }
+
+    final list = villages.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return list;
+  }
+
   Future<void> setAshaActive(String id, bool active) async {
     final index = _asha.indexWhere((e) => e.id == id);
     if (index == -1) return;

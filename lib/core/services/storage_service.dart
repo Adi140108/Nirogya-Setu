@@ -136,6 +136,7 @@ class StorageService {
   static const String keyHealthVideos = 'aarogya_admin_health_videos_v1';
   static const String keyAdminPasswordHash = 'aarogya_admin_password_hash_v1';
   static const String keyHealthVideoDownloads = 'aarogya_health_video_downloads_v1';
+  static const String keyCustomVillages = 'aarogya_custom_villages_v1';
 
   Future<void> saveJsonList(String key, List<Map<String, dynamic>> items) async {
     await init();

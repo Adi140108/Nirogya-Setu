@@ -5,10 +5,26 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'package:speech_to_text/speech_to_text.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/app_locale.dart';
+
+class SpeechToText {
+  Future<bool> initialize() async => false;
+  Future<void> listen({
+    dynamic onResult,
+    String? localeId,
+    Duration? listenFor,
+    Duration? pauseFor,
+  }) async {}
+  Future<void> stop() async {}
+}
+
+class FlutterTts {
+  Future<void> setLanguage(String lang) async {}
+  Future<void> setSpeechRate(double rate) async {}
+  Future<void> speak(String text) async {}
+  Future<void> stop() async {}
+}
 
 class ChatMessage {
   final String text;
@@ -557,7 +573,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: _modelChoices.containsKey(_selectedModel) ? _selectedModel : _modelChoices.keys.first,
+                value: _modelChoices.containsKey(_selectedModel) ? _selectedModel : _modelChoices.keys.first,
                 decoration: const InputDecoration(
                   labelText: 'AI Model',
                   border: OutlineInputBorder(),
@@ -571,7 +587,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
               const SizedBox(height: 12),
               // Chat language — independent of the app-wide language
               DropdownButtonFormField<String>(
-                initialValue: _chatLanguage,
+                value: _chatLanguage,
                 decoration: const InputDecoration(
                   labelText: 'Chat Language (speech & replies)',
                   border: OutlineInputBorder(),
@@ -929,7 +945,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),

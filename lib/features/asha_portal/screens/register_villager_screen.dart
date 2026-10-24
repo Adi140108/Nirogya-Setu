@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/constants/india_locations.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/voice_service.dart';
@@ -23,9 +24,12 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   late final TextEditingController _householdController;
   final _notesController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _abhaController = TextEditingController();
   bool _obscurePassword = true;
 
   String _gender = 'Female';
+  String _selectedState = 'Uttar Pradesh';
+  String _selectedDistrict = 'Varanasi';
   String _villageId = 'village-rampura-01';
   String _villageName = 'Rampura';
   bool _isPregnant = false;
@@ -33,12 +37,6 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   final List<String> _selectedConditions = [];
 
   bool _isSubmitting = false;
-
-  final _allVillages = const [
-    {'id': 'village-rampura-01', 'name': 'Rampura'},
-    {'id': 'village-khed-02', 'name': 'Khed Buzurg'},
-    {'id': 'village-bhopal-03', 'name': 'Sundarpur'},
-  ];
 
   final _commonConditions = const [
     'Hypertension',
@@ -53,6 +51,24 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
   void initState() {
     super.initState();
     _householdController = TextEditingController(text: widget.initialHouseholdId ?? '');
+    // If a household ID is provided, inherit state, district, and village from existing household members
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final repo = context.read<HealthRepository>();
+      if (widget.initialHouseholdId != null) {
+        final existingMember = repo.patients
+            .where((p) => p.householdId == widget.initialHouseholdId)
+            .firstOrNull;
+        if (existingMember != null) {
+          setState(() {
+            _selectedState = existingMember.state ?? 'Uttar Pradesh';
+            _selectedDistrict = existingMember.district ?? 'Varanasi';
+            _villageName = existingMember.villageName;
+            _villageId = existingMember.villageId;
+          });
+        }
+      }
+    });
   }
 
   @override
@@ -64,7 +80,98 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     _householdController.dispose();
     _notesController.dispose();
     _passwordController.dispose();
+    _abhaController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showAddVillageDialog() async {
+    final textController = TextEditingController();
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.add_location_alt_rounded, color: AppColors.primary, size: 22),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Add New Village',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Add a new village to $_selectedDistrict, $_selectedState. It will be saved into the database and available across portals.',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: textController,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(
+                labelText: 'Village Name *',
+                hintText: 'e.g. Anandpur or Rampur Kalan',
+                prefixIcon: Icon(Icons.holiday_village_outlined),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              final val = textController.text.trim();
+              if (val.isNotEmpty) {
+                Navigator.pop(ctx, val);
+              }
+            },
+            child: const Text('Add & Select'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty && mounted) {
+      final repo = context.read<HealthRepository>();
+      await repo.addVillage(
+        name: result,
+        district: _selectedDistrict,
+        state: _selectedState,
+      );
+      setState(() {
+        _villageName = result;
+        _villageId = 'village-${result.toLowerCase().replaceAll(RegExp(r'\s+'), '-')}-${DateTime.now().millisecondsSinceEpoch % 1000}';
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.riskGreen,
+          content: Text('✓ Village "$result" added to $_selectedDistrict and database.'),
+        ),
+      );
+    }
   }
 
   Future<void> _submit() async {
@@ -121,6 +228,9 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
         chronicConditions: _selectedConditions,
         notes: _notesController.text.trim(),
         password: _passwordController.text.trim().isNotEmpty ? _passwordController.text.trim() : null,
+        abhaNumber: _abhaController.text.trim().isNotEmpty ? _abhaController.text.trim() : null,
+        district: _selectedDistrict,
+        state: _selectedState,
       );
 
       if (!mounted) return;
@@ -251,6 +361,17 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
+                    controller: _abhaController,
+                    decoration: const InputDecoration(
+                      labelText: 'ABHA ID / Health Number (Optional)',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                      hintText: '14-digit ABHA (e.g. 14-1234-5678-9012) or name@abdm',
+                      helperText: 'Displayed on Citizen Digital Health Card and OPD card',
+                      helperMaxLines: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     decoration: InputDecoration(
@@ -277,26 +398,118 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                 title: 'Village & Household',
                 icon: Icons.location_on_outlined,
                 children: [
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    value: _villageId,
-                    decoration: const InputDecoration(
-                      labelText: 'Assigned Village *',
-                      prefixIcon: Icon(Icons.home_work_outlined),
-                    ),
-                    items: _allVillages.map((v) {
-                      return DropdownMenuItem(
-                        value: v['id'],
-                        child: Text(v['name']!, overflow: TextOverflow.ellipsis),
-                      );
-                    }).toList(),
-                    onChanged: (v) {
-                      if (v != null) {
-                        setState(() {
-                          _villageId = v;
-                          _villageName = _allVillages.firstWhere((x) => x['id'] == v)['name']!;
-                        });
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: _selectedState,
+                          decoration: const InputDecoration(
+                            labelText: 'State *',
+                            prefixIcon: Icon(Icons.map_outlined),
+                          ),
+                          items: IndiaLocations.states.map((st) {
+                            return DropdownMenuItem(
+                              value: st,
+                              child: Text(st, overflow: TextOverflow.ellipsis),
+                            );
+                          }).toList(),
+                          onChanged: (v) {
+                            if (v != null && v != _selectedState) {
+                              setState(() {
+                                _selectedState = v;
+                                final districts = IndiaLocations.districtsOf(v);
+                                _selectedDistrict = districts.isNotEmpty ? districts.first : 'Varanasi';
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
+                          value: IndiaLocations.districtsOf(_selectedState).contains(_selectedDistrict)
+                              ? _selectedDistrict
+                              : (IndiaLocations.districtsOf(_selectedState).isNotEmpty
+                                  ? IndiaLocations.districtsOf(_selectedState).first
+                                  : null),
+                          decoration: const InputDecoration(
+                            labelText: 'District *',
+                            prefixIcon: Icon(Icons.location_city_outlined),
+                          ),
+                          items: IndiaLocations.districtsOf(_selectedState).map((dist) {
+                            return DropdownMenuItem(
+                              value: dist,
+                              child: Text(dist, overflow: TextOverflow.ellipsis),
+                            );
+                          }).toList(),
+                          onChanged: (v) {
+                            if (v != null) {
+                              setState(() => _selectedDistrict = v);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (ctx) {
+                      final repo = ctx.watch<HealthRepository>();
+                      final villages = repo.getVillagesFor(state: _selectedState, district: _selectedDistrict);
+                      if (!villages.contains(_villageName)) {
+                        if (villages.isNotEmpty) {
+                          _villageName = villages.first;
+                          _villageId = 'village-${_villageName.toLowerCase().replaceAll(RegExp(r'\s+'), '-')}';
+                        }
                       }
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              isExpanded: true,
+                              value: villages.contains(_villageName) ? _villageName : (villages.isNotEmpty ? villages.first : null),
+                              decoration: const InputDecoration(
+                                labelText: 'Assigned Village *',
+                                prefixIcon: Icon(Icons.home_work_outlined),
+                                helperText: 'Filtered by state & district',
+                              ),
+                              items: villages.map((vName) {
+                                return DropdownMenuItem(
+                                  value: vName,
+                                  child: Text(vName, overflow: TextOverflow.ellipsis),
+                                );
+                              }).toList(),
+                              onChanged: (v) {
+                                if (v != null) {
+                                  setState(() {
+                                    _villageName = v;
+                                    _villageId = 'village-${v.toLowerCase().replaceAll(RegExp(r'\s+'), '-')}';
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                                foregroundColor: AppColors.primary,
+                                side: const BorderSide(color: AppColors.primary),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              onPressed: _showAddVillageDialog,
+                              icon: const Icon(Icons.add_rounded, size: 18),
+                              label: const Text('+ Add Village', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                          ),
+                        ],
+                      );
                     },
                   ),
                   const SizedBox(height: 12),
