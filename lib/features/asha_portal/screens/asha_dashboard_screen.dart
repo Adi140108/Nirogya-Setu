@@ -13,7 +13,9 @@ import 'patient_detail_screen.dart';
 import 'asha_households_screen.dart';
 import 'asha_chatbot_screen.dart';
 import 'asha_issues_inbox_screen.dart';
+import '../../../core/services/app_locale.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
+import '../../shared/widgets/language_selector.dart';
 
 class AshaDashboardScreen extends StatefulWidget {
   const AshaDashboardScreen({super.key});
@@ -55,26 +57,26 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard_rounded),
-              label: 'Overview',
+              icon: const Icon(Icons.dashboard_outlined),
+              activeIcon: const Icon(Icons.dashboard_rounded),
+              label: context.watch<AppLocale>().t('overview'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.family_restroom_outlined),
-              activeIcon: Icon(Icons.family_restroom_rounded),
-              label: 'Households',
+              icon: const Icon(Icons.family_restroom_outlined),
+              activeIcon: const Icon(Icons.family_restroom_rounded),
+              label: context.watch<AppLocale>().t('households'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.smart_toy_outlined),
-              activeIcon: Icon(Icons.smart_toy_rounded),
-              label: 'Assistant',
+              icon: const Icon(Icons.smart_toy_outlined),
+              activeIcon: const Icon(Icons.smart_toy_rounded),
+              label: context.watch<AppLocale>().t('assistant'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.ondemand_video_outlined),
-              activeIcon: Icon(Icons.ondemand_video_rounded),
-              label: 'Health Hub',
+              icon: const Icon(Icons.ondemand_video_outlined),
+              activeIcon: const Icon(Icons.ondemand_video_rounded),
+              label: context.watch<AppLocale>().t('healthHub'),
             ),
           ],
         ),
@@ -120,6 +122,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
+          const LanguageSelector(),
+          const SizedBox(width: 4),
           IconButton(
             icon: Stack(
               clipBehavior: Clip.none,
@@ -213,7 +217,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_chart_rounded),
-        label: const Text('New Screening', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(context.watch<AppLocale>().t('newScreening'), style: TextStyle(fontWeight: FontWeight.bold)),
         onPressed: () {
           Navigator.push(
             context,
@@ -230,13 +234,14 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     required int activeReferralCount,
     required int pendingFollowUps,
   }) {
+    final locale = context.watch<AppLocale>();
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: _buildMetricCard(
-                'Assigned Citizens',
+                locale.t('assignedCitizens'),
                 '$citizenCount',
                 Icons.people_alt_outlined,
                 AppColors.primary,
@@ -246,7 +251,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: _buildMetricCard(
-                'Screenings Done',
+                locale.t('screeningsDone'),
                 '$screeningCount',
                 Icons.checklist_rounded,
                 const Color(0xFF0288D1),
@@ -260,7 +265,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           children: [
             Expanded(
               child: _buildMetricCard(
-                'Active Referrals',
+                locale.t('activeReferrals'),
                 '$activeReferralCount',
                 Icons.outgoing_mail,
                 AppColors.secondary,
@@ -270,7 +275,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: _buildMetricCard(
-                'Follow-ups Due',
+                locale.t('followUpsDue'),
                 '$pendingFollowUps',
                 Icons.schedule_rounded,
                 AppColors.riskYellow,
@@ -328,9 +333,9 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
-            label: const FittedBox(
+            label: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text('Register Citizen', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              child: Text(context.watch<AppLocale>().t('registerCitizen'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             ),
             onPressed: () {
               Navigator.push(
@@ -350,9 +355,9 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             icon: const Icon(Icons.ondemand_video_rounded, size: 16),
-            label: const FittedBox(
+            label: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Text('Awareness Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              child: Text(context.watch<AppLocale>().t('awarenessHub'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
             ),
             onPressed: () {
               Navigator.push(
@@ -373,16 +378,16 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
       children: [
         Row(
           children: [
-            const Text(
-              'Assigned Citizens',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            Text(
+              context.watch<AppLocale>().t('assignedCitizens'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
             ),
             const Spacer(),
             DropdownButton<String>(
               value: _selectedVillageFilter,
               underline: const SizedBox.shrink(),
               items: villages.map((v) {
-                return DropdownMenuItem(value: v, child: Text(v, style: const TextStyle(fontSize: 12)));
+                return DropdownMenuItem(value: v, child: Text(v == 'All' ? context.watch<AppLocale>().t('all') : v, style: const TextStyle(fontSize: 12)));
               }).toList(),
               onChanged: (val) {
                 if (val != null) setState(() => _selectedVillageFilter = val);
@@ -393,7 +398,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         const SizedBox(height: 8),
         TextField(
           decoration: InputDecoration(
-            hintText: 'Search by name, phone or village...',
+            hintText: context.watch<AppLocale>().t('searchCitizen'),
             prefixIcon: const Icon(Icons.search_rounded, size: 20),
             filled: true,
             fillColor: Colors.white,
@@ -418,10 +423,10 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
-        child: const Center(
+        child: Center(
           child: Text(
-            'No citizens found matching query.',
-            style: TextStyle(color: AppColors.textSecondary),
+            context.watch<AppLocale>().t('noCitizensFound'),
+            style: const TextStyle(color: AppColors.textSecondary),
           ),
         ),
       );
@@ -469,11 +474,11 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 if (p.isPregnant)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
                     child: Text(
-                      'Antenatal Care Active',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.riskYellow),
+                      context.watch<AppLocale>().t('antenatalCareActive'),
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.riskYellow),
                     ),
                   ),
               ],

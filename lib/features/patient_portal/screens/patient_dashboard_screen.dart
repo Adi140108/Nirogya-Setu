@@ -12,6 +12,8 @@ import '../../shared/widgets/priority_badge.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
 import 'raise_issue_screen.dart';
+import '../../../core/services/app_locale.dart';
+import '../../shared/widgets/language_selector.dart';
 
 class PatientDashboardScreen extends StatefulWidget {
   const PatientDashboardScreen({super.key});
@@ -112,26 +114,26 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.badge_outlined),
-              activeIcon: Icon(Icons.badge_rounded),
-              label: 'Health Card',
+              icon: const Icon(Icons.badge_outlined),
+              activeIcon: const Icon(Icons.badge_rounded),
+              label: context.watch<AppLocale>().t('healthCard'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.assessment_outlined),
-              activeIcon: Icon(Icons.assessment_rounded),
-              label: 'Records',
+              icon: const Icon(Icons.assessment_outlined),
+              activeIcon: const Icon(Icons.assessment_rounded),
+              label: context.watch<AppLocale>().t('records'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.medication_outlined),
-              activeIcon: Icon(Icons.medication_rounded),
-              label: 'Prescriptions',
+              icon: const Icon(Icons.medication_outlined),
+              activeIcon: const Icon(Icons.medication_rounded),
+              label: context.watch<AppLocale>().t('prescriptions'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.ondemand_video_outlined),
-              activeIcon: Icon(Icons.ondemand_video_rounded),
-              label: 'Health Hub',
+              icon: const Icon(Icons.ondemand_video_outlined),
+              activeIcon: const Icon(Icons.ondemand_video_rounded),
+              label: context.watch<AppLocale>().t('healthHub'),
             ),
           ],
         ),
@@ -173,6 +175,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         ],
       ),
       actions: [
+        const LanguageSelector(),
+        const SizedBox(width: 4),
         IconButton(
           icon: const Icon(Icons.volume_up_outlined, color: Color(0xFF334155)),
           tooltip: 'Voice Guidance',

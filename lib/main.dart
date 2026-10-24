@@ -11,6 +11,7 @@ import 'core/services/health_repository.dart';
 import 'core/services/offline_video_manager.dart';
 import 'core/services/admin_repository.dart';
 import 'core/services/health_video_download_manager.dart';
+import 'core/services/app_locale.dart';
 import 'core/sync/offline_sync_manager.dart';
 
 import 'features/asha_portal/screens/asha_dashboard_screen.dart';
@@ -53,6 +54,7 @@ void main() async {
         ChangeNotifierProvider<OfflineSyncManager>.value(value: syncManager),
         ChangeNotifierProvider<AdminRepository>.value(value: adminRepo),
         ChangeNotifierProvider<HealthVideoDownloadManager>.value(value: healthVideoDownloads),
+        ChangeNotifierProvider<AppLocale>(create: (_) => AppLocale()),
       ],
       child: const AarogyaSetuApp(),
     ),

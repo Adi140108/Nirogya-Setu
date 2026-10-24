@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../core/services/app_locale.dart';
 import '../../auth/screens/role_selection_screen.dart';
+import '../widgets/language_selector.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -104,6 +107,13 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         children: [
                           const Spacer(flex: 2),
 
+                          // Language selector (top-right)
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: LanguageSelector(dark: true),
+                          ),
+                          const SizedBox(height: 8),
+
                           // Animated App Emblem & Title
                           ScaleTransition(
                             scale: _scaleAnimation,
@@ -163,14 +173,16 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                   const SizedBox(height: 6),
 
                                   // Tagline
-                                  const Text(
-                                    'Healthy Communities. Brighter Tomorrow.',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF334155),
-                                      letterSpacing: 0.2,
+                                  Builder(
+                                    builder: (context) => Text(
+                                      context.watch<AppLocale>().t('tagline'),
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF334155),
+                                        letterSpacing: 0.2,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -201,12 +213,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Text(
-                                          'Log In to Continue',
-                                          style: TextStyle(
+                                          context.watch<AppLocale>().t('loginToContinue'),
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.bold,
                                             letterSpacing: 0.3,

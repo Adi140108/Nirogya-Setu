@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/patient_model.dart';
 import '../../../core/services/health_repository.dart';
+import '../../../core/services/app_locale.dart';
 import 'register_villager_screen.dart';
 import 'patient_detail_screen.dart';
 import 'village_household_map_screen.dart';
@@ -152,12 +153,12 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Village Households',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    Text(
+                      context.watch<AppLocale>().t('villageHouseholds'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                     ),
                     Text(
-                      '${householdsMap.length} Families',
+                      '${householdsMap.length} ${context.watch<AppLocale>().t('families')}',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
                     ),
                   ],
@@ -165,7 +166,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                 const SizedBox(height: 10),
                 TextField(
                   decoration: InputDecoration(
-                    hintText: 'Search by Household ID, family member or village...',
+                    hintText: context.watch<AppLocale>().t('searchHouseholds'),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     filled: true,
                     fillColor: const Color(0xFFF1F5F9),
@@ -187,10 +188,10 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
 
           Expanded(
             child: filteredHouseholds.isEmpty
-                ? const Center(
+                ? Center(
                     child: Text(
-                      'No matching households found.',
-                      style: TextStyle(color: Color(0xFF64748B)),
+                      context.watch<AppLocale>().t('noHouseholdsFound'),
+                      style: const TextStyle(color: Color(0xFF64748B)),
                     ),
                   )
                 : ListView.builder(

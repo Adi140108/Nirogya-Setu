@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/services/app_locale.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
@@ -174,9 +175,9 @@ class _AuthScreenState extends State<AuthScreen> {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            const Text(
-                              'PORTAL LOGIN',
-                              style: TextStyle(
+                            Text(
+                              context.watch<AppLocale>().t('portalLogin'),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
                                 color: Color(0xFF475569),
@@ -253,7 +254,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                       // Input Fields
                       _buildInputField(
-                        label: 'Mobile Number',
+                        label: context.watch<AppLocale>().t('mobileNumber'),
                         hint: 'e.g. +91 98765 43210',
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
@@ -262,7 +263,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 16),
 
                       _buildInputField(
-                        label: 'Password',
+                        label: context.watch<AppLocale>().t('password'),
                         hint: '••••••••',
                         controller: _passwordController,
                         isPassword: true,
@@ -293,9 +294,9 @@ class _AuthScreenState extends State<AuthScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Text(
-                                'Log In',
-                                style: TextStyle(
+                            : Text(
+                                context.watch<AppLocale>().t('login'),
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.3,
@@ -341,14 +342,14 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             backgroundColor: Colors.white.withOpacity(0.5),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.ondemand_video_rounded, size: 20, color: Color(0xFF0F766E)),
-                              SizedBox(width: 8),
+                              const Icon(Icons.ondemand_video_rounded, size: 20, color: Color(0xFF0F766E)),
+                              const SizedBox(width: 8),
                               Text(
-                                'Skip → Watch Health Videos',
-                                style: TextStyle(
+                                context.watch<AppLocale>().t('skipWatch'),
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 0.2,

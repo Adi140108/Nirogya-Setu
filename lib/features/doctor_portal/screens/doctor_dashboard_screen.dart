@@ -11,7 +11,9 @@ import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
 import '../../awareness_hub/screens/awareness_hub_screen.dart';
 import 'doctor_review_screen.dart';
+import '../../../core/services/app_locale.dart';
 import '../../shared/widgets/sign_out_dialog.dart';
+import '../../shared/widgets/language_selector.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -64,26 +66,26 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
-          items: const [
+          items: [
             BottomNavigationBarItem(
-              icon: Icon(Icons.emergency_outlined),
-              activeIcon: Icon(Icons.emergency_rounded),
-              label: 'Triage Queue',
+              icon: const Icon(Icons.emergency_outlined),
+              activeIcon: const Icon(Icons.emergency_rounded),
+              label: context.watch<AppLocale>().t('triageQueue'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.task_alt_outlined),
-              activeIcon: Icon(Icons.task_alt_rounded),
-              label: 'Consulted',
+              icon: const Icon(Icons.task_alt_outlined),
+              activeIcon: const Icon(Icons.task_alt_rounded),
+              label: context.watch<AppLocale>().t('consulted'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.analytics_outlined),
-              activeIcon: Icon(Icons.analytics_rounded),
-              label: 'Analytics',
+              icon: const Icon(Icons.analytics_outlined),
+              activeIcon: const Icon(Icons.analytics_rounded),
+              label: context.watch<AppLocale>().t('analytics'),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.ondemand_video_outlined),
-              activeIcon: Icon(Icons.ondemand_video_rounded),
-              label: 'Health Hub',
+              icon: const Icon(Icons.ondemand_video_outlined),
+              activeIcon: const Icon(Icons.ondemand_video_rounded),
+              label: context.watch<AppLocale>().t('healthHub'),
             ),
           ],
         ),
@@ -109,6 +111,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       backgroundColor: AppColors.roleDoctor,
       foregroundColor: Colors.white,
       actions: [
+        const LanguageSelector(),
+        const SizedBox(width: 4),
         IconButton(
           icon: const Icon(Icons.volume_up_outlined),
           tooltip: 'Voice Guidance',
@@ -184,11 +188,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildCountCard('Red Urgent', '$redCount', AppColors.riskRed, AppColors.riskRedSurface),
+                            child: _buildCountCard(context.watch<AppLocale>().t('redUrgent'), '$redCount', AppColors.riskRed, AppColors.riskRedSurface),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: _buildCountCard('Yellow Mod.', '$yellowCount', AppColors.riskYellow, AppColors.riskYellowSurface),
+                            child: _buildCountCard(context.watch<AppLocale>().t('yellowMod'), '$yellowCount', AppColors.riskYellow, AppColors.riskYellowSurface),
                           ),
                         ],
                       ),
@@ -196,11 +200,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildCountCard('Pending Review', '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
+                            child: _buildCountCard(context.watch<AppLocale>().t('pendingReview'), '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: _buildCountCard('Consulted', '$consultedCount', AppColors.riskGreen, AppColors.riskGreenSurface),
+                            child: _buildCountCard(context.watch<AppLocale>().t('consulted'), '$consultedCount', AppColors.riskGreen, AppColors.riskGreenSurface),
                           ),
                         ],
                       ),

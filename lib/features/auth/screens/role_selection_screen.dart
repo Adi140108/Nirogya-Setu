@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/services/app_locale.dart';
+import '../../shared/widgets/language_selector.dart';
 import 'auth_screen.dart';
 import '../../admin_portal/screens/admin_login_screen.dart';
 
@@ -32,8 +35,10 @@ class RoleSelectionScreen extends StatelessWidget {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final t = context.watch<AppLocale>().t;
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -78,49 +83,48 @@ class RoleSelectionScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    InkWell(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFF0284C7).withOpacity(0.35),
-                            width: 1.2,
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF0284C7).withOpacity(0.08),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.admin_panel_settings_outlined,
-                              size: 16,
-                              color: Color(0xFF0284C7),
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Admin',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0xFF0284C7).withOpacity(0.35),
+                                width: 1.2,
                               ),
                             ),
-                          ],
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.admin_panel_settings_outlined,
+                                  size: 16,
+                                  color: Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  t('admin'),
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        const LanguageSelector(dark: true),
+                      ],
                     ),
                   ],
                 ),
@@ -129,9 +133,9 @@ class RoleSelectionScreen extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Title & Subtitle
-              const Text(
-                'Select Your Role',
-                style: TextStyle(
+              Text(
+                context.watch<AppLocale>().t('selectRole'),
+                style: const TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
                   color: Color(0xFF0F172A),
@@ -139,9 +143,9 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              const Text(
-                'Choose your role to log in',
-                style: TextStyle(
+              Text(
+                context.watch<AppLocale>().t('chooseRole'),
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Color(0xFF64748B),
@@ -164,8 +168,8 @@ class RoleSelectionScreen extends StatelessWidget {
                             child: _buildCompactRoleCard(
                               context: context,
                               role: UserRole.asha,
-                              title: 'ASHA Worker',
-                              subtitle: 'Screening & field vitals',
+                              title: t('ashaWorker'),
+                              subtitle: t('ashaSub'),
                               icon: Icons.health_and_safety_rounded,
                               badgeColor: const Color(0xFFBAE6FD),
                               iconColor: const Color(0xFF0284C7),
@@ -176,8 +180,8 @@ class RoleSelectionScreen extends StatelessWidget {
                             child: _buildCompactRoleCard(
                               context: context,
                               role: UserRole.doctor,
-                              title: 'Doctor',
-                              subtitle: 'Clinical review & triage',
+                              title: t('doctor'),
+                              subtitle: t('doctorSub'),
                               icon: Icons.medical_services_rounded,
                               badgeColor: const Color(0xFFDDD6FE),
                               iconColor: const Color(0xFF7C3AED),
@@ -192,8 +196,8 @@ class RoleSelectionScreen extends StatelessWidget {
                       _buildWideRoleCard(
                         context: context,
                         role: UserRole.patient,
-                        title: 'Continue as Citizen',
-                        subtitle: 'Access personal health records & community awareness videos',
+                        title: t('citizen'),
+                        subtitle: t('citizenSub'),
                         icon: Icons.groups_rounded,
                         badgeColor: const Color(0xFFBBF7D0),
                         iconColor: const Color(0xFF16A34A),

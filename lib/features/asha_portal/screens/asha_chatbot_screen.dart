@@ -1,8 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/app_locale.dart';
 
 class ChatMessage {
   final String text;
@@ -30,7 +36,12 @@ class AshaChatbotScreen extends StatefulWidget {
 class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   final List<ChatMessage> _messages = [
     ChatMessage(
-      text: "Hello! I am your Aarogya Setu Clinical Assistant. I can guide you on ICMR rural triage rules, maternal warning signs, child health protocols, and emergency referrals. How can I assist your field screening today?",
+      text: "Namaste! I am your ASHA Clinical Assistant (powered by Qwen on Groq). I operate strictly within 4 clinical criteria:\n"
+          "1. Patient symptom assessment & triage\n"
+          "2. Basic ASHA-administerable medicines\n"
+          "3. Professional Doctor Referral recommendation (Green / Yellow / Red)\n"
+          "4. Specific specialist & pre-referral requirements\n"
+          "Please enter the patient's symptoms and vital signs to begin.",
       isUser: false,
       timestamp: DateTime.now(),
       isOffline: true,
@@ -38,9 +49,86 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   ];
 
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
-  String? _groqApiKey;
+  static const String _defaultGroqApiKey = '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';
+  String? _groqApiKey = _defaultGroqApiKey;
+  String _selectedModel = 'qwen/qwen3.8-27b';
+
+  // Voice: speech-to-text for asking, TTS for spoken replies.
+  final SpeechToText _speech = SpeechToText();
+  final FlutterTts _tts = FlutterTts();
+  bool _speechAvailable = false;
+  bool _isListening = false;
+  bool _speakReplies = true;
+  Timer? _silenceTimer;
+
+  /// Chat language is INDEPENDENT of the app-wide language. Maps chat
+  /// language code -> speech locale (STT + TTS) and prompt instruction.
+  static const Map<String, String> _chatLanguages = {
+    'en': 'English',
+    'hi': 'हिन्दी (Hindi)',
+    'kn': 'ಕನ್ನಡ (Kannada)',
+    'ta': 'தமிழ் (Tamil)',
+    'te': 'తెలుగు (Telugu)',
+    'bn': 'বাংলা (Bengali)',
+    'mr': 'मराठी (Marathi)',
+  };
+  static const Map<String, String> _speechLocales = {
+    'en': 'en-IN',
+    'hi': 'hi-IN',
+    'kn': 'kn-IN',
+    'ta': 'ta-IN',
+    'te': 'te-IN',
+    'bn': 'bn-IN',
+    'mr': 'mr-IN',
+  };
+  static const Map<String, String> _promptLanguageNames = {
+    'en': 'English language',
+    'hi': 'Hindi language using Devanagari script (हिन्दी)',
+    'kn': 'Kannada language using Kannada script (ಕನ್ನಡ)',
+    'ta': 'Tamil language using Tamil script (தமிழ்)',
+    'te': 'Telugu language using Telugu script (తెలుగు)',
+    'bn': 'Bengali language using Bengali script (বাংলা)',
+    'mr': 'Marathi language using Devanagari script (मराठी)',
+  };
+  String _chatLanguage = 'en';
+
+  /// Cloud models available on Groq for the clinical assistant.
+  /// Qwen models are prioritized for cloud inference via Groq API.
+  static const Map<String, String> _modelChoices = {
+    'qwen/qwen3.8-27b': 'Qwen 3.8 27B (Alibaba - Active)',
+    'openai/gpt-oss-20b': 'GPT-OSS 20B (OpenAI)',
+    'openai/gpt-oss-120b': 'GPT-OSS 120B (OpenAI)',
+  };
+
+  /// Strict criteria scope: the assistant ONLY assists ASHA workers with:
+  /// 1. Preliminary Diagnosis & symptom triage
+  /// 2. Basic ASHA-level OTC medicines
+  /// 3. Doctor escalation decision (Green/Yellow/Red)
+  /// 4. Requirements & Specialist needed when escalation is required.
+  /// Any query outside these criteria must be strictly declined.
+  static const String _systemPrompt =
+      'You are the Aarogya Setu ASHA Clinical AI Assistant powered by Qwen on Groq cloud inference. '
+      'Your sole responsibility is to assist accredited ASHA healthcare workers in assessing patients in rural communities.\n\n'
+      'STRICT BOUNDARIES: You must answer ONLY within the following 4 clinical criteria and NOTHING ELSE:\n'
+      '1. PRELIMINARY DIAGNOSIS ASSISTANCE: Analyze symptoms and vitals (BP, SpO2, pulse, temp, blood sugar). List likely health conditions and flag critical danger signs based on ICMR / National Health Mission protocols.\n'
+      '2. BASIC MEDICINES: Recommend ONLY basic, ASHA-dispensable, over-the-counter medicines (such as Paracetamol, ORS, Zinc, Iron & Folic Acid, antacids, or simple antihistamines) with clear, simple dosing instructions. NEVER suggest restricted, prescription-only, or injectable medications.\n'
+      '3. ESCALATION DECISION: Clearly state whether the patient needs to be raised to a professional doctor: '
+      'GREEN (stable, manage locally & monitor at home), YELLOW (refer to PHC Medical Officer within 24-48 hours), or RED (immediate emergency escalation to CHC or District Hospital via 108 ambulance).\n'
+      '4. REFERRAL REQUIREMENTS & SPECIALIST NEEDED: When escalation to a doctor is required, explicitly state: '
+      '(a) Exactly what is needed prior to referral (e.g., recorded vitals, urine test, fasting blood sugar, transport arrangement, hydration during transit), and '
+      '(b) The specific type of medical specialist required (e.g., Obstetrician/Gynecologist, Pediatrician, General Physician, Cardiologist, Neurologist, Surgeon).\n\n'
+      'REFUSAL RULE: If the user query is not about patient symptoms, diagnosis, basic medicines, or medical referral (for example: coding, chit-chat, news, politics, homework, or general non-patient topics), you must REFUSE immediately with only this sentence: '
+      '"I am restricted to assisting ASHA workers solely with patient diagnosis, basic medicines, and doctor referral guidance."\n\n'
+      'FORMATTING RULE: Always structure clinical responses with clear, concise bullet points under: '
+      '• Likely Assessment\n'
+      '• Danger Signs to Watch\n'
+      '• Basic Medicine Guidance\n'
+      '• Doctor Referral Level (Green / Yellow / Red)\n'
+      '• Requirements & Specialist Required (if referral needed)\n'
+      'Keep answers concise, direct, practical, and under 200 words. You are an assistant to aid triage; always urge doctor evaluation whenever condition is ambiguous or severe.';
 
   final List<String> _suggestedPrompts = [
     "Danger signs in pregnancy (ANC)",
@@ -54,18 +142,158 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
   void initState() {
     super.initState();
     _loadGroqApiKey();
+    _initVoice();
+  }
+
+  @override
+  void dispose() {
+    _silenceTimer?.cancel();
+    _tts.stop();
+    _speech.stop();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initVoice() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _speakReplies = prefs.getBool('chat_speak_replies') ?? true;
+      _chatLanguage = prefs.getString('chat_language') ?? _chatLanguage;
+    });
+    try {
+      await _tts.setLanguage(_speechLocales[_chatLanguage] ?? 'en-IN');
+      // Increased speech rate for faster responses (1.25)
+      await _tts.setSpeechRate(1.25);
+    } catch (_) {}
+    try {
+      _speechAvailable = await _speech.initialize();
+    } catch (_) {
+      _speechAvailable = false; // mic unsupported or denied
+    }
+  }
+
+  void _syncWithAppLocale(String appLocaleCode) {
+    if (_chatLanguages.containsKey(appLocaleCode) && _chatLanguage != appLocaleCode) {
+      _chatLanguage = appLocaleCode;
+      _tts.setLanguage(_speechLocales[appLocaleCode] ?? 'en-IN');
+      _tts.setSpeechRate(1.25);
+    }
+  }
+
+  Future<void> _setChatLanguage(String code) async {
+    setState(() => _chatLanguage = code);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('chat_language', code);
+    try {
+      await _tts.setLanguage(_speechLocales[code] ?? 'en-IN');
+      await _tts.setSpeechRate(1.25);
+    } catch (_) {}
+  }
+
+  Future<void> _toggleSpeakReplies(bool value) async {
+    setState(() => _speakReplies = value);
+    if (!value) await _tts.stop();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('chat_speak_replies', value);
+  }
+
+  Future<void> _speak(String text) async {
+    if (!_speakReplies) return;
+    try {
+      await _tts.setLanguage(_speechLocales[_chatLanguage] ?? 'en-IN');
+      await _tts.setSpeechRate(1.25);
+      await _tts.speak(text);
+    } catch (_) {}
+  }
+
+  void _resetSilenceTimer() {
+    _silenceTimer?.cancel();
+    _silenceTimer = Timer(const Duration(seconds: 4), () {
+      if (_isListening) {
+        _stopListening();
+        final text = _textController.text.trim();
+        if (mounted && text.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Mic turned off (no speech detected for 4 seconds)'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else if (text.isNotEmpty) {
+          _sendMessage(text);
+        }
+      }
+    });
+  }
+
+  void _startListening() {
+    if (!_speechAvailable) {
+      final label = Provider.of<AppLocale?>(context, listen: false)?.t('tapToSpeak') ?? 'Tap to speak';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$label — mic unavailable')),
+      );
+      return;
+    }
+    _tts.stop();
+    setState(() => _isListening = true);
+
+    // Automatically turn off listening if no voice input is detected within 4 seconds
+    _resetSilenceTimer();
+
+    _speech.listen(
+      localeId: _speechLocales[_chatLanguage] ?? 'en-IN',
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 4),
+      onResult: (result) {
+        // Any voice input detected resets the 4-second countdown
+        _resetSilenceTimer();
+
+        setState(() {
+          _textController.text = result.recognizedWords;
+          _textController.selection = TextSelection.fromPosition(
+            TextPosition(offset: _textController.text.length),
+          );
+        });
+        if (result.finalResult) {
+          final recognized = result.recognizedWords.trim();
+          _stopListening();
+          if (recognized.isNotEmpty) {
+            _sendMessage(recognized);
+          }
+        }
+      },
+    );
+  }
+
+  void _stopListening() {
+    _silenceTimer?.cancel();
+    _silenceTimer = null;
+    try {
+      _speech.stop();
+    } catch (_) {}
+    if (mounted && _isListening) {
+      setState(() => _isListening = false);
+    }
   }
 
   Future<void> _loadGroqApiKey() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _groqApiKey = prefs.getString('groq_api_key');
+      final saved = prefs.getString('groq_api_key');
+      _groqApiKey = (saved != null && saved.trim().isNotEmpty) ? saved.trim() : _defaultGroqApiKey;
+      final savedModel = prefs.getString('assistant_model');
+      if (savedModel != null && _modelChoices.containsKey(savedModel)) {
+        _selectedModel = savedModel;
+      } else {
+        _selectedModel = 'qwen/qwen3.8-27b';
+      }
     });
   }
 
   Future<void> _saveGroqApiKey(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('groq_api_key', key.trim());
+    await prefs.setString('assistant_model', _selectedModel);
     setState(() {
       _groqApiKey = key.trim().isEmpty ? null : key.trim();
     });
@@ -87,7 +315,17 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
     final clean = text.trim();
     if (clean.isEmpty) return;
 
+    // Immediately stop mic if still recording to prevent duplicate event dispatch
+    if (_isListening) {
+      _stopListening();
+    }
+
+    // Immediately clear input controller so repeated clicks or enters don't send twice
     _textController.clear();
+
+    // Prevent duplicate duplicate submission while already processing
+    if (_isLoading) return;
+
     setState(() {
       _messages.add(ChatMessage(text: clean, isUser: true, timestamp: DateTime.now()));
       _isLoading = true;
@@ -96,7 +334,7 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
 
     try {
       if (_groqApiKey != null && _groqApiKey!.isNotEmpty) {
-        // Online inference via Groq
+        // Cloud inference via Groq (Gemma / Qwen / Llama)
         final answer = await _queryGroq(clean);
         setState(() {
           _messages.add(ChatMessage(
@@ -106,6 +344,7 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
             isOffline: false,
           ));
         });
+        _speak(answer);
       } else {
         // Offline clinical decision knowledge engine
         final answer = _queryOfflineKnowledge(clean);
@@ -119,11 +358,12 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
         });
       }
     } catch (e) {
-      // Fallback to offline engine upon any network error
+      debugPrint('Groq API Error: $e');
+      // Fallback to offline engine upon network or API error
       final fallback = _queryOfflineKnowledge(clean);
       setState(() {
         _messages.add(ChatMessage(
-          text: "$fallback\n\n*(Note: Switched to offline clinical protocols due to network)*",
+          text: "$fallback\n\n*(Note: Switched to offline clinical protocols — $e)*",
           isUser: false,
           timestamp: DateTime.now(),
           isOffline: true,
@@ -137,6 +377,12 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
 
   Future<String> _queryGroq(String query) async {
     final url = Uri.parse('https://api.groq.com/openai/v1/chat/completions');
+    final selectedLang = _promptLanguageNames[_chatLanguage] ?? 'English language';
+    final languageDirective =
+        'CRITICAL LANGUAGE REQUIREMENT: You MUST write your ENTIRE response exclusively in $selectedLang. '
+        'Do NOT answer in English unless the selected language is English. '
+        'Every single word, diagnosis, and instruction must be translated and written in $selectedLang.';
+
     final response = await http.post(
       url,
       headers: {
@@ -144,17 +390,23 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
         'Authorization': 'Bearer $_groqApiKey',
       },
       body: jsonEncode({
-        'model': 'llama-3.3-70b-versatile',
+        'model': _selectedModel,
         'messages': [
           {
             'role': 'system',
-            'content': 'You are the Aarogya Setu ASHA Clinical Decision Assistant. You provide practical, evidence-based guidance for rural community health workers following National Health Mission and ICMR standards. Keep answers direct, bulleted, highlight red-flag emergency symptoms, and specify whether referral should be routine (Green), priority PHC (Yellow), or immediate emergency (Red).'
+            'content': '$languageDirective\n\n$_systemPrompt\n\nREMINDER: $languageDirective',
           },
-          ..._messages.take(6).map((m) => {
-            'role': m.isUser ? 'user' : 'assistant',
-            'content': m.text,
-          }),
-          {'role': 'user', 'content': query}
+          ..._messages
+              .skip(1)
+              .take(6)
+              .map((m) => {
+                'role': m.isUser ? 'user' : 'assistant',
+                'content': m.text,
+              }),
+          {
+            'role': 'user',
+            'content': '$query\n\n[Respond completely in $selectedLang only]',
+          }
         ],
         'temperature': 0.3,
         'max_tokens': 600,
@@ -166,7 +418,7 @@ class _AshaChatbotScreenState extends State<AshaChatbotScreen> {
       final content = data['choices']?[0]?['message']?['content'];
       if (content != null) return content.toString().trim();
     }
-    throw Exception('Groq API error: ${response.statusCode}');
+    throw Exception('Groq API error (${response.statusCode}): ${response.body}');
   }
 
   String _queryOfflineKnowledge(String query) {
@@ -257,12 +509,13 @@ IMPORTANT: Never withhold breastmilk or food.""";
               Text('Assistant Settings', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               const Text(
-                'Enter Groq API Key for real-time cloud LLM responses (Llama 3.3 70B).',
+                'Enter a free Groq API Key (console.groq.com) to enable the AI assistant, and pick the model.',
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 12),
@@ -275,12 +528,57 @@ IMPORTANT: Never withhold breastmilk or food.""";
                   prefixIcon: Icon(Icons.key_rounded),
                 ),
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _modelChoices.containsKey(_selectedModel) ? _selectedModel : _modelChoices.keys.first,
+                decoration: const InputDecoration(
+                  labelText: 'AI Model',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.smart_toy_rounded),
+                ),
+                items: _modelChoices.entries
+                    .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 13))))
+                    .toList(),
+                onChanged: (v) => _selectedModel = v ?? _selectedModel,
+              ),
+              const SizedBox(height: 12),
+              // Chat language — independent of the app-wide language
+              DropdownButtonFormField<String>(
+                initialValue: _chatLanguage,
+                decoration: const InputDecoration(
+                  labelText: 'Chat Language (speech & replies)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.translate_rounded),
+                ),
+                items: _chatLanguages.entries
+                    .map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(fontSize: 13))))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) _setChatLanguage(v);
+                },
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                dense: true,
+                title: const Text('Speak replies aloud', style: TextStyle(fontSize: 13)),
+                secondary: const Icon(Icons.volume_up_rounded, color: AppColors.primary),
+                value: _speakReplies,
+                onChanged: _toggleSpeakReplies,
+              ),
               const SizedBox(height: 8),
               const Text(
-                '• If empty, the assistant uses local ICMR offline protocols.\n• No internet required for offline clinical rules.',
+                '• Powered by Qwen on Groq Cloud inference (free key at console.groq.com).\n'
+                '• The assistant is strictly restricted to:\n'
+                '  1) Diagnosis & symptom triage\n'
+                '  2) Basic ASHA OTC medicines\n'
+                '  3) Raising to a professional doctor if needed\n'
+                '  4) Specific doctor specialist & preparation requirements\n'
+                '• Never hardcoded: keys & models are stored securely in local device preferences.\n'
+                '• If no key is set, the offline ICMR triage protocol engine is used as fallback.',
                 style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
               ),
             ],
+          ),
           ),
           actions: [
             TextButton(
@@ -300,7 +598,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                     SnackBar(
                       content: Text(
                         controller.text.trim().isNotEmpty
-                            ? '✓ Groq API Key saved. Online Llama 3.3 active.'
+                            ? '✓ API key saved. ${_modelChoices[_selectedModel] ?? 'AI model'} active.'
                             : '✓ Using offline ICMR clinical knowledge engine.',
                       ),
                     ),
@@ -317,20 +615,25 @@ IMPORTANT: Never withhold breastmilk or food.""";
 
   @override
   Widget build(BuildContext context) {
+    final appLocale = Provider.of<AppLocale?>(context, listen: true);
+    if (appLocale != null) {
+      _syncWithAppLocale(appLocale.code);
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         automaticallyImplyLeading: !widget.isEmbedded,
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Aarogya Setu',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
             Text(
-              'ASHA Clinical Assistant',
-              style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
+              appLocale?.t('clinicalAssistant') ?? 'ASHA Clinical Assistant',
+              style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
             ),
           ],
         ),
@@ -341,26 +644,58 @@ IMPORTANT: Never withhold breastmilk or food.""";
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: _groqApiKey != null ? const Color(0xFF065F46) : const Color(0xFF0F766E),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF6EE7B7)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _groqApiKey != null ? Icons.bolt_rounded : Icons.offline_pin_rounded,
-                    size: 12,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _groqApiKey != null ? 'Groq Llama' : 'Offline Engine',
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ],
-              ),
+              color: _groqApiKey != null ? const Color(0xFF065F46) : const Color(0xFF0F766E),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFF6EE7B7)),
             ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _groqApiKey != null ? Icons.smart_toy_rounded : Icons.offline_pin_rounded,
+                  size: 12,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _groqApiKey != null
+                      ? (_modelChoices[_selectedModel] ?? 'AI').split(' ').first
+                      : 'Offline Engine',
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
+            ),
+            ),
+          ),
+          // Speak replies on/off
+          IconButton(
+            icon: Icon(
+              _speakReplies ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+              color: _speakReplies ? const Color(0xFF6EE7B7) : Colors.white70,
+            ),
+            tooltip: 'Speak replies aloud',
+            onPressed: () => _toggleSpeakReplies(!_speakReplies),
+          ),
+          // Chat language (independent of app language)
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.translate_rounded, color: Colors.white),
+            tooltip: 'Chat Language',
+            onSelected: _setChatLanguage,
+            itemBuilder: (_) => _chatLanguages.entries
+                .map((e) => PopupMenuItem(
+                      value: e.key,
+                      child: Row(
+                        children: [
+                          if (e.key == _chatLanguage)
+                            const Icon(Icons.check_rounded, size: 16, color: AppColors.primary)
+                          else
+                            const SizedBox(width: 16),
+                          const SizedBox(width: 8),
+                          Text(e.value, style: const TextStyle(fontSize: 13)),
+                        ],
+                      ),
+                    ))
+                .toList(),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -372,25 +707,36 @@ IMPORTANT: Never withhold breastmilk or food.""";
       body: Column(
         children: [
           // Suggested Query Chips
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            color: Colors.white,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: _suggestedPrompts.map((p) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ActionChip(
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      label: Text(p, style: const TextStyle(fontSize: 11, color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
-                      onPressed: () => _sendMessage(p),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
+          Builder(
+            builder: (context) {
+              final prompts = [
+                appLocale?.t('chipPregnancy') ?? _suggestedPrompts[0],
+                appLocale?.t('chipHypertension') ?? _suggestedPrompts[1],
+                appLocale?.t('chipDehydration') ?? _suggestedPrompts[2],
+                appLocale?.t('chipFever') ?? _suggestedPrompts[3],
+                appLocale?.t('chipDoctorEscalation') ?? _suggestedPrompts[4],
+              ];
+              return Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                color: Colors.white,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: prompts.map((p) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: ActionChip(
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          label: Text(p, style: const TextStyle(fontSize: 11, color: Color(0xFF0F172A), fontWeight: FontWeight.w600)),
+                          onPressed: () => _sendMessage(p),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              );
+            },
           ),
 
           // Message Stream
@@ -401,24 +747,56 @@ IMPORTANT: Never withhold breastmilk or food.""";
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
+                if (index == 0 && !msg.isUser) {
+                  final translatedGreeting = appLocale?.t('botGreeting') ?? msg.text;
+                  return _buildMessageBubble(
+                    ChatMessage(
+                      text: translatedGreeting,
+                      isUser: false,
+                      timestamp: msg.timestamp,
+                      isOffline: msg.isOffline,
+                    ),
+                  );
+                }
                 return _buildMessageBubble(msg);
               },
             ),
           ),
 
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+          if (_isListening)
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFFEF2F2),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(
+                  const Icon(Icons.mic_rounded, size: 14, color: Colors.red),
+                  const SizedBox(width: 6),
+                  Text(
+                    Provider.of<AppLocale?>(context, listen: true)?.t('listening') ?? 'Listening...',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+
+          if (_isLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                   ),
-                  SizedBox(width: 8),
-                  Text('Analyzing clinical protocol...', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const SizedBox(width: 8),
+                  Text(
+                    appLocale?.t('analyzing') ?? 'Analyzing clinical protocol...',
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  ),
                 ],
               ),
             ),
@@ -433,25 +811,58 @@ IMPORTANT: Never withhold breastmilk or food.""";
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    textInputAction: TextInputAction.send,
-                    decoration: InputDecoration(
-                      hintText: 'Ask clinical or screening questions...',
-                      hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent &&
+                          (event.logicalKey == LogicalKeyboardKey.enter ||
+                              event.logicalKey == LogicalKeyboardKey.numpadEnter) &&
+                          !HardwareKeyboard.instance.isShiftPressed) {
+                        final text = _textController.text;
+                        _sendMessage(text);
+                        return KeyEventResult.handled;
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      controller: _textController,
+                      focusNode: _focusNode,
+                      textInputAction: TextInputAction.send,
+                      keyboardType: TextInputType.text,
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        hintText: appLocale?.t('chatHint') ?? 'Ask clinical or screening questions...',
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                        ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
+                      onSubmitted: (val) {
+                        _sendMessage(val);
+                      },
                     ),
-                    onSubmitted: _sendMessage,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Mic: speak the question instead of typing
+                CircleAvatar(
+                  backgroundColor: _isListening ? Colors.red : AppColors.primary,
+                  radius: 20,
+                  child: IconButton(
+                    icon: Icon(
+                      _isListening ? Icons.stop_rounded : Icons.mic_rounded,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    tooltip: Provider.of<AppLocale?>(context, listen: true)?.t('tapToSpeak') ?? 'Tap to speak',
+                    onPressed: _isListening ? _stopListening : _startListening,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -491,7 +902,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
