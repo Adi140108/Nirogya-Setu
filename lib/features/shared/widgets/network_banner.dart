@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/sync/offline_sync_manager.dart';
 import '../../../core/services/voice_service.dart';
 
-/// Thin status strip. Hidden when online and fully synced.
 class NetworkBanner extends StatelessWidget {
   const NetworkBanner({super.key});
 
@@ -19,31 +17,38 @@ class NetworkBanner extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    final fg = isOnline ? AppColors.primaryDark : AppColors.secondary;
-    final message = isOnline
-        ? (isSyncing ? 'Syncing $pendingCount records…' : '$pendingCount records waiting to sync')
-        : 'Offline. Your work is saved on this phone.';
-
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(left: AppSpacing.lg, right: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: isOnline ? AppColors.primarySurface : AppColors.secondarySurface,
-        border: const Border(bottom: BorderSide(color: AppColors.divider)),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: isOnline
+          ? const Color(0xFFE8F5E9)
+          : const Color(0xFFFFF3E0),
       child: Row(
         children: [
-          Icon(isOnline ? Icons.sync_rounded : Icons.wifi_off_rounded, size: 20, color: fg),
-          const SizedBox(width: AppSpacing.sm),
+          Icon(
+            isOnline ? Icons.sync_rounded : Icons.wifi_off_rounded,
+            size: 18,
+            color: isOnline ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+          ),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              message,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: fg),
+              isOnline
+                  ? (isSyncing
+                      ? 'Auto-syncing $pendingCount records to cloud...'
+                      : 'Connected • All records auto-synced')
+                  : 'Offline Mode: Data saved securely on device',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isOnline ? const Color(0xFF1B5E20) : const Color(0xFFBF360C),
+              ),
             ),
           ),
           IconButton(
-            tooltip: 'Listen',
-            icon: Icon(Icons.volume_up_outlined, size: 22, color: fg),
+            tooltip: 'Audio guidance hint',
+            icon: const Icon(Icons.volume_up_outlined, size: 18),
+            visualDensity: VisualDensity.compact,
             onPressed: () {
               VoiceService().speakPrompt(
                 context,

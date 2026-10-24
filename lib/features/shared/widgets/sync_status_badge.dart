@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/app_colors.dart';
 import '../../../core/models/sync_status.dart';
 
 class SyncStatusBadge extends StatelessWidget {
@@ -17,20 +16,40 @@ class SyncStatusBadge extends StatelessWidget {
     if (compact) {
       return Tooltip(
         message: status.displayName,
-        child: Icon(status.icon, size: 18, color: status.color),
+        child: Icon(
+          status.icon,
+          size: 16,
+          color: status.color,
+        ),
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(status.icon, size: 16, color: status.color),
-        const SizedBox(width: AppSpacing.xs),
-        Text(
-          status.displayName,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: status.color),
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: status.color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: status.color.withOpacity(0.35), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            status.icon,
+            size: 13,
+            color: status.color,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            status.displayName,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: status.color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
