@@ -50,7 +50,7 @@ class _AdminDoctorTabState extends State<AdminDoctorTab> {
     return Column(
       children: [
         Container(
-          color: Colors.white,
+          color: const Color(0xFFFBF4E8),
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
           child: Column(
             children: [

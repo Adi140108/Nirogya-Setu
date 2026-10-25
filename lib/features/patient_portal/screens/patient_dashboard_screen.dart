@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../../core/models/patient_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/admin_repository.dart';
@@ -10,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/patient_qr.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
+import '../../shared/widgets/expandable_details.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
@@ -72,16 +74,16 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     final dateFormat = DateFormat('dd MMMM yyyy');
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF3E8D5),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: 'citizen_raise_issue_fab',
-        backgroundColor: const Color(0xFF064E3B),
+        backgroundColor: const Color(0xFF2C4D27),
         foregroundColor: Colors.white,
         elevation: 4,
         icon: const Icon(Icons.add_rounded, size: 24),
         label: Text(
           context.watch<AppLocale>().t('raiseIssueToAsha'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
         ),
         onPressed: () {
           Navigator.push(
@@ -103,18 +105,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          border: Border(top: BorderSide(color: AppColors.neemDark, width: 1)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: const Color(0xFF064E3B),
-          unselectedItemColor: const Color(0xFF64748B),
+          backgroundColor: CraftNavTheme.background,
+          selectedItemColor: CraftNavTheme.selected,
+          unselectedItemColor: CraftNavTheme.unselected,
           selectedFontSize: 11,
           unselectedFontSize: 10,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
           items: [
@@ -147,17 +149,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   PreferredSizeWidget _buildAppBar(BuildContext context, AuthService authService, PatientModel activeMember) {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white,
-      foregroundColor: const Color(0xFF0F172A),
+      flexibleSpace: const CraftHeaderStitch(motif: CraftMotif.neem),
+      backgroundColor: AppColors.neem,
+      foregroundColor: AppColors.paint,
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0F2FE),
+              color: AppColors.paint.withOpacity(0.16),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.shield_rounded, color: Color(0xFF0284C7), size: 20),
+            child: const Icon(Icons.shield_rounded, color: AppColors.haldi, size: 20),
           ),
           const SizedBox(width: 10),
           const Expanded(
@@ -166,11 +169,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
               children: [
                 Text(
                   'Nirogya Setu',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.paint),
                 ),
                 Text(
                   'National Digital Health Ecosystem • Ayushman Bharat',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                  style: TextStyle(fontSize: 12.5, color: Color(0xFFE4E6CC), fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -181,7 +184,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
         const LanguageSelector(),
         const SizedBox(width: 4),
         IconButton(
-          icon: const Icon(Icons.volume_up_outlined, color: Color(0xFF334155)),
+          icon: const Icon(Icons.volume_up_outlined, color: AppColors.paint),
           tooltip: 'Voice Guidance',
           onPressed: () {
             VoiceService().speakPrompt(
@@ -193,7 +196,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           },
         ),
         IconButton(
-          icon: const Icon(Icons.logout_rounded, color: Color(0xFF64748B)),
+          icon: const Icon(Icons.logout_rounded, color: AppColors.paint),
           tooltip: 'Sign Out',
           onPressed: () {
             showSignOutConfirmationDialog(
@@ -216,7 +219,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     PatientModel activeMember,
   ) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF3E8D5),
       appBar: _buildAppBar(context, authService, activeMember),
       body: Column(
         children: [
@@ -225,15 +228,15 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           // Dark Offline Ready Sub-header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: const Color(0xFF1E293B),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            color: const Color(0xFF33200F),
             child: Row(
               children: [
                 Container(
                   width: 8,
                   height: 8,
                   decoration: const BoxDecoration(
-                    color: Color(0xFF38BDF8),
+                    color: Color(0xFFA8C98E),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -241,19 +244,18 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                 Expanded(
                   child: Text(
                     context.watch<AppLocale>().t('offlineReadyHeader'),
-                    style: const TextStyle(fontSize: 11, color: Color(0xFFF1F5F9), fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12.5, color: Color(0xFFF3E8D5), fontWeight: FontWeight.w500, height: 1.3),
+                    maxLines: 2,
                   ),
                 ),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.cloud_done_rounded, color: Color(0xFF38BDF8), size: 14),
+                    const Icon(Icons.cloud_done_rounded, color: Color(0xFFA8C98E), size: 14),
                     const SizedBox(width: 4),
                     Text(
                       context.watch<AppLocale>().t('secureOffline'),
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF38BDF8), fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFFA8C98E), fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -263,7 +265,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 130),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -273,20 +275,20 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     activeMember: activeMember,
                     onSelectMember: (id) => setState(() => _selectedMemberId = id),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
 
                   // 2. Official ABHA Digital Health Card
                   _buildAbhaHealthCard(activeMember),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
 
                   // 4. Raise Issue Card (Voice / Text directly to ASHA)
                   _buildRaiseIssueToAshaCard(context, activeMember),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
 
                   // 5. Call the citizen's own ASHA worker
                   _buildCallAshaCard(context, activeMember),
-                  const SizedBox(height: 80), // Padding for FAB
+                  const SizedBox(height: 40), // Padding for FAB
                 ],
               ),
             ),
@@ -311,48 +313,53 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE2D2B6)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(color: Color(0xFFD1FAE5), shape: BoxShape.circle),
-            child: const Icon(Icons.health_and_safety_rounded, color: Color(0xFF064E3B), size: 26),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
-                const SizedBox(height: 2),
-                Text(
-                  mobile.isEmpty
-                      ? 'ASHA worker contact not available yet'
-                      : 'Your ASHA worker • ${AdminRepository.formatMobile(mobile)}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+          Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(color: Color(0xFFE4E6CC), shape: BoxShape.circle),
+                child: const Icon(Icons.health_and_safety_rounded, color: Color(0xFF2C4D27), size: 26),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name,
+                        style: const TextStyle(fontSize: 16.5, fontWeight: FontWeight.w800, color: Color(0xFF33200F))),
+                    const SizedBox(height: 4),
+                    Text(
+                      mobile.isEmpty
+                          ? 'ASHA worker contact not available yet'
+                          : 'Your ASHA worker • ${AdminRepository.formatMobile(mobile)}',
+                      style: const TextStyle(fontSize: 13.5, color: Color(0xFF6B5443), height: 1.35),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
+          const SizedBox(height: 14),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF16A34A),
+              backgroundColor: const Color(0xFF3B6634),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: const StadiumBorder(),
             ),
             onPressed: mobile.isEmpty ? null : call,
             icon: const Icon(Icons.call_rounded, size: 18),
-            label: const Text('Call ASHA', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text('Call ASHA', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
           ),
         ],
       ),
@@ -361,17 +368,17 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
   Widget _buildRaiseIssueToAshaCard(BuildContext context, PatientModel activeMember) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF064E3B), Color(0xFF047857)],
+          colors: [Color(0xFF2C4D27), Color(0xFF2C4D27)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF064E3B).withOpacity(0.25),
+            color: const Color(0xFF2C4D27).withOpacity(0.25),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -383,7 +390,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   shape: BoxShape.circle,
@@ -397,25 +404,25 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 16,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             context.watch<AppLocale>().t('raiseIssueSubtitle'),
-            style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3),
+            style: const TextStyle(color: Colors.white70, fontSize: 13.5, height: 1.3),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF064E3B),
+                    backgroundColor: Color(0xFFFBF4E8),
+                    foregroundColor: const Color(0xFF2C4D27),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     elevation: 0,
@@ -431,7 +438,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
                   label: Text(
                     context.watch<AppLocale>().t('raiseIssueWithPlus'),
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
                   ),
                 ),
               ),
@@ -441,7 +448,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white60),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
                 ),
                 onPressed: () {
                   Navigator.push(
@@ -452,7 +459,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   );
                 },
                 icon: const Icon(Icons.mic_rounded, size: 18),
-                label: Text(context.watch<AppLocale>().t('mic'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                label: Text(context.watch<AppLocale>().t('mic'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5)),
               ),
             ],
           ),
@@ -471,14 +478,14 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     DateFormat dateFormat,
   ) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF3E8D5),
       appBar: _buildAppBar(context, authService, activeMember),
       body: Column(
         children: [
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 130),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -487,7 +494,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     activeMember: activeMember,
                     onSelectMember: (id) => setState(() => _selectedMemberId = id),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
                   _buildScreeningsSection(screenings, dateFormat),
                 ],
               ),
@@ -507,14 +514,14 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     List<dynamic> referrals,
   ) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFFF3E8D5),
       appBar: _buildAppBar(context, authService, activeMember),
       body: Column(
         children: [
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 130),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -523,7 +530,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     activeMember: activeMember,
                     onSelectMember: (id) => setState(() => _selectedMemberId = id),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 20),
                   _buildDoctorConsultationsSection(referrals),
                 ],
               ),
@@ -541,46 +548,44 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     required Function(String) onSelectMember,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: const Color(0xFFE2D2B6)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  context.watch<AppLocale>().t('householdHealthProfiles'),
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+              Text(
+                context.watch<AppLocale>().t('householdHealthProfiles'),
+                style: const TextStyle(
+                    fontFamily: 'Fraunces', fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF33200F)),
               ),
-              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE0F2FE),
+                  color: const Color(0xFFE4E6CC),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${familyMembers.length} ${context.watch<AppLocale>().t('enrolledMembers')}',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0284C7)),
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF3B6634)),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             context.watch<AppLocale>().t('switchProfilesHint'),
-            style: const TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF6B5443)),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -599,12 +604,12 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                     borderRadius: BorderRadius.circular(10),
                     onTap: () => onSelectMember(member.id),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF064E3B) : const Color(0xFFF1F5F9),
+                        color: isSelected ? const Color(0xFF2C4D27) : const Color(0xFFF3E8D5),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isSelected ? const Color(0xFF047857) : const Color(0xFFCBD5E1),
+                          color: isSelected ? const Color(0xFF2C4D27) : const Color(0xFFD5C1A0),
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -614,15 +619,15 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                           Icon(
                             icon,
                             size: 16,
-                            color: isSelected ? Colors.white : const Color(0xFF0369A1),
+                            color: isSelected ? Colors.white : const Color(0xFF3B6634),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             '${member.fullName} (${member.displayRelationship})',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 13.5,
                               fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                              color: isSelected ? Colors.white : const Color(0xFF33200F),
                             ),
                           ),
                         ],
@@ -642,9 +647,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
   Widget _buildAbhaHealthCard(PatientModel citizen) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF047857), width: 1.5),
+        border: Border.all(color: const Color(0xFF2C4D27), width: 1.5),
         boxShadow: const [
           BoxShadow(
             color: Color(0x14047857),
@@ -662,24 +667,24 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             Row(
               children: [
                 Expanded(child: Container(height: 4, color: const Color(0xFFFF9933))),
-                Expanded(child: Container(height: 4, color: Colors.white)),
+                Expanded(child: Container(height: 4, color: const Color(0xFFFBF4E8))),
                 Expanded(child: Container(height: 4, color: const Color(0xFF138808))),
               ],
             ),
 
             // Card Header: National Health Authority
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              color: const Color(0xFF064E3B),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+              color: const Color(0xFF2C4D27),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(5),
+                    padding: const EdgeInsets.all(7),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Color(0xFFFBF4E8),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(Icons.add_box_rounded, color: Color(0xFF064E3B), size: 18),
+                    child: const Icon(Icons.add_box_rounded, color: Color(0xFF2C4D27), size: 18),
                   ),
                   const SizedBox(width: 10),
                   const Expanded(
@@ -688,20 +693,20 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                       children: [
                         Text(
                           'NIROGYA SETU • ABHA CARD',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white, height: 1.25),
+                          maxLines: 2,
                         ),
+                        SizedBox(height: 2),
                         Text(
-                          'NATIONAL HEALTH AUTHORITY • GOVT. OF INDIA',
+                          'NHA • GOVT. OF INDIA',
                           style: TextStyle(
-                            fontSize: 8,
+                            fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            letterSpacing: 0.6,
-                            color: Color(0xFFA7F3D0),
+                            letterSpacing: 0.4,
+                            height: 1.3,
+                            color: Color(0xFFE4E6CC),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
                         ),
                       ],
                     ),
@@ -709,17 +714,17 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF047857),
+                      color: const Color(0xFF2C4D27),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFF86EFAC)),
+                        Icon(Icons.check_circle_rounded, size: 12, color: Color(0xFFA8C98E)),
                         SizedBox(width: 4),
                         Text(
                           'e-KYC Verified',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ],
                     ),
@@ -730,8 +735,8 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 
             // Card Body
             Container(
-              padding: const EdgeInsets.all(14),
-              color: const Color(0xFFFCFDFD),
+              padding: const EdgeInsets.all(18),
+              color: const Color(0xFFFBF4E8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -745,32 +750,32 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                             width: 72,
                             height: 72,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE2E8F0),
+                              color: const Color(0xFFE2D2B6),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                              border: Border.all(color: const Color(0xFFD5C1A0)),
                             ),
                             child: Center(
                               child: Text(
                                 citizen.fullName.isNotEmpty ? citizen.fullName[0] : 'C',
-                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF064E3B)),
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF2C4D27)),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 10),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE0F2FE),
+                              color: const Color(0xFFE4E6CC),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified_rounded, size: 10, color: Color(0xFF0284C7)),
+                                Icon(Icons.verified_rounded, size: 10, color: Color(0xFF3B6634)),
                                 SizedBox(width: 3),
                                 Text(
                                   'Aadhaar Linked',
-                                  style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF0369A1)),
+                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF3B6634)),
                                 ),
                               ],
                             ),
@@ -784,75 +789,68 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    citizen.fullName,
-                                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFCCFBF1),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    '${citizen.age} yrs • ${citizen.gender}',
-                                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF0F766E)),
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              citizen.fullName,
+                              style: const TextStyle(
+                                  fontFamily: 'Fraunces', fontSize: 21, height: 1.1, fontWeight: FontWeight.w700, color: Color(0xFF33200F)),
+                              maxLines: 2,
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE4E6CC),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${citizen.age} yrs • ${citizen.gender}',
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF2C4D27)),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
                             Text(
                               'Village: ${citizen.villageName}, Ward: ${citizen.computedWardNumber}',
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF334155)),
+                              style: const TextStyle(fontSize: 13, color: Color(0xFF4A3626), height: 1.35),
                             ),
                             Text(
                               citizen.computedDistrictState,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                              style: const TextStyle(fontSize: 13, color: Color(0xFF6B5443), height: 1.35),
                             ),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // ABHA Address Container
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFEEF4FF),
+                      color: const Color(0xFFF3E8D5),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
+                      border: Border.all(color: const Color(0xFFE4E6CC)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
                           'ABHA ADDRESS (PHR Address)',
-                          style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF3B82F6)),
+                          style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF3B6634)),
                         ),
                         Text(
                           citizen.computedAbhaAddress,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                          style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: Color(0xFF2C4D27)),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
 
                   // Divider
-                  const Divider(color: Color(0xFFE2E8F0), height: 1),
-                  const SizedBox(height: 8),
+                  const Divider(color: Color(0xFFE2D2B6), height: 1),
+                  const SizedBox(height: 12),
 
                   // ABHA Number & OPD QR Code Row
                   Row(
@@ -864,19 +862,19 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                           children: [
                             const Text(
                               'ABHA NUMBER (14-Digit Health ID)',
-                              style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF6B5443)),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               alignment: Alignment.centerLeft,
                               child: Text(
                                 citizen.computedAbhaNumber,
                                 style: const TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 19,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
-                                  color: Color(0xFF0F172A),
+                                  color: Color(0xFF33200F),
                                 ),
                               ),
                             ),
@@ -888,11 +886,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                       GestureDetector(
                         onTap: () => _showScanQrDialog(context, citizen),
                         child: Container(
-                        padding: const EdgeInsets.all(4),
+                        padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Color(0xFFFBF4E8),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                          border: Border.all(color: const Color(0xFFD5C1A0)),
                         ),
                         child: Column(
                           children: [
@@ -906,10 +904,10 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                                 padding: EdgeInsets.zero,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             const Text(
                               'TAP TO SCAN',
-                              style: TextStyle(fontSize: 7.5, fontWeight: FontWeight.w900, color: Color(0xFF0F172A)),
+                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Color(0xFF33200F)),
                             ),
                           ],
                         ),
@@ -931,7 +929,7 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
     showDialog<void>(
       context: context,
       builder: (ctx) => Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFFFBF4E8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -939,23 +937,23 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(citizen.fullName,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A))),
-              const SizedBox(height: 4),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF33200F))),
+              const SizedBox(height: 6),
               Text('ABHA: ${citizen.computedAbhaNumber}',
-                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B))),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF6B5443))),
               const SizedBox(height: 16),
               SizedBox(
                 width: 240,
                 height: 240,
                 child: QrImageView(data: PatientQr.encode(citizen), version: QrVersions.auto, size: 240),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
               const Text(
                 'Show this to your ASHA worker or doctor. Scanning it opens your health record directly.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12.5, color: Color(0xFF475569), height: 1.35),
+                style: TextStyle(fontSize: 14, color: Color(0xFF4A3626), height: 1.35),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
             ],
           ),
@@ -971,21 +969,21 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       children: [
         Text(
           context.watch<AppLocale>().t('doctorConsultationsSection'),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          style: const TextStyle(fontFamily: 'Fraunces', fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         if (referrals.isEmpty)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFFBF4E8),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
             child: Center(
               child: Text(
                 context.watch<AppLocale>().t('noDoctorConsultations'),
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
               ),
             ),
           )
@@ -993,9 +991,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           ...referrals.map((r) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color(0xFFFBF4E8),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.border),
               ),
@@ -1014,35 +1012,35 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                         ),
                         child: Text(
                           r.status.displayName,
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.primaryDark),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     'Doctor: ${r.assignedDoctorName ?? "Primary Health Centre Doctor"}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5),
                   ),
                   if (r.doctorClinicalNotes != null && r.doctorClinicalNotes.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
+                        color: const Color(0xFFE4E6CC),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         'Advice: ${r.doctorClinicalNotes}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF1B5E20), fontWeight: FontWeight.w600),
+                        style: const TextStyle(fontSize: 13.5, color: Color(0xFF2C4D27), fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
                   if (r.doctorRecommendations != null && r.doctorRecommendations.isNotEmpty) ...[
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
                     Text(
                       'Medication / Dosage: ${r.doctorRecommendations}',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                      style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
                     ),
                   ],
                 ],
@@ -1060,21 +1058,21 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
       children: [
         Text(
           context.watch<AppLocale>().t('preventiveScreenings'),
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          style: const TextStyle(fontFamily: 'Fraunces', fontSize: 19, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 14),
         if (screenings.isEmpty)
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Color(0xFFFBF4E8),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.border),
             ),
             child: Center(
               child: Text(
                 context.watch<AppLocale>().t('noScreenings'),
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
               ),
             ),
           )
@@ -1082,9 +1080,9 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
           ...screenings.map((s) {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color(0xFFFBF4E8),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.border),
               ),
@@ -1097,16 +1095,30 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
                       const Spacer(),
                       Text(
                         dateFormat.format(s.createdAt),
-                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                        style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(s.reason, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Next Steps: ${s.recommendedNextStep}',
-                    style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                  const SizedBox(height: 12),
+                  ExpandableDetails(
+                    builder: (context, open) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          s.reason,
+                          maxLines: open ? null : 1,
+                          overflow: open ? null : TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.35),
+                        ),
+                        if (open) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Next Steps: ${s.recommendedNextStep}',
+                            style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ],
               ),

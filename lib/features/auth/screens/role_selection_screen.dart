@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/app_locale.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../shared/widgets/language_selector.dart';
 import 'auth_screen.dart';
 import '../../admin_portal/screens/admin_login_screen.dart';
@@ -40,178 +42,176 @@ class RoleSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.watch<AppLocale>().t;
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE5F7EE),
-              Color(0xFFE0F3F8),
-              Color(0xFFCCE8FE),
-              Color(0xFFBADDF8),
-            ],
-            stops: [0.0, 0.35, 0.75, 1.0],
-          ),
-        ),
+      body: CraftBackground(
+        pieces: const [
+          CraftPiece(CraftMotif.kolam, 0.5, right: -0.42, bottom: -0.3),
+          CraftPiece(CraftMotif.paisley, 0.38, left: -0.4, bottom: -0.25, turns: 0.5),
+          CraftPiece(CraftMotif.sprig, 0.2, left: 0.3, bottom: 1.6),
+        ],
         child: SafeArea(
-          child: Column(
-            children: [
-              // Top Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const Expanded(
-                      child: Text(
-                        'Nirogya Setu',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
-                          letterSpacing: -0.3,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 520),
+              child: Column(
+                children: [
+                  // Top Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        InkWell(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const Expanded(
+                          child: Text(
+                            'Nirogya Setu',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: 'Fraunces',
+                              fontSize: 19,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.terraDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          borderRadius: BorderRadius.circular(16),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFF0284C7).withOpacity(0.35),
-                                width: 1.2,
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            InkWell(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: AppColors.paint,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: AppColors.border),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.admin_panel_settings_outlined,
+                                      size: 16,
+                                      color: AppColors.neem,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      t('admin'),
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.ink,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.admin_panel_settings_outlined,
-                                  size: 16,
-                                  color: Color(0xFF0284C7),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  t('admin'),
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                            const SizedBox(width: 8),
+                            const LanguageSelector(dark: true),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const LanguageSelector(dark: true),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
-              // Title & Subtitle
-              Text(
-                context.watch<AppLocale>().t('selectRole'),
-                style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  color: Color(0xFF0F172A),
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                context.watch<AppLocale>().t('chooseRole'),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF64748B),
-                ),
-              ),
+                  // Title & Subtitle
+                  Text(
+                    t('selectRole'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontFamily: 'Fraunces',
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.terraDark,
+                      height: 1.05,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    t('chooseRole'),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
 
-              const SizedBox(height: 28),
+                  const SizedBox(height: 26),
 
-              // 2 Top Horizontal Cards + 1 Bottom Wide Card
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      // Top Row: 2 Horizontal Cards (ASHA Worker & Doctor)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  // 2 Top Horizontal Cards + 1 Bottom Wide Card
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
                         children: [
-                          Expanded(
-                            child: _buildCompactRoleCard(
-                              context: context,
-                              role: UserRole.asha,
-                              title: t('ashaWorker'),
-                              subtitle: t('ashaSub'),
-                              icon: Icons.health_and_safety_rounded,
-                              badgeColor: const Color(0xFFBAE6FD),
-                              iconColor: const Color(0xFF0284C7),
-                            ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _buildCompactRoleCard(
+                                  context: context,
+                                  role: UserRole.asha,
+                                  title: t('ashaWorker'),
+                                  subtitle: t('ashaSub'),
+                                  motif: CraftMotif.phulkari,
+                                  accent: AppColors.neem,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: _buildCompactRoleCard(
+                                  context: context,
+                                  role: UserRole.doctor,
+                                  title: t('doctor'),
+                                  subtitle: t('doctorSub'),
+                                  motif: CraftMotif.sun,
+                                  accent: AppColors.terra,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: _buildCompactRoleCard(
-                              context: context,
-                              role: UserRole.doctor,
-                              title: t('doctor'),
-                              subtitle: t('doctorSub'),
-                              icon: Icons.medical_services_rounded,
-                              badgeColor: const Color(0xFFDDD6FE),
-                              iconColor: const Color(0xFF7C3AED),
-                            ),
+
+                          const SizedBox(height: 14),
+
+                          _buildWideRoleCard(
+                            context: context,
+                            role: UserRole.patient,
+                            title: t('citizen'),
+                            subtitle: t('citizenSub'),
+                            motif: CraftMotif.neem,
                           ),
+
+                          const SizedBox(height: 120),
                         ],
                       ),
-
-                      const SizedBox(height: 18),
-
-                      // Bottom Card: 1 Wide Card (Citizen)
-                      _buildWideRoleCard(
-                        context: context,
-                        role: UserRole.patient,
-                        title: t('citizen'),
-                        subtitle: t('citizenSub'),
-                        icon: Icons.groups_rounded,
-                        badgeColor: const Color(0xFFBBF7D0),
-                        iconColor: const Color(0xFF16A34A),
-                      ),
-
-                      const SizedBox(height: 24),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _arrowDisc(Color color, {double size = 40}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: const Icon(Icons.arrow_forward_rounded, size: 20, color: AppColors.paint),
     );
   }
 
@@ -220,89 +220,54 @@ class RoleSelectionScreen extends StatelessWidget {
     required UserRole role,
     required String title,
     required String subtitle,
-    required IconData icon,
-    required Color badgeColor,
-    required Color iconColor,
+    required CraftMotif motif,
+    required Color accent,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.paint,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+        side: const BorderSide(color: AppColors.border, width: 1.2),
+      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _onRoleSelected(context, role),
-        borderRadius: BorderRadius.circular(24),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 195),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.55),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.85),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0284C7).withOpacity(0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
+          constraints: const BoxConstraints(minHeight: 210),
+          padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 children: [
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: badgeColor.withOpacity(0.7),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(icon, size: 28, color: iconColor),
-                    ),
-                  ),
+                  Image.asset('assets/images/motif_${motif.name}.png', width: 72, height: 72),
                   const SizedBox(height: 14),
                   Text(
                     title,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                      letterSpacing: -0.3,
+                      fontFamily: 'Fraunces',
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.ink,
+                      height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     subtitle,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 12,
+                      fontSize: 13,
                       fontWeight: FontWeight.w500,
-                      color: Color(0xFF64748B),
-                      height: 1.25,
+                      color: AppColors.textSecondary,
+                      height: 1.3,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 18,
-                    color: iconColor,
-                  ),
-                ),
-              ),
+              const SizedBox(height: 14),
+              _arrowDisc(accent),
             ],
           ),
         ),
@@ -315,44 +280,24 @@ class RoleSelectionScreen extends StatelessWidget {
     required UserRole role,
     required String title,
     required String subtitle,
-    required IconData icon,
-    required Color badgeColor,
-    required Color iconColor,
+    required CraftMotif motif,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.neem,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _onRoleSelected(context, role),
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.55),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.85),
-              width: 1.5,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0284C7).withOpacity(0.06),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
           child: Row(
             children: [
               Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.7),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(icon, size: 30, color: iconColor),
-                ),
+                width: 66,
+                height: 66,
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(color: AppColors.paint, shape: BoxShape.circle),
+                child: Image.asset('assets/images/motif_${motif.name}.png'),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -362,19 +307,19 @@ class RoleSelectionScreen extends StatelessWidget {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF0F172A),
-                        letterSpacing: -0.3,
+                        fontFamily: 'Fraunces',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.paint,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 12.5,
+                      style: TextStyle(
+                        fontSize: 13.5,
                         fontWeight: FontWeight.w500,
-                        color: Color(0xFF64748B),
+                        color: AppColors.paint.withOpacity(0.86),
                         height: 1.3,
                       ),
                     ),
@@ -382,21 +327,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: badgeColor.withOpacity(0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.arrow_forward_rounded,
-                    size: 18,
-                    color: iconColor,
-                  ),
-                ),
-              ),
+              _arrowDisc(AppColors.terra),
             ],
           ),
         ),

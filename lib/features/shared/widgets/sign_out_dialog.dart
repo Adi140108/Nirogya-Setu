@@ -15,10 +15,10 @@ Future<void> showSignOutConfirmationDialog({
         icon: Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
-            color: Color(0xFFFEE2E2),
+            color: Color(0xFFF4D6C8),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.logout_rounded, color: Color(0xFFDC2626), size: 28),
+          child: const Icon(Icons.logout_rounded, color: Color(0xFFB23A22), size: 28),
         ),
         title: const Text(
           'Confirm Sign Out',
@@ -27,7 +27,7 @@ Future<void> showSignOutConfirmationDialog({
         content: Text(
           'Are you sure you want to sign out from your $roleName? All your local data and cached records will stay securely saved on this device.',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+          style: const TextStyle(fontSize: 13, color: Color(0xFF4A3626)),
         ),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         actions: [
@@ -47,7 +47,7 @@ Future<void> showSignOutConfirmationDialog({
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFDC2626),
+                    backgroundColor: const Color(0xFFB23A22),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

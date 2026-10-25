@@ -418,15 +418,15 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
             children: [
               Text(
                 'Your health issue has been translated and directly sent to your village ASHA worker (Shanti Devi).',
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
+                style: TextStyle(fontSize: 14, color: Color(0xFF33200F)),
               ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: Color(0xFFE4E6CC),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green.shade200),
+                  border: Border.all(color: Color(0xFFE4E6CC)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,7 +445,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                       ),
                       Text(
                         '"$_recordedTranscription"',
-                        style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Color(0xFF334155)),
+                        style: const TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Color(0xFF4A3626)),
                       ),
                     ],
                     const SizedBox(height: 8),
@@ -455,7 +455,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                     ),
                     Text(
                       finalEnglishDescription,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF065F46)),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF2C4D27)),
                     ),
                     if (_hasRecordedVoice) ...[
                       const SizedBox(height: 6),
@@ -557,13 +557,13 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: _urgency == 'Normal'
-                                  ? Colors.green.shade50
-                                  : Colors.grey.shade100,
+                                  ? Color(0xFFE4E6CC)
+                                  : Color(0xFFF3E8D5),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _urgency == 'Normal'
                                     ? AppColors.primaryGreen
-                                    : Colors.grey.shade300,
+                                    : Color(0xFFD5C1A0),
                                 width: _urgency == 'Normal' ? 2 : 1,
                               ),
                             ),
@@ -576,7 +576,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                                   size: 18,
                                   color: _urgency == 'Normal'
                                       ? AppColors.primaryGreen
-                                      : Colors.grey,
+                                      : Color(0xFF9A8571),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
@@ -604,13 +604,13 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: _urgency == 'Urgent'
-                                  ? Colors.red.shade50
-                                  : Colors.grey.shade100,
+                                  ? Color(0xFFF4D6C8)
+                                  : Color(0xFFF3E8D5),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _urgency == 'Urgent'
-                                    ? Colors.red
-                                    : Colors.grey.shade300,
+                                    ? Color(0xFFB23A22)
+                                    : Color(0xFFD5C1A0),
                                 width: _urgency == 'Urgent' ? 2 : 1,
                               ),
                             ),
@@ -621,7 +621,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                                 Icon(
                                   Icons.warning_amber_rounded,
                                   size: 18,
-                                  color: _urgency == 'Urgent' ? Colors.red : Colors.grey,
+                                  color: _urgency == 'Urgent' ? Color(0xFFB23A22) : Color(0xFF9A8571),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
@@ -631,7 +631,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                                         ? FontWeight.bold
                                         : FontWeight.normal,
                                     color: _urgency == 'Urgent'
-                                        ? Colors.red.shade900
+                                        ? Color(0xFFB23A22)
                                         : Colors.black87,
                                   ),
                                 ),
@@ -658,7 +658,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                       ),
                       Text(
                         'Type or dictate with mic',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: 12, color: Color(0xFF6B5443)),
                       ),
                     ],
                   ),
@@ -673,7 +673,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: Color(0xFFFBF4E8),
                       contentPadding: const EdgeInsets.all(14),
                     ),
                   ),
@@ -752,7 +752,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                 const SizedBox(height: 2),
                 Text(
                   'Assigned to $_villageName • Household: $_householdId',
-                  style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+                  style: TextStyle(color: Color(0xFF4A3626), fontSize: 12),
                 ),
               ],
             ),
@@ -766,10 +766,10 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _isRecording ? Colors.red.shade50 : Colors.blue.shade50.withOpacity(0.5),
+        color: _isRecording ? Color(0xFFF4D6C8) : Color(0xFFE4E6CC).withOpacity(0.5),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: _isRecording ? Colors.red.shade300 : Colors.blue.shade200,
+          color: _isRecording ? Color(0xFFB23A22) : Color(0xFFE4E6CC),
           width: _isRecording ? 2 : 1,
         ),
       ),
@@ -784,7 +784,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                 children: [
                   Icon(
                     Icons.mic_none_rounded,
-                    color: _isRecording ? Colors.red : AppColors.primaryGreen,
+                    color: _isRecording ? Color(0xFFB23A22) : AppColors.primaryGreen,
                     size: 20,
                   ),
                   const SizedBox(width: 6),
@@ -793,7 +793,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: _isRecording ? Colors.red.shade900 : Colors.black87,
+                      color: _isRecording ? Color(0xFFB23A22) : Colors.black87,
                     ),
                   ),
                 ],
@@ -802,20 +802,20 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0xFFFBF4E8),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                  border: Border.all(color: const Color(0xFFD5C1A0)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedSpeechLanguage,
                     isDense: true,
                     icon: const Icon(Icons.language_rounded, size: 14, color: AppColors.primaryGreen),
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF33200F)),
                     items: _voiceLanguages.entries.map((e) {
                       return DropdownMenuItem(
                         value: e.key,
-                        child: Text(e.value, style: const TextStyle(fontSize: 12, color: Color(0xFF0F172A))),
+                        child: Text(e.value, style: const TextStyle(fontSize: 12, color: Color(0xFF33200F))),
                       );
                     }).toList(),
                     onChanged: _isRecording
@@ -839,7 +839,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                   child: Material(
                     shape: const CircleBorder(),
                     elevation: _isRecording ? 6 : 2,
-                    color: _isRecording ? Colors.red : AppColors.primaryGreen,
+                    color: _isRecording ? Color(0xFFB23A22) : AppColors.primaryGreen,
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: _isRecording ? _stopRecording : _startRecording,
@@ -862,14 +862,14 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: _isRecording ? Colors.red.shade800 : Colors.grey.shade700,
+                    color: _isRecording ? Color(0xFFB23A22) : Color(0xFF4A3626),
                   ),
                 ),
                 if (_isRecording) ...[
                   const SizedBox(height: 4),
                   Text(
                     'Duration: 00:${_recordingDuration.toString().padLeft(2, '0')}',
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.red),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFB23A22)),
                   ),
                 ],
               ],
@@ -882,9 +882,9 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color(0xFFFBF4E8),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green.shade300),
+                border: Border.all(color: Color(0xFF3B6634)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -912,13 +912,13 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                             ),
                             Text(
                               '${_recordingDuration}s audio • ready for ASHA',
-                              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                              style: TextStyle(fontSize: 11, color: Color(0xFF6B5443)),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                        icon: const Icon(Icons.delete_outline, color: Color(0xFFB23A22), size: 20),
                         tooltip: 'Delete Voice Note',
                         onPressed: _deleteVoiceNote,
                       ),
@@ -934,7 +934,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade700,
+                            color: Color(0xFF4A3626),
                           ),
                         ),
                         const Icon(Icons.translate_rounded, size: 14, color: AppColors.primaryGreen),
@@ -960,7 +960,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                           child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
                         ),
                         SizedBox(width: 8),
-                        Text('Converting to clinical English...', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                        Text('Converting to clinical English...', style: TextStyle(fontSize: 11, color: Color(0xFF9A8571))),
                       ],
                     ),
                   ] else if (_englishTranslation != null && _englishTranslation!.isNotEmpty) ...[
@@ -968,23 +968,23 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0FDF4),
+                        color: const Color(0xFFE4E6CC),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF86EFAC)),
+                        border: Border.all(color: const Color(0xFFA8C98E)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Row(
                             children: [
-                              Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF16A34A)),
+                              Icon(Icons.check_circle_rounded, size: 14, color: Color(0xFF3B6634)),
                               SizedBox(width: 4),
                               Text(
                                 'English Translation (Sent to ASHA):',
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF16A34A),
+                                  color: Color(0xFF3B6634),
                                 ),
                               ),
                             ],
@@ -995,7 +995,7 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF0F5132),
+                              color: Color(0xFF2C4D27),
                             ),
                           ),
                         ],
@@ -1015,12 +1015,12 @@ class _RaiseIssueScreenState extends State<RaiseIssueScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Color(0xFFF3E8D5),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
-          const Icon(Icons.person_pin_rounded, color: Colors.grey, size: 20),
+          const Icon(Icons.person_pin_rounded, color: Color(0xFF9A8571), size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

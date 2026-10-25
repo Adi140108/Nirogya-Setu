@@ -137,7 +137,7 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
         children: [
           _buildPlayer(state, downloads.isOnline, video),
           Container(
-            color: Colors.white,
+            color: const Color(0xFFFBF4E8),
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +164,7 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
                             style: TextStyle(
                                 fontSize: 12, fontWeight: v.language == variant.language ? FontWeight.bold : FontWeight.w500)),
                         selected: v.language == variant.language,
-                        selectedColor: const Color(0xFFFFF3E0),
+                        selectedColor: const Color(0xFFF3DCC4),
                         labelStyle: TextStyle(
                             color: v.language == variant.language ? AppColors.secondary : AppColors.textPrimary),
                         onSelected: (_) => _selectLanguage(v.language),
@@ -226,7 +226,7 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
-        color: const Color(0xFF1E293B),
+        color: const Color(0xFF33200F),
         padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -244,7 +244,7 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
               const SizedBox(height: 8),
               Text('Saved offline in: ${downloadedLanguages.join(', ')}',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF69F0AE), fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: const TextStyle(color: Color(0xFFA8C98E), fontSize: 12, fontWeight: FontWeight.bold)),
             ],
           ],
         ),
@@ -261,7 +261,7 @@ class _CitizenVideoPlayerScreenState extends State<CitizenVideoPlayerScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
@@ -378,7 +378,7 @@ class _LocalVideoViewState extends State<_LocalVideoView> {
                   color: Colors.black45,
                   child: Row(
                     children: [
-                      const Icon(Icons.offline_pin_rounded, color: Color(0xFF69F0AE), size: 16),
+                      const Icon(Icons.offline_pin_rounded, color: Color(0xFFA8C98E), size: 16),
                       const SizedBox(width: 6),
                       Text(_format(value.position), style: const TextStyle(color: Colors.white, fontSize: 11)),
                       const SizedBox(width: 8),
@@ -387,7 +387,7 @@ class _LocalVideoViewState extends State<_LocalVideoView> {
                           c,
                           allowScrubbing: true,
                           colors: const VideoProgressColors(
-                            playedColor: Color(0xFF48A999),
+                            playedColor: Color(0xFF6E9A5E),
                             bufferedColor: Colors.white38,
                             backgroundColor: Colors.white24,
                           ),

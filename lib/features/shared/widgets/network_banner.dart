@@ -21,14 +21,14 @@ class NetworkBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: isOnline
-          ? const Color(0xFFE8F5E9)
-          : const Color(0xFFFFF3E0),
+          ? const Color(0xFFE4E6CC)
+          : const Color(0xFFF3DCC4),
       child: Row(
         children: [
           Icon(
             isOnline ? Icons.sync_rounded : Icons.wifi_off_rounded,
             size: 18,
-            color: isOnline ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+            color: isOnline ? const Color(0xFF3B6634) : const Color(0xFFA8452A),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -41,7 +41,7 @@ class NetworkBanner extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isOnline ? const Color(0xFF1B5E20) : const Color(0xFFBF360C),
+                color: isOnline ? const Color(0xFF2C4D27) : const Color(0xFFA8452A),
               ),
             ),
           ),

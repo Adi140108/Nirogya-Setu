@@ -40,7 +40,7 @@ class HospitalDetailScreen extends StatelessWidget {
 
     if (hospital == null) {
       return Scaffold(
-        appBar: AppBar(backgroundColor: Colors.white, foregroundColor: AdminColors.ink),
+        appBar: AppBar(backgroundColor: const Color(0xFF3B6634), foregroundColor: const Color(0xFFFBF4E8)),
         body: const AdminEmptyState(
           icon: Icons.domain_disabled_outlined,
           title: 'Hospital not found',
@@ -56,8 +56,8 @@ class HospitalDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: const Text('Hospital Details', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
@@ -168,8 +168,8 @@ class HospitalDetailScreen extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => _delete(context, repo, hospital.name),
             style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFFDC2626),
-              side: const BorderSide(color: Color(0xFFDC2626)),
+              foregroundColor: const Color(0xFFB23A22),
+              side: const BorderSide(color: Color(0xFFB23A22)),
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

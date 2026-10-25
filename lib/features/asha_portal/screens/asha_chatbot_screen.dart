@@ -632,7 +632,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                 '  4) Specific doctor specialist & preparation requirements\n'
                 '• Never hardcoded: keys & models are stored securely in local device preferences.\n'
                 '• If no key is set, the offline ICMR triage protocol engine is used as fallback.',
-                style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                style: TextStyle(fontSize: 11, color: Color(0xFF6B5443)),
               ),
             ],
           ),
@@ -678,7 +678,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFFBF4E8),
       appBar: AppBar(
         automaticallyImplyLeading: !widget.isEmbedded,
         title: Column(
@@ -690,7 +690,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
             ),
             Text(
               appLocale?.t('clinicalAssistant') ?? 'ASHA Clinical Assistant',
-              style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
+              style: const TextStyle(fontSize: 11, color: Color(0xFFE4E6CC)),
             ),
           ],
         ),
@@ -702,9 +702,9 @@ IMPORTANT: Never withhold breastmilk or food.""";
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF064E3B),
+                color: const Color(0xFF2C4D27),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF34D399), width: 1),
+                border: Border.all(color: const Color(0xFFA8C98E), width: 1),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
@@ -712,7 +712,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                   Icon(
                     Icons.circle,
                     size: 8,
-                    color: Color(0xFF34D399),
+                    color: Color(0xFFA8C98E),
                   ),
                   SizedBox(width: 5),
                   Text(
@@ -732,7 +732,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
           IconButton(
             icon: Icon(
               _speakReplies ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-              color: _speakReplies ? const Color(0xFF6EE7B7) : Colors.white70,
+              color: _speakReplies ? const Color(0xFFA8C98E) : Colors.white70,
             ),
             tooltip: 'Speak replies aloud',
             onPressed: () => _toggleSpeakReplies(!_speakReplies),
@@ -794,16 +794,16 @@ IMPORTANT: Never withhold breastmilk or food.""";
           if (_isListening)
             Container(
               width: double.infinity,
-              color: const Color(0xFFFEF2F2),
+              color: const Color(0xFFF4D6C8),
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.mic_rounded, size: 14, color: Colors.red),
+                  const Icon(Icons.mic_rounded, size: 14, color: Color(0xFFB23A22)),
                   const SizedBox(width: 6),
                   Text(
                     Provider.of<AppLocale?>(context, listen: true)?.t('listening') ?? 'Listening...',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFFB91C1C), fontWeight: FontWeight.w600),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFFB23A22), fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -823,7 +823,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                   const SizedBox(width: 8),
                   Text(
                     appLocale?.t('analyzing') ?? 'Analyzing clinical protocol...',
-                    style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    style: const TextStyle(fontSize: 12, color: Color(0xFF6B5443)),
                   ),
                 ],
               ),
@@ -834,8 +834,8 @@ IMPORTANT: Never withhold breastmilk or food.""";
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: const BoxDecoration(
-                color: Color(0xFFF1F5F9),
-                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                color: Color(0xFFF3E8D5),
+                border: Border(top: BorderSide(color: Color(0xFFE2D2B6))),
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -850,13 +850,13 @@ IMPORTANT: Never withhold breastmilk or food.""";
                     return Padding(
                       padding: const EdgeInsets.only(right: 8),
                       child: ActionChip(
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFFCBD5E1)),
+                        backgroundColor: Color(0xFFFBF4E8),
+                        side: const BorderSide(color: Color(0xFFD5C1A0)),
                         label: Text(
                           p,
                           style: const TextStyle(
                             fontSize: 11,
-                            color: Color(0xFF0F172A),
+                            color: Color(0xFF33200F),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -875,8 +875,8 @@ IMPORTANT: Never withhold breastmilk or food.""";
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              color: Color(0xFFFBF4E8),
+              border: Border(top: BorderSide(color: Color(0xFFE2D2B6))),
             ),
             child: Row(
               children: [
@@ -884,7 +884,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                   icon: Icon(
                     _showQuickPrompts ? Icons.grid_view_rounded : Icons.grid_view_outlined,
                     size: 20,
-                    color: _showQuickPrompts ? AppColors.primary : const Color(0xFF64748B),
+                    color: _showQuickPrompts ? AppColors.primary : const Color(0xFF6B5443),
                   ),
                   tooltip: 'Quick Prompts',
                   onPressed: () {
@@ -913,17 +913,17 @@ IMPORTANT: Never withhold breastmilk or food.""";
                       maxLines: 1,
                       decoration: InputDecoration(
                         hintText: appLocale?.t('chatHint') ?? 'Ask clinical or screening questions...',
-                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                        hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF9A8571)),
                         filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
+                        fillColor: const Color(0xFFFBF4E8),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: const BorderSide(color: Color(0xFFE2D2B6)),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          borderSide: const BorderSide(color: Color(0xFFE2D2B6)),
                         ),
                       ),
                       onSubmitted: (val) {
@@ -935,7 +935,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
                 const SizedBox(width: 8),
                 // Mic: speak the question instead of typing
                 CircleAvatar(
-                  backgroundColor: _isListening ? Colors.red : AppColors.primary,
+                  backgroundColor: _isListening ? Color(0xFFB23A22) : AppColors.primary,
                   radius: 20,
                   child: IconButton(
                     icon: Icon(
@@ -972,7 +972,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: msg.isUser ? AppColors.primary : Colors.white,
+          color: msg.isUser ? AppColors.primary : AppColors.paint,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -980,7 +980,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
             bottomRight: Radius.circular(msg.isUser ? 4 : 16),
           ),
           border: Border.all(
-            color: msg.isUser ? Colors.transparent : const Color(0xFFE2E8F0),
+            color: msg.isUser ? Colors.transparent : const Color(0xFFE2D2B6),
           ),
           boxShadow: [
             BoxShadow(
@@ -1008,10 +1008,10 @@ IMPORTANT: Never withhold breastmilk or food.""";
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
+                        color: const Color(0xFFF3E8D5),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text('ICMR Offline', style: TextStyle(fontSize: 8.5, color: Color(0xFF475569))),
+                      child: const Text('ICMR Offline', style: TextStyle(fontSize: 8.5, color: Color(0xFF4A3626))),
                     ),
                 ],
               ),
@@ -1022,7 +1022,7 @@ IMPORTANT: Never withhold breastmilk or food.""";
               style: TextStyle(
                 fontSize: 13,
                 height: 1.45,
-                color: msg.isUser ? Colors.white : const Color(0xFF0F172A),
+                color: msg.isUser ? Colors.white : const Color(0xFF33200F),
               ),
             ),
           ],

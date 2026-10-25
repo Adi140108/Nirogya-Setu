@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../../core/models/referral_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/auth_service.dart';
@@ -45,14 +46,14 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          border: Border(top: BorderSide(color: AppColors.neemDark, width: 1)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentNavIndex,
           onTap: (index) => setState(() => _currentNavIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: const Color(0xFF64748B),
+          backgroundColor: CraftNavTheme.background,
+          selectedItemColor: CraftNavTheme.selected,
+          unselectedItemColor: CraftNavTheme.unselected,
           selectedFontSize: 11,
           unselectedFontSize: 10,
           selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
@@ -112,6 +113,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        flexibleSpace: const CraftHeaderStitch(),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -121,7 +123,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             ),
             Text(
               '${ashaUser?.displayName ?? "ASHA Field Worker"} • ${(ashaUser?.villageName ?? "").isNotEmpty ? "${ashaUser!.villageName} • " : ""}Badge: ${ashaUser?.badgeNumber ?? "ASHA"}',
-              style: const TextStyle(fontSize: 11, color: Color(0xFFE0F2F1)),
+              style: const TextStyle(fontSize: 11, color: Color(0xFFE4E6CC)),
             ),
           ],
         ),
@@ -150,7 +152,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: const BoxDecoration(
-                        color: Colors.red,
+                        color: Color(0xFFB23A22),
                         shape: BoxShape.circle,
                       ),
                       constraints: const BoxConstraints(
@@ -268,8 +270,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
                 locale.t('screeningsDone'),
                 '$screeningCount',
                 Icons.checklist_rounded,
-                const Color(0xFF0288D1),
-                const Color(0xFFE1F5FE),
+                const Color(0xFF3B6634),
+                const Color(0xFFE4E6CC),
               ),
             ),
           ],
@@ -303,32 +305,41 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
   }
 
   Widget _buildMetricCard(String title, String value, IconData icon, Color color, Color bg) {
+    // The headline count (assigned citizens) is a solid neem block; the rest are tinted.
+    final solid = color == AppColors.primary;
+    final fg = solid ? AppColors.paint : color;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        color: solid ? AppColors.neem : bg,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 16),
+            decoration: BoxDecoration(
+              color: solid ? AppColors.paint.withOpacity(0.16) : AppColors.paint.withOpacity(0.7),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: solid ? AppColors.haldi : color, size: 16),
           ),
           const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(fontFamily: 'Fraunces', fontSize: 28, height: 1.0, fontWeight: FontWeight.w700, color: fg),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 11,
+              color: solid ? AppColors.paint.withOpacity(0.85) : AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -418,7 +429,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
             hintText: context.watch<AppLocale>().t('searchCitizen'),
             prefixIcon: const Icon(Icons.search_rounded, size: 20),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Color(0xFFFBF4E8),
             contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -441,8 +452,8 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: Color(0xFFFBF4E8),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
         child: Column(
@@ -495,7 +506,7 @@ class _AshaDashboardScreenState extends State<AshaDashboardScreen> {
         return Container(
           margin: const EdgeInsets.only(bottom: 10),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Color(0xFFFBF4E8),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: AppColors.border),
           ),

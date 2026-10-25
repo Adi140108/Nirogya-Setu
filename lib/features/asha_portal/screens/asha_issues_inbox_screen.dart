@@ -110,7 +110,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
     final isDesktop = MediaQuery.of(context).size.width >= 768;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFFBF4E8),
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,7 +185,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: isPendingList ? Colors.green.shade50 : Colors.blue.shade50,
+                  color: isPendingList ? Color(0xFFE4E6CC) : Color(0xFFE4E6CC),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
@@ -193,7 +193,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                       ? Icons.task_alt_rounded
                       : Icons.archive_outlined,
                   size: 54,
-                  color: isPendingList ? AppColors.primaryGreen : Colors.blue,
+                  color: isPendingList ? AppColors.primaryGreen : Color(0xFF3B6634),
                 ),
               ),
               const SizedBox(height: 16),
@@ -207,7 +207,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                     ? 'When citizens in your village raise a problem or send a voice note, it will appear here in order of timing.'
                     : 'Whenever you click the small tick (✓) beside a notification, it is preserved here as a permanent completion record.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 13, color: Color(0xFF6B5443)),
               ),
             ],
           ),
@@ -238,18 +238,18 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isUrgent
-              ? Colors.red.shade300
-              : (isPending ? Colors.grey.shade200 : Colors.green.shade200),
+              ? Color(0xFFB23A22)
+              : (isPending ? Color(0xFFE8D6B8) : Color(0xFFE4E6CC)),
           width: isUrgent ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
             color: isUrgent
-                ? Colors.red.withOpacity(0.08)
+                ? Color(0xFFB23A22).withOpacity(0.08)
                 : Colors.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 3),
@@ -275,16 +275,16 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: isUrgent ? Colors.red.shade50 : Colors.blue.shade50,
+                          color: isUrgent ? Color(0xFFF4D6C8) : Color(0xFFE4E6CC),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isUrgent ? Colors.red.shade300 : Colors.blue.shade200,
+                            color: isUrgent ? Color(0xFFB23A22) : Color(0xFFE4E6CC),
                           ),
                         ),
                         child: Text(
                           isUrgent ? '🚨 URGENT' : 'Routine',
                           style: TextStyle(
-                            color: isUrgent ? Colors.red.shade800 : Colors.blue.shade800,
+                            color: isUrgent ? Color(0xFFB23A22) : Color(0xFF3B6634),
                             fontWeight: FontWeight.bold,
                             fontSize: 10,
                           ),
@@ -293,7 +293,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
+                          color: Color(0xFFF3E8D5),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
@@ -316,11 +316,11 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time_rounded, size: 12, color: Colors.grey),
+                        const Icon(Icons.access_time_rounded, size: 12, color: Color(0xFF9A8571)),
                         const SizedBox(width: 4),
                         Text(
                           timeFormatter.format(issue.createdAt),
-                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                          style: TextStyle(fontSize: 11, color: Color(0xFF6B5443)),
                         ),
                       ],
                     ),
@@ -359,12 +359,12 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Color(0xFFF3E8D5),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.done_all_rounded,
-                      color: Colors.green,
+                      color: Color(0xFF3B6634),
                       size: 18,
                     ),
                   ),
@@ -397,12 +397,12 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: Color(0xFF0F172A),
+                          color: Color(0xFF33200F),
                         ),
                       ),
                       Text(
                         '${issue.villageName} • Household: ${issue.householdId}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                        style: TextStyle(fontSize: 12, color: Color(0xFF6B5443)),
                       ),
                     ],
                   ),
@@ -411,9 +411,9 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: Color(0xFFE4E6CC),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.shade200),
+                      border: Border.all(color: Color(0xFFE4E6CC)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -440,9 +440,9 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: Color(0xFFFBF4E8),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: Color(0xFFE8D6B8)),
               ),
               child: Text(
                 issue.description,
@@ -456,9 +456,9 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.purple.shade50,
+                  color: Color(0xFFF3DCC4),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.purple.shade200),
+                  border: Border.all(color: Color(0xFFF3DCC4)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,7 +472,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                             isPlaying
                                 ? Icons.pause_circle_filled_rounded
                                 : Icons.play_circle_fill_rounded,
-                            color: Colors.purple.shade700,
+                            color: Color(0xFF7E3019),
                             size: 32,
                           ),
                           onPressed: () => _toggleAudioPlayback(issue),
@@ -487,19 +487,19 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: Colors.purple.shade900,
+                                  color: Color(0xFF7E3019),
                                 ),
                               ),
                               Text(
                                 isPlaying
                                     ? '00:${_audioPlaybackSeconds.toString().padLeft(2, '0')} / 00:${issue.voiceDurationSeconds.toString().padLeft(2, '0')}'
                                     : '${issue.voiceDurationSeconds} seconds voice recorded',
-                                style: TextStyle(fontSize: 11, color: Colors.purple.shade700),
+                                style: TextStyle(fontSize: 11, color: Color(0xFF7E3019)),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.graphic_eq_rounded, color: Colors.purple.shade400, size: 24),
+                        Icon(Icons.graphic_eq_rounded, color: Color(0xFF7E3019), size: 24),
                       ],
                     ),
                     if (issue.voiceTranscription != null &&
@@ -510,7 +510,7 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
                         style: TextStyle(
                           fontSize: 11,
                           fontStyle: FontStyle.italic,
-                          color: Colors.purple.shade900,
+                          color: Color(0xFF7E3019),
                         ),
                       ),
                     ],
@@ -524,11 +524,11 @@ class _AshaIssuesInboxScreenState extends State<AshaIssuesInboxScreen>
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.check_circle, size: 14, color: Colors.green),
+                  const Icon(Icons.check_circle, size: 14, color: Color(0xFF3B6634)),
                   const SizedBox(width: 4),
                   Text(
                     'Resolved & recorded on: ${timeFormatter.format(issue.resolvedAt!)}',
-                    style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w500),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF3B6634), fontWeight: FontWeight.w500),
                   ),
                 ],
               ),

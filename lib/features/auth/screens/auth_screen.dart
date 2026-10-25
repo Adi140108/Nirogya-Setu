@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/services/app_locale.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../awareness_hub/screens/citizen_health_hub_screen.dart';
 import '../../../main.dart';
 
@@ -47,7 +49,7 @@ class _AuthScreenState extends State<AuthScreen> {
     if (phone.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          backgroundColor: Color(0xFFDC2626),
+          backgroundColor: AppColors.riskRed,
           content: Text('Please enter both phone number and password, or use Quick Bypass below.'),
         ),
       );
@@ -66,7 +68,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } else if (mounted && authService.authError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: const Color(0xFFDC2626),
+          backgroundColor: AppColors.riskRed,
           content: Text(authService.authError!),
         ),
       );
@@ -98,274 +100,209 @@ class _AuthScreenState extends State<AuthScreen> {
     final authService = context.watch<AuthService>();
     final healthRepo = context.watch<HealthRepository>();
     final isCitizen = widget.selectedRole == UserRole.patient;
+    final accent = isCitizen ? AppColors.neem : AppColors.terra;
 
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFE5F7EE),
-              Color(0xFFE0F3F8),
-              Color(0xFFCCE8FE),
-              Color(0xFFBADDF8),
-            ],
-            stops: [0.0, 0.35, 0.75, 1.0],
-          ),
-        ),
+      body: CraftBackground(
+        pieces: const [
+          CraftPiece(CraftMotif.phulkari, 0.34, right: -0.32, top: -0.2),
+          CraftPiece(CraftMotif.sprig, 0.2, left: -0.1, bottom: 0.2),
+        ],
         child: SafeArea(
-          child: Column(
-            children: [
-              // Top Bar with Back Arrow
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
-                      onPressed: () => Navigator.pop(context),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                children: [
+                  // Top Bar with Back Arrow
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: AppColors.ink),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Header Logo & Title
-                      Center(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 26),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Header Logo & Title
+                          Center(
+                            child: Column(
                               children: [
                                 Image.asset(
                                   'assets/images/logo_icon.png',
-                                  width: 44,
-                                  height: 44,
+                                  width: 76,
+                                  height: 76,
                                   fit: BoxFit.contain,
                                 ),
-                                const SizedBox(width: 10),
-                                RichText(
-                                  text: const TextSpan(
-                                    style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w900,
-                                      fontFamily: 'Roboto',
-                                      letterSpacing: -0.4,
+                                const SizedBox(height: 12),
+                                const NirogyaWordmark(size: 32),
+                                const SizedBox(height: 12),
+                                Text(
+                                  context.watch<AppLocale>().t('portalLogin').toUpperCase(),
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textSecondary,
+                                    letterSpacing: 2.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                // Role Badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: accent,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    'Role: ${widget.selectedRole.displayName}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.paint,
                                     ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Nirogya ',
-                                        style: TextStyle(color: Color(0xFF8B3A22)),
-                                      ),
-                                      TextSpan(
-                                        text: 'Setu',
-                                        style: TextStyle(color: Color(0xFF2E5A36)),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              context.watch<AppLocale>().t('portalLogin'),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF475569),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            // Role Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white),
-                              ),
-                              child: Text(
-                                'Role: ${widget.selectedRole.displayName}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0F172A),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 22),
-
-                      // Role Information Notice Box
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.65),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: widget.selectedRole == UserRole.patient
-                                ? const Color(0xFF0F766E).withOpacity(0.25)
-                                : const Color(0xFF0284C7).withOpacity(0.25),
                           ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Icon(
-                              widget.selectedRole == UserRole.patient
-                                  ? Icons.key_rounded
-                                  : Icons.admin_panel_settings_outlined,
-                              size: 20,
-                              color: widget.selectedRole == UserRole.patient
-                                  ? const Color(0xFF0F766E)
-                                  : const Color(0xFF0284C7),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                widget.selectedRole == UserRole.patient
-                                    ? 'Log in using your registered mobile number and password assigned by your ASHA worker during registration.'
-                                    : 'Account credentials are created and managed by the District Health Administrator. Passwords will be provisioned by Admin in the admin portal.',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF334155),
-                                  height: 1.35,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
 
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 22),
 
-                      // Input Fields
-                      _buildInputField(
-                        label: context.watch<AppLocale>().t('mobileNumber'),
-                        hint: 'e.g. +91 98765 43210',
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        prefixIcon: Icons.phone_android_rounded,
-                      ),
-                      const SizedBox(height: 16),
-
-                      _buildInputField(
-                        label: context.watch<AppLocale>().t('password'),
-                        hint: '••••••••',
-                        controller: _passwordController,
-                        isPassword: true,
-                        obscureText: _obscurePassword,
-                        prefixIcon: Icons.lock_outline_rounded,
-                        onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Primary Button (Log In)
-                      ElevatedButton(
-                        onPressed: authService.isLoading
-                            ? null
-                            : () => _handlePrimarySubmit(authService, healthRepo),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E88E5),
-                          foregroundColor: Colors.white,
-                          elevation: 4,
-                          shadowColor: const Color(0xFF1E88E5).withOpacity(0.4),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: authService.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                              )
-                            : Text(
-                                context.watch<AppLocale>().t('login'),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // Quick Bypass Button for Testing
-                      OutlinedButton.icon(
-                        onPressed: authService.isLoading ? null : () => _handleBypass(authService),
-                        icon: const Icon(Icons.bolt_rounded, size: 20, color: Color(0xFFEA580C)),
-                        label: Text(
-                          '⚡ Quick Bypass Login (${widget.selectedRole.displayName})',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white.withOpacity(0.85),
-                          side: const BorderSide(color: Color(0xFFEA580C), width: 1.2),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-
-                      // CITIZEN ONLY: Skip to videos button
-                      if (isCitizen) ...[
-                        const SizedBox(height: 14),
-                        OutlinedButton(
-                          onPressed: _handleSkipForCitizen,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF0F766E),
-                            side: const BorderSide(color: Color(0xFF0F766E), width: 1.5),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
+                          // Role Information Notice Box
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.paint,
                               borderRadius: BorderRadius.circular(16),
+                              border: Border(left: BorderSide(color: accent, width: 4)),
                             ),
-                            backgroundColor: Colors.white.withOpacity(0.5),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.ondemand_video_rounded, size: 20, color: Color(0xFF0F766E)),
-                              const SizedBox(width: 8),
-                              Text(
-                                context.watch<AppLocale>().t('skipWatch'),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.2,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  isCitizen ? Icons.key_rounded : Icons.admin_panel_settings_outlined,
+                                  size: 20,
+                                  color: accent,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    isCitizen
+                                        ? 'Log in using your registered mobile number and password assigned by your ASHA worker during registration.'
+                                        : 'Account credentials are created and managed by the District Health Administrator. Passwords will be provisioned by Admin in the admin portal.',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textPrimary,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
 
-                      const SizedBox(height: 28),
-                    ],
+                          const SizedBox(height: 20),
+
+                          // Input Fields
+                          _buildInputField(
+                            label: context.watch<AppLocale>().t('mobileNumber'),
+                            hint: 'e.g. +91 98765 43210',
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            prefixIcon: Icons.phone_android_rounded,
+                          ),
+                          const SizedBox(height: 16),
+
+                          _buildInputField(
+                            label: context.watch<AppLocale>().t('password'),
+                            hint: '••••••••',
+                            controller: _passwordController,
+                            isPassword: true,
+                            obscureText: _obscurePassword,
+                            prefixIcon: Icons.lock_outline_rounded,
+                            onTogglePassword: () => setState(() => _obscurePassword = !_obscurePassword),
+                          ),
+                          const SizedBox(height: 26),
+
+                          // Primary Button (Log In)
+                          CraftPillButton(
+                            label: context.watch<AppLocale>().t('login'),
+                            busy: authService.isLoading,
+                            onPressed: authService.isLoading
+                                ? null
+                                : () => _handlePrimarySubmit(authService, healthRepo),
+                          ),
+
+                          const SizedBox(height: 14),
+
+                          // Quick Bypass Button for Testing
+                          OutlinedButton.icon(
+                            onPressed: authService.isLoading ? null : () => _handleBypass(authService),
+                            icon: const Icon(Icons.bolt_rounded, size: 20, color: AppColors.terra),
+                            label: Text(
+                              'Quick Bypass Login (${widget.selectedRole.displayName})',
+                              style: const TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: AppColors.paint,
+                              side: const BorderSide(color: AppColors.terra, width: 1.5),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: const StadiumBorder(),
+                            ),
+                          ),
+
+                          // CITIZEN ONLY: Skip to videos button
+                          if (isCitizen) ...[
+                            const SizedBox(height: 14),
+                            OutlinedButton(
+                              onPressed: _handleSkipForCitizen,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.neem,
+                                side: const BorderSide(color: AppColors.neem, width: 1.5),
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: const StadiumBorder(),
+                                backgroundColor: AppColors.paint,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.ondemand_video_rounded, size: 20, color: AppColors.neem),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    context.watch<AppLocale>().t('skipWatch'),
+                                    style: const TextStyle(
+                                      fontSize: 14.5,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
@@ -388,55 +325,54 @@ class _AuthScreenState extends State<AuthScreen> {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 14.5,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0F172A),
+            color: AppColors.ink,
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFBCE3F5).withOpacity(0.55),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.8),
-              width: 1,
-            ),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: isPassword ? obscureText : false,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.ink,
           ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            obscureText: isPassword ? obscureText : false,
-            style: const TextStyle(
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.paint,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.textSecondary, size: 20) : null,
+            hintText: hint,
+            hintStyle: const TextStyle(
+              color: AppColors.textMuted,
               fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w500,
             ),
-            decoration: InputDecoration(
-              prefixIcon: prefixIcon != null
-                  ? Icon(prefixIcon, color: const Color(0xFF475569), size: 20)
-                  : null,
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: const Color(0xFF64748B).withOpacity(0.7),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              suffixIcon: isPassword
-                  ? IconButton(
-                      icon: Icon(
-                        obscureText ? Icons.visibility_off : Icons.visibility,
-                        color: const Color(0xFF64748B),
-                        size: 20,
-                      ),
-                      onPressed: onTogglePassword,
-                    )
-                  : null,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.border),
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.neem, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            suffixIcon: isPassword
+                ? IconButton(
+                    icon: Icon(
+                      obscureText ? Icons.visibility_off : Icons.visibility,
+                      color: AppColors.textSecondary,
+                      size: 20,
+                    ),
+                    onPressed: onTogglePassword,
+                  )
+                : null,
           ),
         ),
       ],

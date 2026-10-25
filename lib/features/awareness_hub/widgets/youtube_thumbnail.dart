@@ -11,7 +11,7 @@ class YoutubeThumbnail extends StatelessWidget {
     final fallback = Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF004D40), Color(0xFF00796B)],
+          colors: [Color(0xFF2C4D27), Color(0xFF3B6634)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),

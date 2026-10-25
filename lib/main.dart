@@ -76,28 +76,44 @@ class AarogyaSetuApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        fontFamily: 'DMSans',
+        fontFamilyFallback: const ['TiroDevanagari'],
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           primary: AppColors.primary,
           secondary: AppColors.secondary,
-          surface: Colors.white,
+          surface: AppColors.surface,
+          onSurface: AppColors.textPrimary,
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: AppColors.background,
+        cardColor: AppColors.surface,
+        dividerColor: AppColors.divider,
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          displayMedium: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          displaySmall: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          headlineLarge: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          headlineMedium: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+          headlineSmall: TextStyle(fontFamily: 'Fraunces', fontWeight: FontWeight.w700),
+        ),
         appBarTheme: const AppBarTheme(
           elevation: 0,
           centerTitle: false,
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.paint,
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: const StadiumBorder(),
           ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(shape: const StadiumBorder()),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.white,
+          fillColor: AppColors.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.border),
@@ -132,7 +148,7 @@ class RootGateScreen extends StatelessWidget {
 
     if (authService.isLoading) {
       return const Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

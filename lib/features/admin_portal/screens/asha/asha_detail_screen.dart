@@ -110,7 +110,7 @@ class AshaDetailScreen extends StatelessWidget {
                     Text('ASHA Worker: ${worker.fullName}',
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     Text('${worker.district}, ${worker.state}',
-                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF6B5443))),
                     const SizedBox(height: 14),
                     const Text('Select Assigned Village:',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
@@ -196,7 +196,7 @@ class AshaDetailScreen extends StatelessWidget {
 
     if (worker == null) {
       return Scaffold(
-        appBar: AppBar(backgroundColor: Colors.white, foregroundColor: AdminColors.ink),
+        appBar: AppBar(backgroundColor: const Color(0xFF3B6634), foregroundColor: const Color(0xFFFBF4E8)),
         body: const AdminEmptyState(
           icon: Icons.person_off_outlined,
           title: 'ASHA worker not found',
@@ -213,8 +213,8 @@ class AshaDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: const Text('ASHA Worker Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
@@ -458,7 +458,7 @@ class _VillagerTile extends StatelessWidget {
   void _showVillager(BuildContext context, String? latestRisk, int screeningCount) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFBF4E8),
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) => SafeArea(

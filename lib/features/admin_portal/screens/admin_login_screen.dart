@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/admin_repository.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../widgets/admin_ui.dart';
 import 'admin_shell_screen.dart';
 
@@ -54,17 +55,11 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFE5F7EE), Color(0xFFE0F3F8), Color(0xFFCCE8FE), Color(0xFFBADDF8)],
-            stops: [0.0, 0.35, 0.75, 1.0],
-          ),
-        ),
+      body: CraftBackground(
+        pieces: const [
+          CraftPiece(CraftMotif.neem, 0.4, right: -0.3, top: -0.12, turns: 0.12),
+          CraftPiece(CraftMotif.kolam, 0.5, left: -0.4, bottom: -0.32),
+        ],
         child: SafeArea(
           child: Column(
             children: [

@@ -146,8 +146,8 @@ class _VideoFormScreenState extends State<VideoFormScreen> {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: Text(_isEdit ? 'Edit Video' : 'Add Video', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: Form(

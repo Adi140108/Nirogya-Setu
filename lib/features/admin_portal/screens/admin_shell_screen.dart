@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../../core/services/admin_repository.dart';
 import '../widgets/admin_ui.dart';
 import 'admin_change_password_screen.dart';
@@ -98,7 +99,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () => setState(() => _quickMenuOpen = false),
-                  child: Container(color: const Color(0xFF0F172A).withOpacity(0.35)),
+                  child: Container(color: const Color(0xFF33200F).withOpacity(0.35)),
                 ),
               ),
               Positioned(
@@ -123,15 +124,16 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
   PreferredSizeWidget _buildAppBar(AdminRepository repo) {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.white,
-      foregroundColor: AdminColors.ink,
+      backgroundColor: AppColors.neem,
+      foregroundColor: AppColors.paint,
+      flexibleSpace: const CraftHeaderStitch(),
       automaticallyImplyLeading: false,
       title: Row(
         children: [
-          const AdminIconBadge(
+          AdminIconBadge(
             icon: Icons.admin_panel_settings_rounded,
-            color: AdminColors.accent,
-            surface: AdminColors.accentSurface,
+            color: AppColors.haldi,
+            surface: AppColors.paint.withOpacity(0.16),
             size: 34,
           ),
           const SizedBox(width: 10),
@@ -140,9 +142,9 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Admin Portal',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AdminColors.ink)),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.paint)),
                 Text(_tabTitles[_tabIndex],
-                    style: const TextStyle(fontSize: 11, color: AdminColors.muted, fontWeight: FontWeight.w500)),
+                    style: const TextStyle(fontSize: 11, color: Color(0xFFE4E6CC), fontWeight: FontWeight.w500)),
               ],
             ),
           ),
@@ -157,14 +159,14 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
               : Badge(
                   isLabelVisible: repo.pendingSyncCount > 0,
                   label: Text('${repo.pendingSyncCount}'),
-                  child: const Icon(Icons.cloud_sync_outlined, color: Color(0xFF334155)),
+                  child: const Icon(Icons.cloud_sync_outlined, color: AppColors.paint),
                 ),
         ),
         PopupMenuButton<String>(
           tooltip: 'Settings',
-          icon: const Icon(Icons.settings_outlined, color: Color(0xFF334155)),
+          icon: const Icon(Icons.settings_outlined, color: AppColors.paint),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          color: Colors.white,
+          color: AppColors.paint,
           onSelected: (value) {
             if (value == 'password') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminChangePasswordScreen()));
@@ -185,7 +187,7 @@ class _AdminShellScreenState extends State<AdminShellScreen> {
               value: 'signout',
               child: ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.logout_rounded, color: Color(0xFFDC2626)),
+                leading: Icon(Icons.logout_rounded, color: Color(0xFFB23A22)),
                 title: Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
               ),
             ),
@@ -218,7 +220,7 @@ class _QuickActionMenu extends StatelessWidget {
         width: 290,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xFFFBF4E8),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 24, offset: const Offset(0, 8)),
@@ -321,8 +323,8 @@ class _AdminBottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AdminColors.border, width: 1)),
+        color: CraftNavTheme.background,
+        border: Border(top: BorderSide(color: AppColors.neemDark, width: 1)),
       ),
       child: SafeArea(
         top: false,
@@ -361,12 +363,12 @@ class _AdminBottomBar extends StatelessWidget {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                             colors: quickMenuOpen
-                                ? const [Color(0xFF334155), Color(0xFF0F172A)]
-                                : const [AppColors.primaryLight, AppColors.primaryDark],
+                                ? const [Color(0xFF4A3626), Color(0xFF33200F)]
+                                : const [AppColors.terra, AppColors.terraDark],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.4),
+                              color: AppColors.terraDark.withOpacity(0.45),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -421,7 +423,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF064E3B) : AdminColors.muted;
+    final color = selected ? CraftNavTheme.selected : CraftNavTheme.unselected;
     return Expanded(
       child: InkWell(
         onTap: onTap,

@@ -18,11 +18,11 @@ extension IssueAgeStageX on IssueAgeStage {
   Color get color {
     switch (this) {
       case IssueAgeStage.fresh:
-        return const Color(0xFF16A34A);
+        return const Color(0xFF3B6634);
       case IssueAgeStage.aging:
-        return const Color(0xFFEAB308);
+        return const Color(0xFFB7780C);
       case IssueAgeStage.overdue:
-        return const Color(0xFFDC2626);
+        return const Color(0xFFB23A22);
     }
   }
 
@@ -232,7 +232,7 @@ class IssueMapView extends StatelessWidget {
               height: 22,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
+                  color: const Color(0xFF3B6634),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 3),
                   boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
@@ -317,7 +317,7 @@ class IssueMapLegend extends StatelessWidget {
               const SizedBox(width: 2),
               Text(
                 '${stage.label} (${pins.where((p) => p.stage == stage).length})',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF4A3626)),
               ),
             ],
           ),

@@ -184,7 +184,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
           children: [
             Text(
               'Add a new village to $_selectedDistrict, $_selectedState. It will be saved into the database and available across portals.',
-              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B5443)),
             ),
             const SizedBox(height: 14),
             TextField(
@@ -463,7 +463,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: const Color(0xFF64748B),
+                          color: const Color(0xFF6B5443),
                         ),
                         onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                       ),
@@ -702,7 +702,7 @@ class _RegisterVillagerScreenState extends State<RegisterVillagerScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),

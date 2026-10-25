@@ -6,23 +6,23 @@ import '../../../core/models/sync_status.dart';
 /// Visual tokens for the Admin Portal. They reuse the slate/white surfaces and
 /// role accent colours already used on the role-selection and citizen screens.
 class AdminColors {
-  static const Color background = Color(0xFFF1F5F9);
-  static const Color ink = Color(0xFF0F172A);
-  static const Color muted = Color(0xFF64748B);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color accent = Color(0xFF0284C7);
-  static const Color accentSurface = Color(0xFFE0F2FE);
+  static const Color background = Color(0xFFF3E8D5);
+  static const Color ink = Color(0xFF33200F);
+  static const Color muted = Color(0xFF6B5443);
+  static const Color border = Color(0xFFE2D2B6);
+  static const Color accent = Color(0xFF3B6634);
+  static const Color accentSurface = Color(0xFFE4E6CC);
 
-  static const Color asha = Color(0xFF0284C7);
-  static const Color ashaSurface = Color(0xFFE0F2FE);
-  static const Color doctor = Color(0xFF7C3AED);
-  static const Color doctorSurface = Color(0xFFEDE9FE);
-  static const Color hospital = Color(0xFFEA580C);
-  static const Color hospitalSurface = Color(0xFFFFEDD5);
-  static const Color video = Color(0xFFE11D48);
-  static const Color videoSurface = Color(0xFFFFE4E6);
-  static const Color citizen = Color(0xFF16A34A);
-  static const Color citizenSurface = Color(0xFFDCFCE7);
+  static const Color asha = Color(0xFF3B6634);
+  static const Color ashaSurface = Color(0xFFE4E6CC);
+  static const Color doctor = Color(0xFF2C4D27);
+  static const Color doctorSurface = Color(0xFFDCE3C8);
+  static const Color hospital = Color(0xFFA8452A);
+  static const Color hospitalSurface = Color(0xFFF3DCC4);
+  static const Color video = Color(0xFFB23A22);
+  static const Color videoSurface = Color(0xFFF4D6C8);
+  static const Color citizen = Color(0xFF3B6634);
+  static const Color citizenSurface = Color(0xFFE4E6CC);
 }
 
 class AdminCard extends StatelessWidget {
@@ -35,7 +35,7 @@ class AdminCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: Color(0xFFFBF4E8),
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -409,7 +409,7 @@ void showAdminSnack(BuildContext context, String message, {bool isError = false}
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(
-      backgroundColor: isError ? const Color(0xFFDC2626) : AppColors.primaryDark,
+      backgroundColor: isError ? const Color(0xFFB23A22) : AppColors.primaryDark,
       behavior: SnackBarBehavior.floating,
       content: Text(message),
     ));
@@ -426,9 +426,9 @@ Future<bool> showAdminConfirm(
     context: context,
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFBF4E8),
       title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AdminColors.ink)),
-      content: Text(message, style: const TextStyle(fontSize: 14, color: Color(0xFF475569), height: 1.4)),
+      content: Text(message, style: const TextStyle(fontSize: 14, color: Color(0xFF4A3626), height: 1.4)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx, false),
@@ -437,7 +437,7 @@ Future<bool> showAdminConfirm(
         ElevatedButton(
           onPressed: () => Navigator.pop(ctx, true),
           style: ElevatedButton.styleFrom(
-            backgroundColor: destructive ? const Color(0xFFDC2626) : AppColors.primary,
+            backgroundColor: destructive ? const Color(0xFFB23A22) : AppColors.primary,
             foregroundColor: Colors.white,
           ),
           child: Text(confirmLabel, style: const TextStyle(fontWeight: FontWeight.w700)),
@@ -462,7 +462,7 @@ Future<void> showCredentialsDialog(
     barrierDismissible: false,
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFBF4E8),
       titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 4),
       title: Row(
         children: [
@@ -625,7 +625,7 @@ class AdminSearchSelectField extends StatelessWidget {
                   final picked = await showModalBottomSheet<String>(
                     context: context,
                     isScrollControlled: true,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Color(0xFFFBF4E8),
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
                     builder: (_) => _SearchPickerSheet(title: label, options: options, allowCustom: allowCustom),
                   );

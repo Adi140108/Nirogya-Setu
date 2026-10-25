@@ -43,7 +43,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Nirogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
+            Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE4E6CC))),
           ],
         ),
         backgroundColor: AppColors.primary,
@@ -68,7 +68,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
           // Offline Videos Counter & Guidance Banner
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: const Color(0xFFE0F2F1),
+            color: const Color(0xFFE4E6CC),
             child: Row(
               children: [
                 const Icon(Icons.download_done_rounded, color: AppColors.primary, size: 20),
@@ -98,7 +98,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
           // Filters: Topics & Languages
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Colors.white,
+            color: const Color(0xFFFBF4E8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -131,7 +131,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
                         child: FilterChip(
                           label: Text(lang == 'All' ? 'All Languages' : lang, style: TextStyle(fontSize: 11, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
                           selected: isSelected,
-                          selectedColor: const Color(0xFFFFF3E0),
+                          selectedColor: const Color(0xFFF3DCC4),
                           checkmarkColor: AppColors.secondary,
                           onSelected: (_) => setState(() => _selectedLanguage = lang),
                         ),
@@ -163,7 +163,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
   Widget _buildVerificationNotice() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: const Color(0xFFF1F5F9),
+      color: const Color(0xFFF3E8D5),
       child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -187,7 +187,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
         boxShadow: [
@@ -209,7 +209,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF004D40), Color(0xFF00796B)],
+                    colors: [Color(0xFF2C4D27), Color(0xFF3B6634)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -258,7 +258,7 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.verified_rounded, size: 12, color: Color(0xFF69F0AE)),
+                        Icon(Icons.verified_rounded, size: 12, color: Color(0xFFA8C98E)),
                         SizedBox(width: 4),
                         Text(
                           'Verified Guidance',
@@ -382,22 +382,22 @@ class _AwarenessHubScreenState extends State<AwarenessHubScreen> {
 
     switch (status) {
       case VideoDownloadStatus.downloaded:
-        bg = const Color(0xFF2E7D32);
+        bg = const Color(0xFF3B6634);
         fg = Colors.white;
         icon = Icons.check_circle_rounded;
         break;
       case VideoDownloadStatus.downloading:
-        bg = const Color(0xFFE65100);
+        bg = const Color(0xFFA8452A);
         fg = Colors.white;
         icon = Icons.downloading_rounded;
         break;
       case VideoDownloadStatus.waitingForInternet:
-        bg = const Color(0xFFC62828);
+        bg = const Color(0xFFB23A22);
         fg = Colors.white;
         icon = Icons.wifi_off_rounded;
         break;
       case VideoDownloadStatus.updateAvailable:
-        bg = const Color(0xFFF57F17);
+        bg = const Color(0xFFB7780C);
         fg = Colors.white;
         icon = Icons.update_rounded;
         break;

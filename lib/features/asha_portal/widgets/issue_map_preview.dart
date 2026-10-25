@@ -80,13 +80,13 @@ class _AshaIssueMapPreviewState extends State<AshaIssueMapPreview> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A).withOpacity(0.85),
+                    color: const Color(0xFF33200F).withOpacity(0.85),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.map_rounded, color: Color(0xFF34D399), size: 16),
+                      const Icon(Icons.map_rounded, color: Color(0xFFA8C98E), size: 16),
                       const SizedBox(width: 6),
                       Text(
                         pins.isEmpty ? 'Live Map • no open cases' : 'Live Map • ${pins.length} open case${pins.length == 1 ? '' : 's'}',
@@ -115,14 +115,14 @@ class _AshaIssueMapPreviewState extends State<AshaIssueMapPreview> {
               child: IgnorePointer(
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  decoration: BoxDecoration(color: Color(0xFFFBF4E8), borderRadius: BorderRadius.circular(20)),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.open_in_full_rounded, size: 14, color: Color(0xFF064E3B)),
+                      Icon(Icons.open_in_full_rounded, size: 14, color: Color(0xFF2C4D27)),
                       SizedBox(width: 4),
                       Text('Tap to open full map',
-                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF064E3B))),
+                          style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF2C4D27))),
                     ],
                   ),
                 ),

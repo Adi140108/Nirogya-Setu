@@ -33,13 +33,13 @@ class ManageVideosScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Manage Videos', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
-            Text('Citizen Health Hub', style: TextStyle(fontSize: 11, color: AdminColors.muted)),
+            Text('Citizen Health Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE4E6CC))),
           ],
         ),
       ),
@@ -83,7 +83,7 @@ class ManageVideosScreen extends StatelessWidget {
                             child: Text(
                               '${videos.length} video(s) in ${repo.availableVideoLanguages.length} language(s) '
                               'are live in the citizen Health Hub.',
-                              style: const TextStyle(fontSize: 12.5, color: Color(0xFF9F1239), fontWeight: FontWeight.w600),
+                              style: const TextStyle(fontSize: 12.5, color: Color(0xFF8A2B18), fontWeight: FontWeight.w600),
                             ),
                           ),
                         ],
@@ -183,7 +183,7 @@ class _VideoCard extends StatelessWidget {
                   onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
                   itemBuilder: (_) => const [
                     PopupMenuItem(value: 'edit', child: Text('Edit video')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Color(0xFFDC2626)))),
+                    PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: Color(0xFFB23A22)))),
                   ],
                 ),
               ],

@@ -53,13 +53,13 @@ class _CitizenHealthHubScreenState extends State<CitizenHealthHubScreen> {
     final filtered = videos.where((v) => topic == 'All' || v.topic == topic).toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFFFBF4E8),
       appBar: AppBar(
         title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Nirogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
+            Text('Public Health Awareness Hub', style: TextStyle(fontSize: 11, color: Color(0xFFE4E6CC))),
           ],
         ),
         backgroundColor: AppColors.primary,
@@ -86,7 +86,7 @@ class _CitizenHealthHubScreenState extends State<CitizenHealthHubScreen> {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: const Color(0xFFE0F2F1),
+              color: const Color(0xFFE4E6CC),
               child: Row(
                 children: [
                   Icon(admin.isSyncing ? Icons.sync_rounded : Icons.download_done_rounded,
@@ -126,7 +126,7 @@ class _CitizenHealthHubScreenState extends State<CitizenHealthHubScreen> {
 
   Widget _buildFilters(List<String> languages, String? language, List<String> topics, String topic) {
     return Container(
-      color: Colors.white,
+      color: const Color(0xFFFBF4E8),
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +146,7 @@ class _CitizenHealthHubScreenState extends State<CitizenHealthHubScreen> {
                       label: Text(l,
                           style: TextStyle(fontSize: 12.5, fontWeight: l == language ? FontWeight.bold : FontWeight.w500)),
                       selected: l == language,
-                      selectedColor: const Color(0xFFFFF3E0),
+                      selectedColor: const Color(0xFFF3DCC4),
                       labelStyle: TextStyle(color: l == language ? AppColors.secondary : AppColors.textPrimary),
                       onSelected: (_) => setState(() => _language = l),
                     ),
@@ -352,19 +352,19 @@ class DownloadStatusPill extends StatelessWidget {
     late IconData icon;
     switch (state.status) {
       case VideoDownloadStatus.downloaded:
-        bg = const Color(0xFF2E7D32);
+        bg = const Color(0xFF3B6634);
         icon = Icons.check_circle_rounded;
         break;
       case VideoDownloadStatus.downloading:
-        bg = const Color(0xFFE65100);
+        bg = const Color(0xFFA8452A);
         icon = Icons.downloading_rounded;
         break;
       case VideoDownloadStatus.waitingForInternet:
-        bg = const Color(0xFFC62828);
+        bg = const Color(0xFFB23A22);
         icon = Icons.wifi_off_rounded;
         break;
       case VideoDownloadStatus.updateAvailable:
-        bg = const Color(0xFFF57F17);
+        bg = const Color(0xFFB7780C);
         icon = Icons.update_rounded;
         break;
       case VideoDownloadStatus.notDownloaded:

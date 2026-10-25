@@ -10,7 +10,7 @@ import '../../asha_portal/screens/patient_detail_screen.dart';
 class PatientQrScannerScreen extends StatefulWidget {
   final Color accentColor;
 
-  const PatientQrScannerScreen({super.key, this.accentColor = const Color(0xFF00796B)});
+  const PatientQrScannerScreen({super.key, this.accentColor = const Color(0xFF3B6634)});
 
   @override
   State<PatientQrScannerScreen> createState() => _PatientQrScannerScreenState();

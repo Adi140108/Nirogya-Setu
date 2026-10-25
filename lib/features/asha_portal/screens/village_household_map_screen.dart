@@ -111,7 +111,7 @@ class _VillageHouseholdMapScreenState extends State<VillageHouseholdMapScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Live Issue Map', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-            Text('Open issues from your citizens', style: TextStyle(fontSize: 11, color: Color(0xFFD1FAE5))),
+            Text('Open issues from your citizens', style: TextStyle(fontSize: 11, color: Color(0xFFE4E6CC))),
           ],
         ),
         backgroundColor: AppColors.primaryGreen,
@@ -134,7 +134,7 @@ class _VillageHouseholdMapScreenState extends State<VillageHouseholdMapScreen> {
         children: [
           Container(
             width: double.infinity,
-            color: Colors.white,
+            color: const Color(0xFFFBF4E8),
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +143,7 @@ class _VillageHouseholdMapScreenState extends State<VillageHouseholdMapScreen> {
                   pins.isEmpty
                       ? 'No open issues with a location right now'
                       : '${pins.length} open issue${pins.length == 1 ? '' : 's'} • tap a pin for patient details',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF33200F)),
                 ),
                 const SizedBox(height: 6),
                 IssueMapLegend(pins: pins),
@@ -180,12 +180,12 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: const Color(0xFF64748B)),
+          Icon(icon, size: 18, color: const Color(0xFF6B5443)),
           const SizedBox(width: 10),
-          SizedBox(width: 92, child: Text(label, style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)))),
+          SizedBox(width: 92, child: Text(label, style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B5443)))),
           Expanded(
             child: Text(value,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF33200F))),
           ),
         ],
       ),
@@ -195,7 +195,7 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.white,
+    backgroundColor: Color(0xFFFBF4E8),
     shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
     builder: (ctx) => SafeArea(
       child: ConstrainedBox(
@@ -210,7 +210,7 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
                 child: Container(
                   width: 40,
                   height: 4,
-                  decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(color: const Color(0xFFE2D2B6), borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               const SizedBox(height: 14),
@@ -223,7 +223,7 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(issue.citizenName,
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF0F172A))),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Color(0xFF33200F))),
                         Text(
                           '${pin.stage.label} • raised ${elapsedLabel(issue.createdAt)}',
                           style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: color),
@@ -234,9 +234,9 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
                   if (issue.urgency == 'Urgent')
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(12)),
+                      decoration: BoxDecoration(color: const Color(0xFFF4D6C8), borderRadius: BorderRadius.circular(12)),
                       child: const Text('URGENT',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFDC2626))),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFFB23A22))),
                     ),
                 ],
               ),
@@ -253,13 +253,13 @@ Future<void> showIssuePinDetails(BuildContext context, IssuePin pin) {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(issue.category,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF33200F))),
                     const SizedBox(height: 4),
-                    Text(issue.description, style: const TextStyle(fontSize: 13, color: Color(0xFF334155), height: 1.35)),
+                    Text(issue.description, style: const TextStyle(fontSize: 13, color: Color(0xFF4A3626), height: 1.35)),
                     if (issue.hasVoiceNote && (issue.voiceTranscription ?? '').isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text('🎙️ ${issue.voiceTranscription}',
-                          style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: Color(0xFF475569))),
+                          style: const TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: Color(0xFF4A3626))),
                     ],
                   ],
                 ),

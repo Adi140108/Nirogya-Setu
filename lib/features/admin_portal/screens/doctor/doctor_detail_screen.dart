@@ -72,7 +72,7 @@ class DoctorDetailScreen extends StatelessWidget {
 
     if (doctor == null) {
       return Scaffold(
-        appBar: AppBar(backgroundColor: Colors.white, foregroundColor: AdminColors.ink),
+        appBar: AppBar(backgroundColor: const Color(0xFF3B6634), foregroundColor: const Color(0xFFFBF4E8)),
         body: const AdminEmptyState(
           icon: Icons.person_off_outlined,
           title: 'Doctor not found',
@@ -91,8 +91,8 @@ class DoctorDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: const Text('Doctor Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         actions: [
           IconButton(

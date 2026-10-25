@@ -170,8 +170,8 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: Text(_isEdit ? 'Edit Doctor' : 'Add Doctor',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         actions: [
@@ -375,7 +375,7 @@ class _DoctorFormScreenState extends State<DoctorFormScreen> {
                                 : previewPassword != null
                                     ? 'Login password will be generated automatically: $previewPassword\nThe doctor signs in with the mobile number and this password.'
                                     : 'A simple login password will be generated automatically from the name and mobile number.',
-                            style: const TextStyle(fontSize: 12.5, color: Color(0xFF075985), height: 1.35),
+                            style: const TextStyle(fontSize: 12.5, color: Color(0xFF2C4D27), height: 1.35),
                           ),
                         ),
                       ],

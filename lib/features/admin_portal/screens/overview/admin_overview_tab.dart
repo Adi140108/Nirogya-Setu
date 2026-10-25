@@ -268,7 +268,7 @@ class _WelcomeCard extends StatelessWidget {
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
           const SizedBox(height: 4),
           Text(DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now()),
-              style: const TextStyle(fontSize: 12.5, color: Color(0xFFB2DFDB))),
+              style: const TextStyle(fontSize: 12.5, color: Color(0xFFE4E6CC))),
           const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

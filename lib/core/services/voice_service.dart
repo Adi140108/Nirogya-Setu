@@ -21,7 +21,7 @@ class VoiceService {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         duration: const Duration(seconds: 4),
-        backgroundColor: const Color(0xFF004D40),
+        backgroundColor: const Color(0xFF2C4D27),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: Row(
@@ -29,10 +29,10 @@ class VoiceService {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: const BoxDecoration(
-                color: Color(0xFFE0F2F1),
+                color: Color(0xFFE4E6CC),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.volume_up_rounded, color: Color(0xFF004D40), size: 24),
+              child: const Icon(Icons.volume_up_rounded, color: Color(0xFF2C4D27), size: 24),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -47,11 +47,11 @@ class VoiceService {
                   const SizedBox(height: 2),
                   Text(
                     hindiText,
-                    style: const TextStyle(color: Color(0xFFFFF9C4), fontSize: 13),
+                    style: const TextStyle(color: Color(0xFFF7E6C2), fontSize: 13),
                   ),
                   Text(
                     englishText,
-                    style: const TextStyle(color: Color(0xFFB2DFDB), fontSize: 11),
+                    style: const TextStyle(color: Color(0xFFE4E6CC), fontSize: 11),
                   ),
                 ],
               ),

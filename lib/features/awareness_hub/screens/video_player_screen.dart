@@ -124,7 +124,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 40),
+                          const Icon(Icons.error_outline_rounded, color: Color(0xFFB23A22), size: 40),
                           const SizedBox(height: 8),
                           Text(
                             'Video playback error:\n$_errorMessage',
@@ -174,7 +174,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             // Video Controls Progress Bar
             if (_isInitialized && _controller != null) ...[
               Container(
-                color: const Color(0xFF1E293B),
+                color: const Color(0xFF33200F),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Column(
                   children: [
@@ -227,7 +227,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             // Offline Verification Badge & Metadata
             Expanded(
               child: Container(
-                color: Colors.white,
+                color: const Color(0xFFFBF4E8),
                 padding: const EdgeInsets.all(16),
                 child: ListView(
                   children: [
@@ -235,17 +235,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: _isPlayingFromLocalFile ? const Color(0xFFE8F5E9) : const Color(0xFFE1F5FE),
+                        color: _isPlayingFromLocalFile ? const Color(0xFFE4E6CC) : const Color(0xFFE4E6CC),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _isPlayingFromLocalFile ? const Color(0xFF2E7D32) : const Color(0xFF0288D1),
+                          color: _isPlayingFromLocalFile ? const Color(0xFF3B6634) : const Color(0xFF3B6634),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             _isPlayingFromLocalFile ? Icons.offline_pin_rounded : Icons.wifi_rounded,
-                            color: _isPlayingFromLocalFile ? const Color(0xFF2E7D32) : const Color(0xFF0288D1),
+                            color: _isPlayingFromLocalFile ? const Color(0xFF3B6634) : const Color(0xFF3B6634),
                             size: 22,
                           ),
                           const SizedBox(width: 10),
@@ -260,7 +260,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
-                                    color: _isPlayingFromLocalFile ? const Color(0xFF1B5E20) : const Color(0xFF01579B),
+                                    color: _isPlayingFromLocalFile ? const Color(0xFF2C4D27) : const Color(0xFF3B6634),
                                   ),
                                 ),
                                 Text(

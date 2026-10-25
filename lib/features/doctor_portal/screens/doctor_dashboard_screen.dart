@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/widgets/craft_background.dart';
 import '../../../core/constants/screening_rules.dart';
 import '../../../core/models/referral_model.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/health_repository.dart';
 import '../../../core/services/voice_service.dart';
+import '../../shared/widgets/expandable_details.dart';
 import '../../shared/widgets/network_banner.dart';
 import '../../shared/widgets/priority_badge.dart';
 import '../../shared/widgets/sync_status_badge.dart';
@@ -53,18 +55,18 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
+          border: Border(top: BorderSide(color: AppColors.neemDark, width: 1)),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) => setState(() => _currentIndex = index),
-          backgroundColor: Colors.white,
-          selectedItemColor: AppColors.roleDoctor,
-          unselectedItemColor: const Color(0xFF64748B),
+          backgroundColor: CraftNavTheme.background,
+          selectedItemColor: CraftNavTheme.selected,
+          unselectedItemColor: CraftNavTheme.unselected,
           selectedFontSize: 11,
           unselectedFontSize: 10,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
           type: BottomNavigationBarType.fixed,
           elevation: 8,
           items: [
@@ -101,11 +103,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         children: [
           const Text(
             'Nirogya Setu',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
           ),
           Text(
             '${doctor?.displayName ?? "Medical Officer"} • $subtitle',
-            style: const TextStyle(fontSize: 11, color: Color(0xFFBBDEFB)),
+            style: const TextStyle(fontSize: 12.5, color: Color(0xFFE4E6CC)),
           ),
         ],
       ),
@@ -187,7 +189,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -205,11 +207,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 14),
                       Row(
                         children: [
                           Expanded(
-                            child: _buildCountCard(context.watch<AppLocale>().t('pendingReview'), '$pendingCount', const Color(0xFFE65100), const Color(0xFFFFF3E0)),
+                            child: _buildCountCard(context.watch<AppLocale>().t('pendingReview'), '$pendingCount', const Color(0xFFA8452A), const Color(0xFFF3DCC4)),
                           ),
                           const SizedBox(width: 10),
                           Expanded(
@@ -227,7 +229,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       hintText: 'Search referrals by citizen, village, or ASHA...',
                       prefixIcon: const Icon(Icons.search_rounded),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Color(0xFFFBF4E8),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -236,7 +238,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     ),
                     onChanged: (val) => setState(() => _searchQuery = val),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
                   // Filter Chips
                   SingleChildScrollView(
@@ -262,7 +264,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Color(0xFFFBF4E8),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppColors.border),
                       ),
@@ -301,25 +303,25 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE8F5E9),
+                      color: const Color(0xFFE4E6CC),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFA5D6A7)),
+                      border: Border.all(color: const Color(0xFFE4E6CC)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.verified_rounded, color: Color(0xFF2E7D32)),
+                        const Icon(Icons.verified_rounded, color: Color(0xFF3B6634)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             '${consultedList.length} Citizens successfully evaluated and prescribed clinical care.',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF2C4D27)),
                           ),
                         ),
                       ],
@@ -330,7 +332,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     Container(
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Color(0xFFFBF4E8),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(color: AppColors.border),
                       ),
@@ -375,15 +377,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           const NetworkBanner(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // KPI Overview
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Color(0xFFFBF4E8),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.border),
                     ),
@@ -392,17 +394,17 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       children: [
                         const Text(
                           'Sector Epidemiological Overview',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(child: _buildMetricTile('Registered Citizens', '${patients.length}', Icons.people_rounded, AppColors.primary)),
                             const SizedBox(width: 10),
-                            Expanded(child: _buildMetricTile('Screenings Logged', '${screenings.length}', Icons.checklist_rounded, const Color(0xFF0284C7))),
+                            Expanded(child: _buildMetricTile('Screenings Logged', '${screenings.length}', Icons.checklist_rounded, const Color(0xFF3B6634))),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 14),
                         Row(
                           children: [
                             Expanded(child: _buildMetricTile('Critical Red Alerts', '$redCases', Icons.emergency_rounded, AppColors.riskRed)),
@@ -410,10 +412,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                             Expanded(child: _buildMetricTile('Moderate Yellow Cases', '$yellowCases', Icons.warning_amber_rounded, AppColors.riskYellow)),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 14),
                         Row(
                           children: [
-                            Expanded(child: _buildMetricTile('Antenatal Care (ANC)', '$pregnantCount', Icons.pregnant_woman_rounded, const Color(0xFF0D9488))),
+                            Expanded(child: _buildMetricTile('Antenatal Care (ANC)', '$pregnantCount', Icons.pregnant_woman_rounded, const Color(0xFF3B6634))),
                           ],
                         ),
                       ],
@@ -423,9 +425,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
                   // Village Demographics Breakdown
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Color(0xFFFBF4E8),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppColors.border),
                     ),
@@ -434,9 +436,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       children: [
                         const Text(
                           'Village Distribution Matrix',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         ...{'Rampura', 'Khed', 'Shivpur'}.map((vName) {
                           final count = patients.where((p) => p.villageName == vName).length;
                           final fraction = patients.isNotEmpty ? count / patients.length : 0.0;
@@ -448,14 +450,14 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(vName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                    Text('$count citizens', style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                                    Text(vName, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold)),
+                                    Text('$count citizens', style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary)),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 6),
                                 LinearProgressIndicator(
                                   value: fraction,
-                                  backgroundColor: const Color(0xFFF1F5F9),
+                                  backgroundColor: const Color(0xFFF3E8D5),
                                   valueColor: const AlwaysStoppedAnimation<Color>(AppColors.roleDoctor),
                                   minHeight: 6,
                                   borderRadius: BorderRadius.circular(4),
@@ -478,7 +480,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
   Widget _buildMetricTile(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
@@ -488,10 +490,10 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 20),
-          const SizedBox(height: 6),
+          const SizedBox(height: 10),
           Text(value, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-          const SizedBox(height: 2),
-          Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -499,21 +501,21 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
 
   Widget _buildCountCard(String title, String count, Color color, Color bg) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
-          Text(count, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-          const SizedBox(height: 2),
+          Text(count,
+              style: TextStyle(fontFamily: 'Fraunces', fontSize: 28, height: 1.0, fontWeight: FontWeight.w700, color: color)),
+          const SizedBox(height: 6),
           Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -523,7 +525,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   Widget _buildFilterChip(String key, String label) {
     final isSelected = _selectedFilter == key;
     return ChoiceChip(
-      label: Text(label, style: TextStyle(fontSize: 12, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
+      label: Text(label, style: TextStyle(fontSize: 13.5, fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
       selected: isSelected,
       selectedColor: AppColors.roleDoctor.withOpacity(0.15),
       labelStyle: TextStyle(color: isSelected ? AppColors.roleDoctor : AppColors.textPrimary),
@@ -535,7 +537,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFFBF4E8),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: ref.priority == HealthPriority.red ? AppColors.riskRed.withOpacity(0.5) : AppColors.border,
@@ -550,61 +552,76 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                PriorityBadge(priority: ref.priority),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    ref.status.displayName,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      PriorityBadge(priority: ref.priority),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3E8D5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          ref.status.displayName,
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 SyncStatusBadge(status: ref.syncStatus, compact: true),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             Text(
               '${ref.patientName} (${ref.patientAge}y, ${ref.patientGender})',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
             Text(
               'Village: ${ref.villageName} • Originating ASHA: ${ref.originatingAshaName}',
-              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              style: const TextStyle(fontSize: 13.5, color: AppColors.textSecondary),
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAF9),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Text(
-                'Triage Trigger: ${ref.triageReason}',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ),
-            if (ref.doctorClinicalNotes != null && ref.doctorClinicalNotes!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Clinical Notes: ${ref.doctorClinicalNotes}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12, color: AppColors.roleDoctor),
-              ),
-            ],
             const SizedBox(height: 12),
+            ExpandableDetails(
+              builder: (context, open) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFBF4E8),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Text(
+                      'Triage Trigger: ${ref.triageReason}',
+                      maxLines: open ? null : 1,
+                      overflow: open ? null : TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.35),
+                    ),
+                  ),
+                  if (open && ref.doctorClinicalNotes != null && ref.doctorClinicalNotes!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Clinical Notes: ${ref.doctorClinicalNotes}',
+                      style: const TextStyle(fontSize: 13.5, color: AppColors.roleDoctor, height: 1.4),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -613,13 +630,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.roleDoctor,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     icon: const Icon(Icons.rate_review_rounded, size: 16),
                     label: Text(
                       ref.status == ReferralStatus.consulted ? 'Review / Update Notes' : 'Clinical Consultation',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold),
                     ),
                     onPressed: () {
                       Navigator.push(

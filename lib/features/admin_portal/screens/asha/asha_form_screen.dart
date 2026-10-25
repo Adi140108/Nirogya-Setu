@@ -137,7 +137,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('State: ${_state ?? ""}, District: ${_district ?? ""}',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                style: const TextStyle(fontSize: 12, color: Color(0xFF6B5443))),
             const SizedBox(height: 12),
             TextField(
               controller: controller,
@@ -260,8 +260,8 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: Text(_isEdit ? 'Edit ASHA Worker' : 'Add ASHA Worker',
             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         actions: [
@@ -431,10 +431,10 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                             height: 48,
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(
-                              color: _district == null ? const Color(0xFFF1F5F9) : const Color(0xFFE0F2FE),
+                              color: _district == null ? const Color(0xFFF3E8D5) : const Color(0xFFE4E6CC),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: _district == null ? const Color(0xFFCBD5E1) : const Color(0xFFBAE6FD),
+                                color: _district == null ? const Color(0xFFD5C1A0) : const Color(0xFFE4E6CC),
                               ),
                             ),
                             child: Row(
@@ -443,7 +443,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                                 Icon(
                                   Icons.add_location_alt_rounded,
                                   size: 18,
-                                  color: _district == null ? const Color(0xFF94A3B8) : const Color(0xFF0284C7),
+                                  color: _district == null ? const Color(0xFF9A8571) : const Color(0xFF3B6634),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
@@ -451,7 +451,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
-                                    color: _district == null ? const Color(0xFF94A3B8) : const Color(0xFF0369A1),
+                                    color: _district == null ? const Color(0xFF9A8571) : const Color(0xFF3B6634),
                                   ),
                                 ),
                               ],
@@ -525,7 +525,7 @@ class _AshaFormScreenState extends State<AshaFormScreen> {
                           : previewPassword != null
                               ? 'Login password will be generated automatically: $previewPassword\nThe ASHA worker signs in with the mobile number and this password.'
                               : 'A simple login password will be generated automatically from the name and mobile number.',
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF075985), height: 1.35),
+                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF2C4D27), height: 1.35),
                     ),
                   ),
                 ],

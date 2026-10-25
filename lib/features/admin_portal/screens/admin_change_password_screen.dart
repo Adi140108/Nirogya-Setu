@@ -81,7 +81,7 @@ class _AdminChangePasswordScreenState extends State<AdminChangePasswordScreen> {
       child: Row(
         children: [
           Icon(met ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-              size: 16, color: met ? const Color(0xFF16A34A) : AdminColors.muted),
+              size: 16, color: met ? const Color(0xFF3B6634) : AdminColors.muted),
           const SizedBox(width: 8),
           Text(text, style: TextStyle(fontSize: 12.5, color: met ? AdminColors.ink : AdminColors.muted)),
         ],
@@ -95,8 +95,8 @@ class _AdminChangePasswordScreenState extends State<AdminChangePasswordScreen> {
     return Scaffold(
       backgroundColor: AdminColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AdminColors.ink,
+        backgroundColor: const Color(0xFF3B6634),
+        foregroundColor: const Color(0xFFFBF4E8),
         title: const Text('Change Admin Password', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
@@ -143,16 +143,16 @@ class _AdminChangePasswordScreenState extends State<AdminChangePasswordScreen> {
                 margin: const EdgeInsets.only(bottom: 14),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
+                  color: const Color(0xFFF4D6C8),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFFFECACA)),
+                  border: Border.all(color: const Color(0xFFF4D6C8)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline_rounded, color: Color(0xFFDC2626), size: 20),
+                    const Icon(Icons.error_outline_rounded, color: Color(0xFFB23A22), size: 20),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(_error!, style: const TextStyle(fontSize: 13, color: Color(0xFF991B1B))),
+                      child: Text(_error!, style: const TextStyle(fontSize: 13, color: Color(0xFF8A2B18))),
                     ),
                   ],
                 ),

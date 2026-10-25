@@ -34,13 +34,13 @@ class NotificationBannerOverlay extends StatelessWidget {
                         child: Material(
                           elevation: 8,
                           borderRadius: BorderRadius.circular(16),
-                          color: const Color(0xFF0F172A), // Modern sleek dark slate
+                          color: const Color(0xFF33200F), // Modern sleek dark slate
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: const Color(0xFF0284C7).withOpacity(0.4),
+                                color: const Color(0xFF3B6634).withOpacity(0.4),
                                 width: 1.2,
                               ),
                               boxShadow: [
@@ -58,13 +58,13 @@ class NotificationBannerOverlay extends StatelessWidget {
                                   width: 36,
                                   height: 36,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0284C7).withOpacity(0.2),
+                                    color: const Color(0xFF3B6634).withOpacity(0.2),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: const Color(0xFF0284C7).withOpacity(0.5)),
+                                    border: Border.all(color: const Color(0xFF3B6634).withOpacity(0.5)),
                                   ),
                                   child: const Icon(
                                     Icons.notifications_active_rounded,
-                                    color: Color(0xFF38BDF8),
+                                    color: Color(0xFFA8C98E),
                                     size: 20,
                                   ),
                                 ),
@@ -91,7 +91,7 @@ class NotificationBannerOverlay extends StatelessWidget {
                                           const Text(
                                             'Just now',
                                             style: TextStyle(
-                                              color: Color(0xFF94A3B8),
+                                              color: Color(0xFF9A8571),
                                               fontSize: 10,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -102,7 +102,7 @@ class NotificationBannerOverlay extends StatelessWidget {
                                       Text(
                                         notification.body,
                                         style: const TextStyle(
-                                          color: Color(0xFFCBD5E1),
+                                          color: Color(0xFFD5C1A0),
                                           fontSize: 12,
                                           fontWeight: FontWeight.w400,
                                         ),
@@ -116,7 +116,7 @@ class NotificationBannerOverlay extends StatelessWidget {
                                 IconButton(
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                  icon: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF9A8571)),
                                   onPressed: () => NotificationService().dismissActiveNotification(),
                                 ),
                               ],

@@ -39,7 +39,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFFBF4E8),
       appBar: widget.isEmbedded
           ? null
           : AppBar(
@@ -47,7 +47,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Nirogya Setu', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text('Household & Family Registry', style: TextStyle(fontSize: 11, color: Color(0xFFE0F2F1))),
+                  Text('Household & Family Registry', style: TextStyle(fontSize: 11, color: Color(0xFFE4E6CC))),
                 ],
               ),
               backgroundColor: AppColors.primary,
@@ -61,7 +61,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
           // Search & Filter Header
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.white,
+            color: const Color(0xFFFBF4E8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -70,7 +70,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                   children: [
                     Text(
                       context.watch<AppLocale>().t('villageHouseholds'),
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF33200F)),
                     ),
                     Text(
                       '${householdsMap.length} ${context.watch<AppLocale>().t('families')}',
@@ -84,15 +84,15 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                     hintText: context.watch<AppLocale>().t('searchHouseholds'),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     filled: true,
-                    fillColor: const Color(0xFFF1F5F9),
+                    fillColor: const Color(0xFFF3E8D5),
                     contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: const BorderSide(color: Color(0xFFE2D2B6)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                      borderSide: const BorderSide(color: Color(0xFFE2D2B6)),
                     ),
                   ),
                   onChanged: (v) => setState(() => _searchQuery = v),
@@ -106,7 +106,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                 ? Center(
                     child: Text(
                       context.watch<AppLocale>().t('noHouseholdsFound'),
-                      style: const TextStyle(color: Color(0xFF64748B)),
+                      style: const TextStyle(color: Color(0xFF6B5443)),
                     ),
                   )
                 : ListView.builder(
@@ -121,9 +121,9 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                       return Container(
                         margin: const EdgeInsets.only(bottom: 14),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Color(0xFFFBF4E8),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: const Color(0xFFE2D2B6)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.03),
@@ -139,7 +139,7 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               decoration: const BoxDecoration(
-                                color: Color(0xFFF1F5F9),
+                                color: Color(0xFFF3E8D5),
                                 borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
                               ),
                               child: Row(
@@ -149,12 +149,12 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                                   Expanded(
                                     child: Text(
                                       'Household: $householdId',
-                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF33200F)),
                                     ),
                                   ),
                                   Text(
                                     '${members.length} Members • ${head.villageName}',
-                                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                                    style: const TextStyle(fontSize: 11, color: Color(0xFF6B5443), fontWeight: FontWeight.w500),
                                   ),
                                 ],
                               ),
@@ -194,11 +194,11 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                                                 children: [
                                                   Text(
                                                     '${m.fullName} (${m.displayRelationship})',
-                                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                                                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF33200F)),
                                                   ),
                                                   Text(
                                                     '${m.age}y, ${m.gender} • Contact: ${m.contactNumber}',
-                                                    style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                                    style: const TextStyle(fontSize: 11, color: Color(0xFF6B5443)),
                                                   ),
                                                 ],
                                               ),
@@ -207,12 +207,12 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFFFCE7F3),
+                                                  color: const Color(0xFFF3DCC4),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
-                                                child: const Text('ANC', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFFBE185D))),
+                                                child: const Text('ANC', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Color(0xFF7E3019))),
                                               ),
-                                            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF94A3B8)),
+                                            const Icon(Icons.chevron_right_rounded, size: 18, color: Color(0xFF9A8571)),
                                           ],
                                         ),
                                       ),
@@ -293,12 +293,12 @@ class _AshaHouseholdsScreenState extends State<AshaHouseholdsScreen> {
                   children: [
                     Text(
                       'Add Member to Household ($householdId)',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF33200F)),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Village: ${head.villageName} • Head: ${head.fullName}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      style: const TextStyle(fontSize: 11, color: Color(0xFF6B5443)),
                     ),
                     const SizedBox(height: 14),
                     TextField(
