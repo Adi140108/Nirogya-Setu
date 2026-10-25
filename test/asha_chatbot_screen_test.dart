@@ -154,5 +154,50 @@ void main() {
       expect(find.textContaining('PREGNANCY WARNING SIGNS (RED FLAGS)'), findsOneWidget);
       expect(find.textContaining('Immediate RED referral to Community Health Centre'), findsOneWidget);
     });
+
+    testWidgets('multilingual offline engine responds in Hindi for Hindi fever query', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({'chat_language': 'hi'});
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AshaChatbotScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check Hindi welcome greeting
+      expect(find.textContaining('नमस्ते! मैं आपका आशा नैदानिक सहायक हूँ'), findsOneWidget);
+
+      final textField = find.byType(TextField);
+      await tester.enterText(textField, 'मरीज को 3 दिन से तेज बुखार है');
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pumpAndSettle();
+
+      // Confirm Hindi fever triage protocol
+      expect(find.textContaining('बुखार और मलेरिया ट्राइएज प्रोटोकॉल'), findsOneWidget);
+      expect(find.textContaining('पैरासिटामोल (Paracetamol)'), findsOneWidget);
+      expect(find.textContaining('PHC डॉक्टर के पास भेजें'), findsOneWidget);
+    });
+
+    testWidgets('multilingual offline engine responds in Kannada for Kannada pregnancy query', (WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({'chat_language': 'kn'});
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AshaChatbotScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Check Kannada greeting
+      expect(find.textContaining('ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ಆಶಾ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ'), findsOneWidget);
+
+      final textField = find.byType(TextField);
+      await tester.enterText(textField, 'ಗರ್ಭಿಣಿ ಮಹಿಳೆಗೆ ತಲೆನೋವು ಇದೆ');
+      await tester.testTextInput.receiveAction(TextInputAction.send);
+      await tester.pumpAndSettle();
+
+      // Confirm Kannada pregnancy red flags
+      expect(find.textContaining('ಗರ್ಭಾವಸ್ಥೆಯ ಅಪಾಯದ ಲಕ್ಷಣಗಳು (RED FLAGS)'), findsOneWidget);
+      expect(find.textContaining('108 ಆಂಬ್ಯುಲೆನ್ಸ್ ಮೂಲಕ ಸಾಗಾಣಿಕೆ ವ್ಯವಸ್ಥೆ ಮಾಡಿ'), findsOneWidget);
+    });
   });
 }
