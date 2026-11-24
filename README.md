@@ -103,9 +103,4 @@ lib/
 ## Team
 
 [@adityabrabb](https://github.com/adityabrabb) · [@Adi140108](https://github.com/Adi140108) · [@kushal287](https://github.com/kushal287) · [@Arman866-bot](https://github.com/Arman866-bot)
-
-## Credits
-
-- Hero background: *A Warli painting by Jivya Soma Mashe, Thane district*, photo by Jean-Pierre Dalbéra, [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/), via Wikimedia Commons (recoloured).
-- Brand: Warli mark, Fraunces, DM Sans and Tiro type families (SIL Open Font License).
-- People, readings and ID numbers in the screenshots are demo records, not real patients.
+3YSJ2Q
